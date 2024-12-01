@@ -1,13 +1,14 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
-import credentials from '../../firebase-credentials.json';
+
+const credentials = {
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+};
 
 const app = initializeApp({
-  credential: cert(credentials as any),
+  credential: cert(credentials),
 });
 
 export const adminDb = getFirestore(app);
-export const adminAuth = getAuth(app);
-
-export default app;

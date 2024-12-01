@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, getFirestore, serverTimestamp } from 'firebase/firestore';
-import { db } from './firestore';
+import { collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp } from 'firebase/firestore';
+import { adminDb as db } from '@/lib/firebase-admin';
 import { getMissions, getMissionById, createMission, updateMission, deleteMission } from './missions';
-import type { Mission } from '../../types/ebios';
+import type { Mission } from '@/types/ebios';
 
 const FIXED_TIMESTAMP = '2024-01-01T00:00:00.000Z';
 
@@ -32,15 +32,19 @@ vi.mock('./firestore', () => ({
 }));
 
 describe('Mission Firebase Service', () => {
-  const mockMission: Mission = {
-    id: 'test-id',
+  const testMission = {
     name: 'Test Mission',
     description: 'Test Description',
-    status: 'draft',
-    dueDate: '2024-01-01',
+    status: 'draft' as const,
+    dueDate: new Date().toISOString(),
     assignedTo: ['user1'],
-    createdAt: FIXED_TIMESTAMP,
-    updatedAt: FIXED_TIMESTAMP,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  const mockMission: Mission = {
+    id: 'test-id',
+    ...testMission
   };
 
   beforeEach(() => {
