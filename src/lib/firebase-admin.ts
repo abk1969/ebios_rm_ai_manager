@@ -1,5 +1,6 @@
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 const credentials = {
   projectId: process.env.VITE_FIREBASE_PROJECT_ID,
@@ -12,3 +13,4 @@ const app = initializeApp({
 });
 
 export const adminDb = getFirestore(app);
+export const adminAuth = getAuth(app);

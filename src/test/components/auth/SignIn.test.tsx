@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import SignIn from '@/pages/auth/SignIn';
@@ -6,7 +6,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 
 // Mock Firebase Auth
 vi.mock('@/services/firebase/auth', () => ({
-  signIn: vi.fn().mockImplementation((email, password) => {
+  signIn: vi.fn().mockImplementation((email: string, password: string) => {
     if (email === 'demo@ebioscloud.pro' && password === 'demo123') {
       return Promise.resolve({ user: { uid: 'test-uid' } });
     }
@@ -39,6 +39,16 @@ describe('SignIn', () => {
     );
   };
 
+  const mockSignIn = async (email: string, password: string) => {
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/mot de passe/i);
+    const submitButton = screen.getByRole('button', { name: /se connecter/i });
+
+    fireEvent.change(emailInput, { target: { value: email } });
+    fireEvent.change(passwordInput, { target: { value: password } });
+    fireEvent.click(submitButton);
+  };
+
   it('should render sign in form', () => {
     renderSignIn();
     
@@ -50,13 +60,7 @@ describe('SignIn', () => {
   it('should show error message on invalid credentials', async () => {
     renderSignIn();
     
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/mot de passe/i);
-    const submitButton = screen.getByRole('button', { name: /se connecter/i });
-
-    fireEvent.change(emailInput, { target: { value: 'invalid@email.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
-    fireEvent.click(submitButton);
+    await mockSignIn('invalid@email.com', 'wrongpassword');
 
     await waitFor(() => {
       expect(screen.getByText(/email ou mot de passe invalide/i)).toBeInTheDocument();
@@ -66,13 +70,7 @@ describe('SignIn', () => {
   it('should redirect on successful login', async () => {
     renderSignIn();
     
-    const emailInput = screen.getByLabelText(/email/i);
-    const passwordInput = screen.getByLabelText(/mot de passe/i);
-    const submitButton = screen.getByRole('button', { name: /se connecter/i });
-
-    fireEvent.change(emailInput, { target: { value: 'demo@ebioscloud.pro' } });
-    fireEvent.change(passwordInput, { target: { value: 'demo123' } });
-    fireEvent.click(submitButton);
+    await mockSignIn('demo@ebioscloud.pro', 'demo123');
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);

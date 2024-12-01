@@ -8,13 +8,15 @@ import type { Mission } from '@/types/ebios';
 interface NewMissionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: Partial<Mission>) => void;
+  onSubmit: (data: Partial<Mission>) => Promise<void>;
+  initialData?: Mission;
 }
 
 const NewMissionModal: React.FC<NewMissionModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  initialData,
 }) => {
   return (
     <Dialog
