@@ -8,6 +8,7 @@ publish = "dist"
 build.environment
 ]
 NODE_VERSION = "20"
+NPM_FLAGS = "--no-audit --no-fund"
 
 [[
 redirects
@@ -15,3 +16,13 @@ redirects
 from = "/*"
 to = "/index.html"
 status = 200
+
+[
+context.production
+]
+environment = { NODE_ENV = "production" }
+
+[
+context.deploy-preview
+]
+environment = { NODE_ENV = "production" }
