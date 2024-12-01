@@ -1,0 +1,60 @@
+MIT License
+
+Copyright (c) 2024 GLOBACOM3000 / Abbas BENTERKI
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Additional Terms:
+
+1. Commercial Use:
+   - The Community Edition of EBIOS Cloud Pro is free for non-commercial use
+   - Commercial use requires a valid license from GLOBACOM3000
+   - Contact contact@ebioscloud.pro for commercial licensing options
+
+2. Attribution:
+   - All copies and substantial portions of the Software must include attribution to GLOBACOM3000 / Abbas BENTERKI
+   - The "Powered by GLOBACOM3000 / Abbas BENTERKI" notice must be preserved
+
+3. Contributions:
+   - By submitting contributions, you agree to license your work under the same license terms
+   - You retain copyright of your contributions while granting GLOBACOM3000 a perpetual license to use them
+
+4. Trademark:
+   - "EBIOS Cloud Pro" and related logos are trademarks of GLOBACOM3000
+   - Use of these trademarks requires explicit permission
+
+5. Data Protection:
+   - Any deployment must comply with applicable data protection laws
+   - The software includes features to help with GDPR compliance but ultimate responsibility lies with the deployer
+
+6. Support:
+   - Community support is provided through GitHub issues
+   - Commercial support requires a valid support contract
+   - Contact support@ebioscloud.pro for support options
+
+7. Updates:
+   - Security updates will be provided for the Community Edition
+   - Feature updates may be restricted to commercial versions
+
+8. Hosting:
+   - Self-hosting is permitted for internal use
+   - Hosting as a service for third parties requires a commercial license
+
+For questions about licensing or commercial use, contact:
+licensing@ebioscloud.pro

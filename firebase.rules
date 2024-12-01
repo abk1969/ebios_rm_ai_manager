@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Base rules
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Collections
+    match /missions/{missionId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /businessValues/{valueId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /supportingAssets/{assetId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /securityControls/{controlId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /riskSources/{sourceId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /stakeholders/{stakeholderId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /attackPaths/{pathId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /securityMeasures/{measureId} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /workshops/{workshopId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
