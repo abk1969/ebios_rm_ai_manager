@@ -18,11 +18,11 @@ to = "/index.html"
 status = 200
 
 [
-context.production
+context.production.environment
 ]
-environment = { NODE_ENV = "production" }
+NODE_ENV = "production"
 
 [
-context.deploy-preview
+context.deploy-preview.environment
 ]
-environment = { NODE_ENV = "production" }
+NODE_ENV = "production"
