@@ -103,11 +103,15 @@ export async function updateMission(id: string, data: Partial<Mission>): Promise
     
     await updateDoc(docRef, updateData);
     
+    const updatedMission = await getMissionById(id);
+    if (!updatedMission) {
+      throw new Error('Mission not found after update');
+    }
+
     return {
-      id,
-      ...(await getMissionById(id)),
-      ...updateData,
-    } as Mission;
+      ...updatedMission,
+      updatedAt: new Date().toISOString(), // Convert FieldValue to string
+    };
   } catch (error) {
     console.error('Error updating mission:', error);
     throw error;
