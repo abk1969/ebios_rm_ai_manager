@@ -37,13 +37,19 @@ describe('Mission Firebase Service', () => {
     description: 'Test Description',
     status: 'draft' as const,
     dueDate: new Date().toISOString(),
-    assignedTo: ['user1'],
+    assignedTo: ['user1'] as string[],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
-  } as const;
+  };
 
   const createMissionData = {
-    ...testMission,
+    name: testMission.name,
+    description: testMission.description,
+    status: testMission.status,
+    dueDate: testMission.dueDate,
+    assignedTo: testMission.assignedTo,
+    createdAt: testMission.createdAt,
+    updatedAt: testMission.updatedAt
   };
 
   const mockMission: Mission = {
