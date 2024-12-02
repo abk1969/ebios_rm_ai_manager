@@ -7,7 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 // Mock Firebase Auth
 vi.mock('@/services/firebase/auth', () => ({
   signIn: vi.fn().mockImplementation((email: string, password: string) => {
-    if (email === 'demo@ebioscloud.pro' && password === 'demo123') {
+    if (email === 'test@example.com' && password === 'validpassword') {
       return Promise.resolve({ user: { uid: 'test-uid' } });
     }
     return Promise.reject(new Error('auth/invalid-credentials'));
@@ -70,7 +70,7 @@ describe('SignIn', () => {
   it('should redirect on successful login', async () => {
     renderSignIn();
     
-    await mockSignIn('demo@ebioscloud.pro', 'demo123');
+    await mockSignIn('test@example.com', 'validpassword');
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);

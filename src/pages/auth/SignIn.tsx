@@ -117,9 +117,10 @@ const SignIn = () => {
             {showHelp && (
               <div className="mt-4 p-4 bg-blue-50 rounded-md">
                 <p className="text-sm text-blue-700">
-                  Pour tester l'application, utilisez les identifiants de démonstration :<br />
+                  Vous pouvez utiliser les identifiants de démonstration pour tester l'application :<br />
                   Email: demo@ebioscloud.pro<br />
-                  Mot de passe: demo123
+                  Mot de passe: demo123<br /><br />
+                  Ou créez un nouveau compte pour accéder à toutes les fonctionnalités.
                 </p>
               </div>
             )}

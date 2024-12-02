@@ -90,12 +90,6 @@ const SignInForm = () => {
       >
         {loading ? 'Signing in...' : 'Sign In'}
       </Button>
-
-      <div className="text-sm text-center text-gray-600">
-        <p>Demo credentials:</p>
-        <p>Email: demo@ebioscloud.pro</p>
-        <p>Password: demo123</p>
-      </div>
     </form>
   );
 };
