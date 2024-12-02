@@ -40,20 +40,41 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const mapFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
   const baseUser = {
     uid: firebaseUser.uid,
-    email: firebaseUser.email,
-    displayName: firebaseUser.displayName,
-    photoURL: firebaseUser.photoURL,
-    emailVerified: firebaseUser.emailVerified
+    email: firebaseUser.email || '',
+    displayName: firebaseUser.displayName || '',
+    photoURL: firebaseUser.photoURL || '',
+    emailVerified: firebaseUser.emailVerified,
+    createdAt: null,
+    updatedAt: null,
+    role: 'user' as const
   };
 
   try {
     const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
     const userData = userDoc.data();
+    
+    if (userData) {
+      return {
+        ...baseUser,
+        createdAt: userData.createdAt?.toDate?.() || null,
+        updatedAt: userData.updatedAt?.toDate?.() || null,
+        role: userData.role || 'user'
+      };
+    }
 
-    return {
+    // If no user document exists, create one
+    const newUser = {
       ...baseUser,
-      ...userData
-    } as User;
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    };
+    
+    await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+    return {
+      ...newUser,
+      createdAt: newUser.createdAt.toDate(),
+      updatedAt: newUser.updatedAt.toDate()
+    };
   } catch (error) {
     console.error('Error fetching user data:', error);
     return baseUser;
@@ -66,6 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     // Set persistence to LOCAL
     setPersistence(auth, browserLocalPersistence).catch(console.error);
 
@@ -73,6 +96,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser) => {
+        if (!mounted) return;
+        
         try {
           const mappedUser = firebaseUser ? await mapFirebaseUser(firebaseUser) : null;
           setUser(mappedUser);
@@ -84,13 +109,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       },
       (error) => {
+        if (!mounted) return;
         console.error('Auth state change error:', error);
         setError(error.message);
         setLoading(false);
       }
     );
 
-    return unsubscribe;
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async ({ email, password }: SignInCredentials) => {
@@ -99,7 +128,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       await firebaseSignIn(email, password);
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      let errorMessage = 'Failed to sign in';
+      if (err.code === 'auth/invalid-credentials') {
+        errorMessage = 'Email ou mot de passe invalide';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Trop de tentatives de connexion. Veuillez réessayer plus tard.';
+      }
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -159,8 +194,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       await firebaseResetPassword(email);
     } catch (err: any) {
-      setError(err.message || 'Failed to reset password');
-      throw err;
+      const errorMessage = err.message || 'Failed to reset password';
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -252,10 +288,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updatePassword,
     updateProfile,
     deleteAccount,
-    clearError,
+    clearError
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        error,
+        signIn,
+        signUp,
+        signOut,
+        resetPassword,
+        verifyEmail,
+        updatePassword,
+        updateProfile,
+        deleteAccount,
+        clearError
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
