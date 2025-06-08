@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import {
   LayoutDashboard,
   Briefcase,
   Database,
@@ -21,36 +23,38 @@ interface SidebarProps {
 const Sidebar = ({ isOpen, isMobile, onClose }: SidebarProps) => {
   const location = useLocation();
 
+  // 🔧 NAVIGATION DYNAMIQUE: URLs basées sur la mission sélectionnée
+  const selectedMission = useSelector((state: RootState) => state.missions.selectedMission);
+
   const navigation = [
-    { name: 'Tableau de bord', href: '/app', icon: LayoutDashboard },
     { name: 'Missions', href: '/missions', icon: Briefcase },
     {
       name: 'Workshop 1',
-      href: '/workshop-1',
+      href: selectedMission ? `/workshops/${selectedMission.id}/1` : '/missions',
       icon: Database,
       description: 'Scope & Security Baseline'
     },
     {
       name: 'Workshop 2',
-      href: '/workshop-2',
+      href: selectedMission ? `/workshops/${selectedMission.id}/2` : '/missions',
       icon: Target,
       description: 'Risk Sources'
     },
     {
       name: 'Workshop 3',
-      href: '/workshop-3',
+      href: selectedMission ? `/workshops/${selectedMission.id}/3` : '/missions',
       icon: Users,
       description: 'Strategic Scenarios'
     },
     {
       name: 'Workshop 4',
-      href: '/workshop-4',
+      href: selectedMission ? `/workshops/${selectedMission.id}/4` : '/missions',
       icon: Route,
       description: 'Operational Scenarios'
     },
     {
       name: 'Workshop 5',
-      href: '/workshop-5',
+      href: selectedMission ? `/workshops/${selectedMission.id}/5` : '/missions',
       icon: ShieldCheck,
       description: 'Treatment Strategy'
     },

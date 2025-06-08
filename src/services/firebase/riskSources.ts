@@ -1,6 +1,7 @@
 import { collection, addDoc, getDocs, query, where, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { RiskSource } from '@/types/ebios';
+import { AIEnrichmentService } from '@/services/ai/AIEnrichmentService';
 
 const COLLECTION_NAME = 'riskSources';
 
@@ -18,13 +19,14 @@ export const getRiskSources = async (missionId: string): Promise<RiskSource[]> =
 
 export const createRiskSource = async (source: Omit<RiskSource, 'id'>): Promise<RiskSource> => {
   try {
+    const enrichedSource = AIEnrichmentService.enrichRiskSource(source);
+    
     const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...source,
-      objectives: [],
+      ...enrichedSource,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    return { id: docRef.id, ...source } as RiskSource;
+    return { id: docRef.id, ...enrichedSource } as RiskSource;
   } catch (error) {
     console.error('Error creating risk source:', error);
     throw error;
@@ -33,9 +35,11 @@ export const createRiskSource = async (source: Omit<RiskSource, 'id'>): Promise<
 
 export const updateRiskSource = async (id: string, data: Partial<RiskSource>): Promise<void> => {
   try {
+    const enrichedData = AIEnrichmentService.enrichRiskSource(data);
+    
     const docRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(docRef, {
-      ...data,
+      ...enrichedData,
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {

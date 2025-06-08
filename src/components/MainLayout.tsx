@@ -57,12 +57,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </div>
 
         <main className="flex-1 p-6 bg-gray-100">
-          <Card className="mb-4 p-4 bg-yellow-50 border-yellow-100">
-            <div className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-yellow-600" />
-              <p className="text-sm text-yellow-800">
+          <Card className="mb-4 p-3 bg-yellow-50 border-yellow-200">
+            <div className="flex items-start space-x-2">
+              <Shield className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-yellow-800 leading-relaxed">
                 Cette application est un outil indépendant d'aide à l'application 
-                de la méthode EBIOS Risk Manager.
+                de la méthode EBIOS Risk Manager. Pour la méthode officielle, consultez la documentation ANSSI.
               </p>
             </div>
           </Card>

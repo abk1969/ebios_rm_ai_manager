@@ -7,12 +7,39 @@ import type { Mission } from '@/types/ebios';
 const FIXED_TIMESTAMP = new Date('2024-01-01T00:00:00.000Z');
 
 describe('Mission Firebase Service', () => {
+  // 🔧 CORRECTION: Mock complet conforme à l'interface Mission
   const mockMission: Mission = {
     id: 'test-mission-id',
     name: 'Test Mission',
     description: 'Test Description',
     status: 'draft',
+    dueDate: '2024-12-31T23:59:59Z', // 🔧 CORRECTION: Propriété manquante
     assignedTo: [],
+    organizationContext: { // 🔧 CORRECTION: Type OrganizationContext avec types littéraux
+      organizationType: 'private' as const,
+      sector: 'Technology',
+      size: 'medium' as const,
+      regulatoryRequirements: ['GDPR'],
+      securityObjectives: ['Confidentiality', 'Integrity'],
+      constraints: ['Budget limitations']
+    },
+    scope: { // 🔧 CORRECTION: Type AnalysisScope
+      boundaries: 'Test scope for EBIOS RM analysis',
+      inclusions: ['IT infrastructure', 'Data processing'],
+      exclusions: ['Physical security'],
+      timeFrame: {
+        start: '2024-01-01T00:00:00Z',
+        end: '2024-12-31T23:59:59Z'
+      },
+      geographicalScope: ['France']
+    },
+    ebiosCompliance: { // 🔧 CORRECTION: Type EbiosCompliance avec types littéraux
+      version: '1.5' as const,
+      completionPercentage: 75,
+      lastValidationDate: FIXED_TIMESTAMP.toISOString(),
+      complianceGaps: [],
+      certificationLevel: 'basic' as const
+    },
     createdAt: FIXED_TIMESTAMP.toISOString(),
     updatedAt: FIXED_TIMESTAMP.toISOString(),
   };
@@ -152,10 +179,40 @@ describe('Mission Firebase Service', () => {
 
   describe('createMission', () => {
     it('should create a new mission', async () => {
+      // 🔧 CORRECTION: missionData complet conforme à Omit<Mission, 'id'>
       const missionData = {
         name: 'New Mission',
         description: 'New Description',
-        status: 'not_started' as const,
+        status: 'draft' as const, // 🔧 CORRECTION: Status valide
+        dueDate: '2024-12-31T23:59:59Z',
+        assignedTo: [],
+        organizationContext: { // 🔧 CORRECTION: Type OrganizationContext avec types littéraux
+          organizationType: 'private' as const,
+          sector: 'Technology',
+          size: 'small' as const,
+          regulatoryRequirements: ['GDPR'],
+          securityObjectives: ['Confidentiality'],
+          constraints: ['Limited budget']
+        },
+        scope: { // 🔧 CORRECTION: Type AnalysisScope
+          boundaries: 'Test scope for new mission',
+          inclusions: ['Web applications'],
+          exclusions: ['Legacy systems'],
+          timeFrame: {
+            start: '2024-01-01T00:00:00Z',
+            end: '2024-12-31T23:59:59Z'
+          },
+          geographicalScope: ['France']
+        },
+        ebiosCompliance: { // 🔧 CORRECTION: Type EbiosCompliance avec types littéraux
+          version: '1.5' as const,
+          completionPercentage: 0,
+          lastValidationDate: FIXED_TIMESTAMP.toISOString(),
+          complianceGaps: [],
+          certificationLevel: 'basic' as const
+        },
+        createdAt: FIXED_TIMESTAMP.toISOString(),
+        updatedAt: FIXED_TIMESTAMP.toISOString()
       };
 
       (addDoc as any).mockResolvedValue({
@@ -185,7 +242,43 @@ describe('Mission Firebase Service', () => {
     it('should handle errors', async () => {
       (addDoc as any).mockRejectedValue(new Error('Firebase error'));
 
-      await expect(createMission({})).rejects.toThrow('Firebase error');
+      // 🔧 CORRECTION: Utilisation d'un objet Mission valide pour le test d'erreur
+      const invalidMissionData = {
+        name: 'Error Test Mission',
+        description: 'Mission for testing error handling',
+        status: 'draft' as const,
+        dueDate: '2024-12-31T23:59:59Z',
+        assignedTo: [],
+        organizationContext: { // 🔧 CORRECTION: Type OrganizationContext avec types littéraux
+          organizationType: 'private' as const,
+          sector: 'Testing',
+          size: 'small' as const,
+          regulatoryRequirements: [],
+          securityObjectives: ['Testing'],
+          constraints: ['Test constraints']
+        },
+        scope: { // 🔧 CORRECTION: Type AnalysisScope
+          boundaries: 'Error test scope',
+          inclusions: ['Test systems'],
+          exclusions: ['Production'],
+          timeFrame: {
+            start: '2024-01-01T00:00:00Z',
+            end: '2024-12-31T23:59:59Z'
+          },
+          geographicalScope: ['Test']
+        },
+        ebiosCompliance: { // 🔧 CORRECTION: Type EbiosCompliance avec types littéraux
+          version: '1.5' as const,
+          completionPercentage: 0,
+          lastValidationDate: FIXED_TIMESTAMP.toISOString(),
+          complianceGaps: [],
+          certificationLevel: 'basic' as const
+        },
+        createdAt: FIXED_TIMESTAMP.toISOString(),
+        updatedAt: FIXED_TIMESTAMP.toISOString()
+      };
+
+      await expect(createMission(invalidMissionData)).rejects.toThrow('Firebase error');
     });
   });
 

@@ -24,7 +24,7 @@ const NavigationButtons = () => {
         <span>Retour</span>
       </Button>
 
-      <Link to="/app">
+      <Link to="/missions">
         <Button
           variant="secondary"
           size="sm"

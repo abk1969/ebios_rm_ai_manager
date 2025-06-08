@@ -1,51 +1,61 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, LayoutDashboard, Briefcase, Database, Target, Users, Route, ShieldCheck, Settings } from 'lucide-react';
+import { Shield, LayoutDashboard, Briefcase, Database, Target, Users, Route, ShieldCheck, Settings, Bot, BarChart2, Upload } from 'lucide-react';
 import NavigationButtons from './NavigationButtons';
-import AppHeader from './AppHeader';
-import AppFooter from './AppFooter';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const selectedMission = useSelector((state: RootState) => state.missions.selectedMission);
 
   const navigation = [
-    { name: 'Dashboard', href: '/app', icon: LayoutDashboard },
     { name: 'Missions', href: '/missions', icon: Briefcase },
+    { name: 'Ateliers EBIOS RM', href: '/workshops', icon: Target },
+    ...(selectedMission ? [
+      {
+        name: 'Tableau de bord IA',
+        href: `/ebios-dashboard/${selectedMission.id}`,
+        icon: BarChart2,
+        badge: 'IA',
+        badgeColor: 'bg-blue-100 text-blue-800'
+      }
+    ] : []),
     {
       name: 'Workshops',
       icon: Shield,
       children: [
         {
           name: 'Workshop 1',
-          href: '/workshop-1',
+          href: selectedMission ? `/workshops/${selectedMission.id}/1` : '/missions',
           icon: Database,
           description: 'Scope & Security Baseline',
           steps: ['Business Values', 'Supporting Assets', 'Security Controls']
         },
         {
           name: 'Workshop 2',
-          href: '/workshop-2',
+          href: selectedMission ? `/workshops/${selectedMission.id}/2` : '/missions',
           icon: Target,
           description: 'Risk Sources',
           steps: ['Source Identification', 'Objectives', 'Pertinence Analysis']
         },
         {
           name: 'Workshop 3',
-          href: '/workshop-3',
+          href: selectedMission ? `/workshops/${selectedMission.id}/3` : '/missions',
           icon: Users,
           description: 'Strategic Scenarios',
           steps: ['Stakeholder Analysis', 'Strategic Context', 'Attack Paths']
         },
         {
           name: 'Workshop 4',
-          href: '/workshop-4',
+          href: selectedMission ? `/workshops/${selectedMission.id}/4` : '/missions',
           icon: Route,
           description: 'Operational Scenarios',
           steps: ['Attack Actions', 'Technical Analysis', 'Success Probability']
         },
         {
           name: 'Workshop 5',
-          href: '/workshop-5',
+          href: selectedMission ? `/workshops/${selectedMission.id}/5` : '/missions',
           icon: ShieldCheck,
           description: 'Treatment Strategy',
           steps: ['Security Measures', 'Risk Evaluation', 'Action Plan']
@@ -57,8 +67,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <AppHeader />
-      
       <div className="flex-1 flex">
         <div className="hidden lg:flex lg:flex-shrink-0">
           <div className="flex flex-col w-64 border-r border-gray-200 bg-white">
@@ -122,16 +130,23 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`group flex items-center rounded-md px-3 py-2 text-sm font-medium ${
+                      className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium ${
                         isActive
                           ? 'bg-blue-50 text-blue-600'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
-                      <Icon className={`mr-3 h-5 w-5 ${
-                        isActive ? 'text-blue-600' : 'text-gray-400'
-                      }`} />
-                      {item.name}
+                      <div className="flex items-center">
+                        <Icon className={`mr-3 h-5 w-5 ${
+                          isActive ? 'text-blue-600' : 'text-gray-400'
+                        }`} />
+                        {item.name}
+                      </div>
+                      {(item as any).badge && (
+                        <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${(item as any).badgeColor || 'bg-gray-100 text-gray-800'}`}>
+                          {(item as any).badge}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -152,7 +167,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <NavigationButtons />
-      <AppFooter />
     </div>
   );
 };

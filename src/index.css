@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 🎨 Classes personnalisées pour Workshop 1 */
+@layer utilities {
+  .bg-red-25 {
+    background-color: #fef7f7;
+  }
+
+  .bg-green-25 {
+    background-color: #f7fef7;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}

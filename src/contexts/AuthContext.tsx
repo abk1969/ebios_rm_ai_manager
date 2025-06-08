@@ -44,8 +44,8 @@ const mapFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
     displayName: firebaseUser.displayName || '',
     photoURL: firebaseUser.photoURL || '',
     emailVerified: firebaseUser.emailVerified,
-    createdAt: null,
-    updatedAt: null,
+    createdAt: undefined,
+    updatedAt: undefined,
     role: 'user' as const
   };
 
@@ -56,8 +56,8 @@ const mapFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
     if (userData) {
       return {
         ...baseUser,
-        createdAt: userData.createdAt?.toDate?.() || null,
-        updatedAt: userData.updatedAt?.toDate?.() || null,
+        createdAt: userData.createdAt || undefined,
+        updatedAt: userData.updatedAt || undefined,
         role: userData.role || 'user'
       };
     }
@@ -72,8 +72,8 @@ const mapFirebaseUser = async (firebaseUser: FirebaseUser): Promise<User> => {
     await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
     return {
       ...newUser,
-      createdAt: newUser.createdAt.toDate(),
-      updatedAt: newUser.updatedAt.toDate()
+      createdAt: newUser.createdAt,
+      updatedAt: newUser.updatedAt
     };
   } catch (error) {
     console.error('Error fetching user data:', error);
@@ -89,10 +89,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Set persistence to LOCAL
+    // Firebase authentication avec persistance
     setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-    // Subscribe to auth state changes
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser) => {
@@ -101,6 +100,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const mappedUser = firebaseUser ? await mapFirebaseUser(firebaseUser) : null;
           setUser(mappedUser);
+          // 🔧 CORRECTION: Logs seulement en développement
+          if (import.meta.env.DEV) {
+            console.log('🔐 État d\'authentification Firebase:', mappedUser ? 'Connecté' : 'Déconnecté');
+            if (mappedUser) {
+              console.log('👤 Utilisateur connecté:', mappedUser.displayName || mappedUser.email);
+            }
+          }
         } catch (error) {
           console.error('Error mapping user:', error);
           setError('Failed to load user data');
@@ -126,13 +132,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       setLoading(true);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('🔑 Tentative de connexion Firebase pour:', email);
+      }
       await firebaseSignIn(email, password);
+      if (import.meta.env.DEV) {
+        console.log('✅ Connexion Firebase réussie');
+      }
+      // onAuthStateChanged se chargera de la mise à jour de l'état
     } catch (err: any) {
-      let errorMessage = 'Failed to sign in';
-      if (err.code === 'auth/invalid-credentials') {
+      console.error('❌ Erreur de connexion Firebase:', err);
+      let errorMessage = 'Échec de la connexion';
+      if (err.code === 'auth/invalid-credentials' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
         errorMessage = 'Email ou mot de passe invalide';
       } else if (err.code === 'auth/too-many-requests') {
         errorMessage = 'Trop de tentatives de connexion. Veuillez réessayer plus tard.';
+      } else if (err.code === 'auth/configuration-not-found') {
+        errorMessage = 'Erreur de configuration Firebase. Vérifiez votre connexion.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Erreur de réseau. Vérifiez votre connexion internet.';
       }
       setError(errorMessage);
       throw err;
@@ -153,9 +173,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       setLoading(true);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('📝 Création de compte Firebase pour:', email);
+      }
       const user = await firebaseSignUp(email, password, displayName);
       
-      // Store additional user data in Firestore
+      // Ajouter les données supplémentaires dans Firestore
       const userData: Partial<User> = {
         company,
         firstName,
@@ -167,8 +192,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       await setDoc(doc(db, 'users', user.uid), userData);
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('✅ Compte Firebase créé avec succès');
+      }
+      // onAuthStateChanged se chargera de la mise à jour de l'état
     } catch (err: any) {
-      setError(err.message || 'Failed to sign up');
+      console.error('❌ Erreur de création de compte Firebase:', err);
+      let errorMessage = 'Échec de la création du compte';
+      if (err.code === 'auth/email-already-in-use') {
+        errorMessage = 'Cet email est déjà utilisé';
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = 'Le mot de passe doit contenir au moins 6 caractères';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Adresse email invalide';
+      }
+      setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
@@ -179,9 +218,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       setLoading(true);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('🚪 Déconnexion Firebase');
+      }
       await firebaseSignOut();
+      if (import.meta.env.DEV) {
+        console.log('✅ Déconnexion réussie');
+      }
+      // onAuthStateChanged se chargera de la mise à jour de l'état
     } catch (err: any) {
-      setError(err.message || 'Failed to sign out');
+      console.error('❌ Erreur de déconnexion:', err);
+      setError(err.message || 'Échec de la déconnexion');
       throw err;
     } finally {
       setLoading(false);
@@ -192,9 +241,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       setLoading(true);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('🔄 Reset mot de passe Firebase pour:', email);
+      }
       await firebaseResetPassword(email);
+      if (import.meta.env.DEV) {
+        console.log('✅ Email de reset envoyé');
+      }
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to reset password';
+      console.error('❌ Erreur reset mot de passe:', err);
+      let errorMessage = 'Échec de l\'envoi de l\'email de réinitialisation';
+      if (err.code === 'auth/user-not-found') {
+        errorMessage = 'Aucun compte trouvé avec cet email';
+      }
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {
@@ -203,15 +264,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const verifyEmail = async () => {
-    if (!user) {
-      throw new Error('No user signed in');
+    if (!auth.currentUser) {
+      throw new Error('Aucun utilisateur connecté');
     }
     try {
       setError(null);
       setLoading(true);
-      await sendEmailVerification(user as FirebaseUser);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('📧 Vérification email Firebase pour:', auth.currentUser.email);
+      }
+      await sendEmailVerification(auth.currentUser);
+      if (import.meta.env.DEV) {
+        console.log('✅ Email de vérification envoyé');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to send verification email');
+      console.error('❌ Erreur vérification email:', err);
+      setError(err.message || 'Échec de l\'envoi de l\'email de vérification');
       throw err;
     } finally {
       setLoading(false);
@@ -219,15 +289,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updatePassword = async (newPassword: string) => {
-    if (!user) {
-      throw new Error('No user signed in');
+    if (!auth.currentUser) {
+      throw new Error('Aucun utilisateur connecté');
     }
     try {
       setError(null);
       setLoading(true);
-      await updateUserPassword(user as FirebaseUser, newPassword);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('🔑 Mise à jour mot de passe Firebase pour:', auth.currentUser.email);
+      }
+      await updateUserPassword(auth.currentUser, newPassword);
+      if (import.meta.env.DEV) {
+        console.log('✅ Mot de passe mis à jour');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to update password');
+      console.error('❌ Erreur mise à jour mot de passe:', err);
+      setError(err.message || 'Échec de la mise à jour du mot de passe');
       throw err;
     } finally {
       setLoading(false);
@@ -235,14 +314,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (profile: { displayName?: string; photoURL?: string }) => {
-    if (!user) {
-      throw new Error('No user signed in');
+    if (!user || !auth.currentUser) {
+      throw new Error('Aucun utilisateur connecté');
     }
     try {
       setError(null);
       setLoading(true);
-      await updateUserProfile(user as FirebaseUser, profile);
-      // Update Firestore user data
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('👤 Mise à jour profil Firebase pour:', user.email);
+      }
+      await updateUserProfile(auth.currentUser, profile);
       await setDoc(doc(db, 'users', user.uid), 
         { 
           ...profile,
@@ -250,8 +333,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }, 
         { merge: true }
       );
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('✅ Profil mis à jour');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      console.error('❌ Erreur mise à jour profil:', err);
+      setError(err.message || 'Échec de la mise à jour du profil');
       throw err;
     } finally {
       setLoading(false);
@@ -259,15 +347,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteAccount = async () => {
-    if (!user) {
-      throw new Error('No user signed in');
+    if (!auth.currentUser) {
+      throw new Error('Aucun utilisateur connecté');
     }
     try {
       setError(null);
       setLoading(true);
-      await deleteUserAccount(user as FirebaseUser);
+      
+      // 🔧 CORRECTION: Logs seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('🗑️ Suppression compte Firebase pour:', auth.currentUser.email);
+      }
+      await deleteUserAccount(auth.currentUser);
+      if (import.meta.env.DEV) {
+        console.log('✅ Compte supprimé');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to delete account');
+      console.error('❌ Erreur suppression compte:', err);
+      setError(err.message || 'Échec de la suppression du compte');
       throw err;
     } finally {
       setLoading(false);
@@ -275,21 +372,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearError = () => setError(null);
-
-  const value = {
-    user,
-    loading,
-    error,
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    verifyEmail,
-    updatePassword,
-    updateProfile,
-    deleteAccount,
-    clearError
-  };
 
   return (
     <AuthContext.Provider

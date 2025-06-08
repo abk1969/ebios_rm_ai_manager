@@ -54,15 +54,19 @@ export async function getMissionById(id: string): Promise<Mission | null> {
 
 export async function getMissionsByStatus(status: Mission['status']): Promise<Mission[]> {
   try {
-    const q = query(missionsCollection, where('status', '==', status), orderBy('createdAt', 'desc'));
+    // Requête simplifiée sans orderBy pour éviter l'index composite
+    const q = query(missionsCollection, where('status', '==', status));
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(doc => ({
+    const missions = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
       updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
     } as Mission));
+
+    // Tri côté client par date de création décroissante
+    return missions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   } catch (error) {
     console.error('Error getting missions by status:', error);
     throw error;
@@ -131,19 +135,22 @@ export async function deleteMission(id: string): Promise<void> {
 export const getMissionsByUser = async (userId: string): Promise<Mission[]> => {
   try {
     const missionsRef = collection(db, COLLECTION_NAME);
+    // Requête simplifiée sans orderBy pour éviter l'index composite
     const q = query(
       missionsRef,
-      where('assignedTo', 'array-contains', userId),
-      orderBy('createdAt', 'desc')
+      where('assignedTo', 'array-contains', userId)
     );
     const snapshot = await getDocs(q);
     
-    return snapshot.docs.map(doc => ({
+    const missions = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       createdAt: doc.data().createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
       updatedAt: doc.data().updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
     } as Mission));
+
+    // Tri côté client par date de création décroissante
+    return missions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   } catch (error) {
     console.error('Error getting user missions:', error);
     throw error;

@@ -25,7 +25,7 @@ const SignIn = () => {
         email: formData.email,
         password: formData.password
       });
-      const from = (location.state as any)?.from?.pathname || '/app';
+      const from = (location.state as any)?.from?.pathname || '/missions';
       navigate(from);
     } catch (error) {
       console.error('Sign in error:', error);
@@ -63,6 +63,7 @@ const SignIn = () => {
                 id="email"
                 type="email"
                 required
+                autoComplete="email"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -77,6 +78,7 @@ const SignIn = () => {
                 id="password"
                 type="password"
                 required
+                autoComplete="current-password"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -117,10 +119,11 @@ const SignIn = () => {
             {showHelp && (
               <div className="mt-4 p-4 bg-blue-50 rounded-md">
                 <p className="text-sm text-blue-700">
-                  Vous pouvez utiliser les identifiants de démonstration pour tester l'application :<br />
-                  Email: demo@ebioscloud.pro<br />
-                  Mot de passe: demo123<br /><br />
-                  Ou créez un nouveau compte pour accéder à toutes les fonctionnalités.
+                  Pour tester l'application, vous pouvez utiliser n'importe quelle combinaison email/mot de passe.<br /><br />
+                  Exemple :<br />
+                  Email: test@example.com<br />
+                  Mot de passe: password123<br /><br />
+                  L'application s'adaptera automatiquement selon la configuration Firebase disponible.
                 </p>
               </div>
             )}
