@@ -1,23 +1,187 @@
 import React from 'react';
-import { CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { CheckCircle, AlertCircle, AlertTriangle, ArrowRight, Zap, Target, Plus, Settings, Eye, RefreshCw } from 'lucide-react';
 import type { WorkshopValidation } from '@/types/ebios';
+import Button from '@/components/ui/button';
+
+interface ValidationAction {
+  type: 'navigate' | 'auto-fix' | 'suggest';
+  label: string;
+  icon: React.ComponentType<any>;
+  action: () => void;
+  variant?: 'primary' | 'secondary' | 'success';
+}
 
 interface StandardValidationPanelProps {
   workshopNumber: 1 | 2 | 3 | 4 | 5;
   validationResults: WorkshopValidation[];
   title?: string;
+  // Callbacks pour les actions de correction
+  onNavigateToSection?: (section: string) => void;
+  onAutoFix?: (criterion: string) => void;
+  onAddBusinessValue?: () => void;
+  onAddDreadedEvent?: (businessValueId?: string) => void;
+  onAddSupportingAsset?: (businessValueId?: string) => void;
+  // Données pour les suggestions IA
+  businessValues?: any[];
+  supportingAssets?: any[];
+  dreadedEvents?: any[];
 }
 
 const StandardValidationPanel: React.FC<StandardValidationPanelProps> = ({
   workshopNumber,
   validationResults,
-  title = `État d'Avancement - Atelier ${workshopNumber}`
+  title = `État d'Avancement - Atelier ${workshopNumber}`,
+  onNavigateToSection,
+  onAutoFix,
+  onAddBusinessValue,
+  onAddDreadedEvent,
+  onAddSupportingAsset,
+  businessValues = [],
+  supportingAssets = [],
+  dreadedEvents = []
 }) => {
   
   const getValidationIcon = (met: boolean, required: boolean) => {
     if (met) return <CheckCircle className="h-5 w-5 text-green-500" />;
     if (required) return <AlertCircle className="h-5 w-5 text-red-500" />;
     return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+  };
+
+  /**
+   * Génère les actions de correction pour chaque critère
+   */
+  const getValidationActions = (criterion: string, met: boolean): ValidationAction[] => {
+    if (met) return []; // Pas d'actions si le critère est déjà validé
+
+    const actions: ValidationAction[] = [];
+
+    switch (criterion) {
+      case 'Valeurs métier identifiées':
+        actions.push({
+          type: 'navigate',
+          label: '➕ Ajouter valeur métier',
+          icon: Plus,
+          action: () => onAddBusinessValue?.(),
+          variant: 'primary'
+        });
+        actions.push({
+          type: 'navigate',
+          label: '👁️ Voir section',
+          icon: Eye,
+          action: () => onNavigateToSection?.('business-values'),
+          variant: 'secondary'
+        });
+        break;
+
+      case 'Actifs supports cartographiés':
+        // Identifier les valeurs métier sans actifs supports
+        const uncoveredValues = businessValues.filter(bv =>
+          !supportingAssets.some(sa => sa.businessValueId === bv.id)
+        );
+
+        if (uncoveredValues.length > 0) {
+          actions.push({
+            type: 'auto-fix',
+            label: `⚡ Corriger ${uncoveredValues.length} valeur(s)`,
+            icon: Zap,
+            action: () => {
+              // Ajouter un actif support pour la première valeur non couverte
+              onAddSupportingAsset?.(uncoveredValues[0].id);
+            },
+            variant: 'success'
+          });
+
+          actions.push({
+            type: 'navigate',
+            label: `🎯 Voir "${uncoveredValues[0].name}"`,
+            icon: Target,
+            action: () => onNavigateToSection?.(`business-value-${uncoveredValues[0].id}`),
+            variant: 'secondary'
+          });
+        }
+
+        actions.push({
+          type: 'navigate',
+          label: '📋 Voir section actifs',
+          icon: ArrowRight,
+          action: () => onNavigateToSection?.('supporting-assets'),
+          variant: 'secondary'
+        });
+        break;
+
+      case 'Événements redoutés définis':
+        // Identifier les valeurs métier sans événements redoutés
+        const uncoveredByEvents = businessValues.filter(bv =>
+          !dreadedEvents.some(de => de.businessValueId === bv.id)
+        );
+
+        if (uncoveredByEvents.length > 0) {
+          actions.push({
+            type: 'auto-fix',
+            label: `⚡ Corriger ${uncoveredByEvents.length} valeur(s)`,
+            icon: Zap,
+            action: () => {
+              // Ajouter un événement redouté pour la première valeur non couverte
+              onAddDreadedEvent?.(uncoveredByEvents[0].id);
+            },
+            variant: 'success'
+          });
+
+          actions.push({
+            type: 'navigate',
+            label: `🎯 Voir "${uncoveredByEvents[0].name}"`,
+            icon: Target,
+            action: () => onNavigateToSection?.(`business-value-${uncoveredByEvents[0].id}`),
+            variant: 'secondary'
+          });
+        }
+
+        actions.push({
+          type: 'navigate',
+          label: '🚨 Voir section événements',
+          icon: ArrowRight,
+          action: () => onNavigateToSection?.('dreaded-events'),
+          variant: 'secondary'
+        });
+        break;
+
+      case 'Socle de sécurité évalué':
+        actions.push({
+          type: 'navigate',
+          label: '🔒 Évaluer sécurité',
+          icon: Settings,
+          action: () => onNavigateToSection?.('security-baseline'),
+          variant: 'primary'
+        });
+        actions.push({
+          type: 'suggest',
+          label: '🤖 Suggestions IA',
+          icon: Zap,
+          action: () => onAutoFix?.(criterion),
+          variant: 'secondary'
+        });
+        break;
+
+      default:
+        // Actions génériques améliorées
+        actions.push({
+          type: 'suggest',
+          label: '🤖 Suggestions IA',
+          icon: Zap,
+          action: () => onAutoFix?.(criterion),
+          variant: 'success'
+        });
+        actions.push({
+          type: 'navigate',
+          label: '🔄 Actualiser',
+          icon: RefreshCw,
+          action: () => window.location.reload(),
+          variant: 'secondary'
+        });
+        break;
+    }
+
+    return actions;
   };
 
   const completionPercentage = Math.round(
@@ -79,10 +243,59 @@ const StandardValidationPanel: React.FC<StandardValidationPanelProps> = ({
                   {result.comments}
                 </div>
               )}
+
+              {/* 🔧 ACTIONS DE CORRECTION AMÉLIORÉES */}
+              {!result.met && (
+                <div className="mt-4 space-y-2">
+                  <div className="text-xs font-medium text-gray-700 mb-2">
+                    🛠️ Actions disponibles :
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {getValidationActions(result.criterion, result.met).map((action, actionIndex) => (
+                      <Button
+                        key={actionIndex}
+                        variant={action.variant || 'secondary'}
+                        size="sm"
+                        onClick={action.action}
+                        className={`flex items-center gap-1 text-xs font-medium transition-all duration-200 hover:scale-105 ${
+                          action.variant === 'primary' ? 'shadow-md' : ''
+                        } ${
+                          action.variant === 'success' ? 'bg-green-600 hover:bg-green-700 text-white' : ''
+                        }`}
+                      >
+                        <action.icon className="h-3 w-3" />
+                        {action.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
+
+      {/* 🚨 SECTION CORRECTIONS REQUISES */}
+      {validationResults.some(r => !r.met && r.required) && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-start">
+            <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                ⚠️ Corrections requises avant de continuer
+              </h3>
+              <p className="text-sm text-red-700 mt-1">
+                Des erreurs méthodologiques doivent être corrigées pour assurer la conformité EBIOS RM et la qualité de l'analyse de risque.
+              </p>
+              <div className="mt-3">
+                <p className="text-xs text-red-600">
+                  📋 Référence : EBIOS RM v1.5 - Bonnes pratiques
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 📈 BARRE DE PROGRESSION */}
       <div className="mt-6">

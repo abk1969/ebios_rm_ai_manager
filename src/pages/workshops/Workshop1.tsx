@@ -29,7 +29,8 @@ import {
   AlertCircle,
   Info,
   Target,
-  Shield
+  Shield,
+  RefreshCw
 } from 'lucide-react';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import WorkshopNavigation from '../../components/workshops/WorkshopNavigation';
@@ -42,11 +43,17 @@ import StandardWorkshopHeader from '../../components/workshops/StandardWorkshopH
 import StandardValidationPanel from '../../components/workshops/StandardValidationPanel';
 import WorkshopGuide from '../../components/workshops/WorkshopGuide';
 import Workshop1Guide from '../../components/workshops/Workshop1Guide';
+import AISuggestionPanel from '../../components/ai/AISuggestionPanel';
 import Workshop1Actions from '../../components/workshops/Workshop1Actions';
 import AISuggestionsExplainer from '../../components/ai/AISuggestionsExplainer';
 import EbiosMethodologyValidator from '../../components/validation/EbiosMethodologyValidator';
 import { StandardEbiosValidation } from '../../services/validation/StandardEbiosValidation';
 import { ResponsiveContainer, CardsGrid, MetricsGrid } from '../../components/layout/ResponsiveGrid';
+import DataQualityAlert from '../../components/ai/DataQualityAlert';
+import DataQualityFixModal from '../../components/ai/DataQualityFixModal';
+import { dataQualityDetector } from '../../services/ai/DataQualityDetector';
+import { a2aDataQualityService } from '../../services/ai/A2ADataQualityService';
+import { dataQualityCorrectionManager } from '../../services/ai/DataQualityCorrectionManager';
 import type {
   BusinessValue,
   SupportingAsset,
@@ -117,6 +124,52 @@ const Workshop1 = () => {
   const [showAnssiReport, setShowAnssiReport] = useState(false);
   const [standardValidation, setStandardValidation] = useState<any>(null);
 
+  // 🆕 États pour les suggestions IA de correction
+  const [showAISuggestions, setShowAISuggestions] = useState(false);
+  const [selectedCriterion, setSelectedCriterion] = useState<string>('');
+
+  // 🔍 NOUVEAU : États pour la détection de qualité des données
+  const [dataQualityIssues, setDataQualityIssues] = useState<any[]>([]);
+  const [showDataQualityAlert, setShowDataQualityAlert] = useState(false);
+  const [selectedDataQualityIssue, setSelectedDataQualityIssue] = useState<any>(null);
+  const [showDataQualityFixModal, setShowDataQualityFixModal] = useState(false);
+  const [entityToFix, setEntityToFix] = useState<any>(null);
+  const [lastAnalysisTimestamp, setLastAnalysisTimestamp] = useState<number>(0);
+  const [dataChangeCounter, setDataChangeCounter] = useState<number>(0);
+
+  // 🔗 Configurer la référence au gestionnaire de corrections
+  React.useEffect(() => {
+    dataQualityDetector.setCorrectionManager((stableKey: string) =>
+      dataQualityCorrectionManager.getHistory(stableKey)
+    );
+  }, []);
+
+  // 🔍 NOUVEAU : Surveillance des changements de données (DÉSACTIVÉE TEMPORAIREMENT)
+  React.useEffect(() => {
+    console.log('📊 SURVEILLANCE DÉSACTIVÉE - Données modifiées:', {
+      businessValues: businessValues.length,
+      dreadedEvents: dreadedEvents.length,
+      supportingAssets: supportingAssets.length,
+      timestamp: new Date().toLocaleTimeString()
+    });
+    // Désactivé temporairement pour debug
+    // setDataChangeCounter(prev => prev + 1);
+  }, [businessValues, dreadedEvents, supportingAssets]);
+
+  // 🔍 NOUVEAU : Analyse automatique DÉSACTIVÉE TEMPORAIREMENT
+  React.useEffect(() => {
+    console.log('🔄 ANALYSE AUTOMATIQUE DÉSACTIVÉE - Données actuelles:', {
+      businessValues: businessValues.length,
+      dreadedEvents: dreadedEvents.length,
+      supportingAssets: supportingAssets.length
+    });
+
+    // Désactivé temporairement pour debug
+    // if (businessValues.length > 0 || dreadedEvents.length > 0 || supportingAssets.length > 0) {
+    //   analyzeDataQuality(businessValues, dreadedEvents, supportingAssets);
+    // }
+  }, [businessValues, dreadedEvents, supportingAssets]);
+
   if (!missionId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -124,6 +177,29 @@ const Workshop1 = () => {
           <AlertTriangle className="mx-auto h-12 w-12 text-red-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">ID de mission requis</h3>
           <p className="text-gray-500 mb-6">Sélectionnez d'abord une mission pour accéder à l'Atelier 1</p>
+
+          {/* TEST D'URGENCE */}
+          <div className="mb-4">
+            <button
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: 'bold'
+              }}
+              onClick={() => {
+                console.log('🚨 TEST D\'URGENCE - Clic détecté !');
+                alert('TEST D\'URGENCE FONCTIONNE !');
+              }}
+            >
+              🚨 TEST D'URGENCE
+            </button>
+          </div>
+
           <Button
             onClick={() => window.history.back()}
             variant="secondary"
@@ -250,6 +326,231 @@ const Workshop1 = () => {
     // 🆕 AMÉLIORATION: Validation standardisée
     const standardResult = StandardEbiosValidation.validateWorkshop1(values, assets, events);
     setStandardValidation(standardResult);
+
+    // 🔍 NOUVEAU : Analyse de qualité des données avec A2A
+    analyzeDataQuality(values, events, assets).catch(error => {
+      console.warn('⚠️ Erreur analyse qualité:', error);
+    });
+  };
+
+  // 🔍 NOUVEAU : Fonction d'analyse de qualité des données avec A2A et filtrage des corrections
+  const analyzeDataQuality = async (
+    values: BusinessValue[],
+    events: DreadedEvent[],
+    assets: SupportingAsset[]
+  ) => {
+    console.log('🔍 ===== DÉBUT ANALYSE QUALITÉ DES DONNÉES =====');
+    console.log('📊 Données à analyser:', { values: values.length, events: events.length, assets: assets.length });
+    console.log('🕐 Timestamp:', new Date().toLocaleTimeString());
+
+    const allIssues: any[] = [];
+
+    try {
+      // 🔒 NOUVEAU : Vérifier si une entité a des champs déjà corrigés
+      const hasUncorrectedFields = (entity: any, entityType: string) => {
+        const textFields = ['name', 'description', 'category', 'criticalityLevel', 'consequences', 'type'];
+
+        for (const fieldName of textFields) {
+          const value = entity[fieldName];
+          if (value && typeof value === 'string' && value.trim().length > 0) {
+            const stableKey = `${entityType}:${entity.id}:${fieldName}`;
+            const correctionHistory = dataQualityCorrectionManager.getHistory(stableKey);
+
+            if (!correctionHistory || correctionHistory.correctionCount === 0) {
+              // Ce champ n'a pas été corrigé, l'entité peut être analysée
+              return true;
+            }
+          }
+        }
+
+        // Tous les champs ont été corrigés ou sont vides
+        return false;
+      };
+
+      // 🤖 NOUVEAU : Analyse avec orchestration A2A pour chaque entité
+
+      // Analyser les valeurs métier avec A2A (en filtrant les entités déjà corrigées)
+      for (const bv of values) {
+        // Vérifier si cette entité a des champs non corrigés
+        if (!hasUncorrectedFields(bv, 'businessValue')) {
+          console.log(`🔒 Valeur métier ${bv.id} ignorée (tous les champs corrigés)`);
+          continue;
+        }
+
+        try {
+          const a2aAnalysis = await a2aDataQualityService.analyzeEntityWithA2A(
+            'businessValue',
+            bv,
+            missionId
+          );
+
+          if (a2aAnalysis.issues.length > 0) {
+            allIssues.push(...a2aAnalysis.issues.map(issue => ({
+              ...issue,
+              entityType: 'businessValue',
+              entityId: bv.id,
+              entityName: bv.name,
+              // 🤖 Enrichissement A2A
+              a2aSuggestions: a2aAnalysis.suggestions.filter(s => s.field === issue.field),
+              agentsUsed: a2aAnalysis.agentsUsed,
+              mcpToolsUsed: a2aAnalysis.mcpToolsUsed
+            })));
+          }
+        } catch (error) {
+          console.warn(`⚠️ Fallback analyse classique pour BV ${bv.id}:`, error);
+          // Fallback vers analyse classique
+          const report = dataQualityDetector.analyzeCompleteEntity('businessValue', bv);
+          if (!report.isValid) {
+            allIssues.push(...report.issues.map(issue => ({
+              ...issue,
+              entityType: 'businessValue',
+              entityId: bv.id,
+              entityName: bv.name,
+              fallbackUsed: true
+            })));
+          }
+        }
+      }
+
+      // Analyser les événements redoutés avec A2A (en filtrant les entités déjà corrigées)
+      for (const de of events) {
+        // Vérifier si cette entité a des champs non corrigés
+        if (!hasUncorrectedFields(de, 'dreadedEvent')) {
+          console.log(`🔒 Événement redouté ${de.id} ignoré (tous les champs corrigés)`);
+          continue;
+        }
+
+        try {
+          const a2aAnalysis = await a2aDataQualityService.analyzeEntityWithA2A(
+            'dreadedEvent',
+            de,
+            missionId
+          );
+
+          if (a2aAnalysis.issues.length > 0) {
+            allIssues.push(...a2aAnalysis.issues.map(issue => ({
+              ...issue,
+              entityType: 'dreadedEvent',
+              entityId: de.id,
+              entityName: de.name,
+              // 🤖 Enrichissement A2A
+              a2aSuggestions: a2aAnalysis.suggestions.filter(s => s.field === issue.field),
+              agentsUsed: a2aAnalysis.agentsUsed,
+              mcpToolsUsed: a2aAnalysis.mcpToolsUsed
+            })));
+          }
+        } catch (error) {
+          console.warn(`⚠️ Fallback analyse classique pour DE ${de.id}:`, error);
+          // Fallback vers analyse classique
+          const report = dataQualityDetector.analyzeCompleteEntity('dreadedEvent', de);
+          if (!report.isValid) {
+            allIssues.push(...report.issues.map(issue => ({
+              ...issue,
+              entityType: 'dreadedEvent',
+              entityId: de.id,
+              entityName: de.name,
+              fallbackUsed: true
+            })));
+          }
+        }
+      }
+
+      // Analyser les actifs supports avec A2A (en filtrant les entités déjà corrigées)
+      for (const sa of assets) {
+        // Vérifier si cette entité a des champs non corrigés
+        if (!hasUncorrectedFields(sa, 'supportingAsset')) {
+          console.log(`🔒 Actif support ${sa.id} ignoré (tous les champs corrigés)`);
+          continue;
+        }
+
+        try {
+          const a2aAnalysis = await a2aDataQualityService.analyzeEntityWithA2A(
+            'supportingAsset',
+            sa,
+            missionId
+          );
+
+          if (a2aAnalysis.issues.length > 0) {
+            allIssues.push(...a2aAnalysis.issues.map(issue => ({
+              ...issue,
+              entityType: 'supportingAsset',
+              entityId: sa.id,
+              entityName: sa.name,
+              // 🤖 Enrichissement A2A
+              a2aSuggestions: a2aAnalysis.suggestions.filter(s => s.field === issue.field),
+              agentsUsed: a2aAnalysis.agentsUsed,
+              mcpToolsUsed: a2aAnalysis.mcpToolsUsed
+            })));
+          }
+        } catch (error) {
+          console.warn(`⚠️ Fallback analyse classique pour SA ${sa.id}:`, error);
+          // Fallback vers analyse classique
+          const report = dataQualityDetector.analyzeCompleteEntity('supportingAsset', sa);
+          if (!report.isValid) {
+            allIssues.push(...report.issues.map(issue => ({
+              ...issue,
+              entityType: 'supportingAsset',
+              entityId: sa.id,
+              entityName: sa.name,
+              fallbackUsed: true
+            })));
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur analyse A2A, fallback complet:', error);
+
+      // Fallback complet vers analyse classique
+      values.forEach(bv => {
+        const report = dataQualityDetector.analyzeCompleteEntity('businessValue', bv);
+        if (!report.isValid) {
+          allIssues.push(...report.issues.map(issue => ({
+            ...issue,
+            entityType: 'businessValue',
+            entityId: bv.id,
+            entityName: bv.name,
+            fallbackUsed: true
+          })));
+        }
+      });
+
+      events.forEach(de => {
+        const report = dataQualityDetector.analyzeCompleteEntity('dreadedEvent', de);
+        if (!report.isValid) {
+          allIssues.push(...report.issues.map(issue => ({
+            ...issue,
+            entityType: 'dreadedEvent',
+            entityId: de.id,
+            entityName: de.name,
+            fallbackUsed: true
+          })));
+        }
+      });
+
+      assets.forEach(sa => {
+        const report = dataQualityDetector.analyzeCompleteEntity('supportingAsset', sa);
+        if (!report.isValid) {
+          allIssues.push(...report.issues.map(issue => ({
+            ...issue,
+            entityType: 'supportingAsset',
+            entityId: sa.id,
+            entityName: sa.name,
+            fallbackUsed: true
+          })));
+        }
+      });
+    }
+
+    console.log('🔍 ===== FIN ANALYSE QUALITÉ DES DONNÉES =====');
+    console.log('📊 Problèmes de qualité détectés (A2A):', allIssues.length);
+    console.log('📋 Détails des problèmes:', allIssues);
+    console.log('🕐 Fin timestamp:', new Date().toLocaleTimeString());
+
+    setDataQualityIssues(allIssues);
+    setShowDataQualityAlert(allIssues.length > 0);
+
+    console.log('✅ État mis à jour - Nombre de problèmes:', allIssues.length);
   };
 
   // Fonction pour sauvegarder l'état actuel avant modification
@@ -375,6 +676,339 @@ const Workshop1 = () => {
     }
   };
 
+  // 🔍 NOUVEAU : Fonctions de correction automatique des données
+  const handleAutoFixDataQuality = async (issue: any) => {
+    console.log('🔧 handleAutoFixDataQuality appelé avec:', issue);
+
+    try {
+      if (!issue.suggestedValue) {
+        console.log('❌ Pas de suggestedValue:', issue);
+        setError('❌ Aucune correction automatique disponible pour ce problème');
+        return;
+      }
+
+      // 🔑 Initialiser le problème dans le gestionnaire
+      dataQualityCorrectionManager.initializeProblem(issue);
+
+      // 🔧 Appliquer la correction avec le gestionnaire
+      const correctionResult = dataQualityCorrectionManager.applyCorrection(
+        issue,
+        issue.suggestedValue,
+        'auto'
+      );
+
+      if (!correctionResult.success) {
+        console.warn('❌ Correction refusée:', correctionResult.error);
+        setError(`❌ Correction impossible: ${correctionResult.error}`);
+        return;
+      }
+
+      console.log('🔧 Correction validée par le gestionnaire:', correctionResult);
+
+      console.log('✅ Correction automatique en cours...', {
+        entityType: issue.entityType,
+        entityId: issue.entityId,
+        field: issue.field,
+        originalValue: correctionResult.preservedOriginal,
+        newValue: correctionResult.newValue,
+        correctionCount: correctionResult.correctionCount
+      });
+
+      saveCurrentState();
+
+      if (issue.entityType === 'businessValue') {
+        const bv = businessValues.find(v => v.id === issue.entityId);
+        if (bv) {
+          const updatedValue = {
+            ...bv,
+            [issue.field]: correctionResult.newValue,
+            [`${issue.field}_original`]: correctionResult.preservedOriginal,
+            [`${issue.field}_correctionCount`]: correctionResult.correctionCount,
+            updatedAt: new Date().toISOString()
+          };
+
+          await updateBusinessValue(bv.id, updatedValue);
+          const updatedValues = businessValues.map(v =>
+            v.id === bv.id ? updatedValue : v
+          );
+          dispatch(setBusinessValues(updatedValues));
+          console.log('✅ Valeur métier mise à jour:', updatedValue);
+          setError(`✅ "${bv.name}" corrigé automatiquement (${correctionResult.correctionCount}x)`);
+        }
+      } else if (issue.entityType === 'dreadedEvent') {
+        const de = dreadedEvents.find(e => e.id === issue.entityId);
+        if (de) {
+          const updatedEvent = {
+            ...de,
+            [issue.field]: correctionResult.newValue,
+            [`${issue.field}_original`]: correctionResult.preservedOriginal,
+            [`${issue.field}_correctionCount`]: correctionResult.correctionCount,
+            updatedAt: new Date().toISOString()
+          };
+
+          await updateDreadedEvent(de.id, updatedEvent);
+          const updatedEvents = dreadedEvents.map(e =>
+            e.id === de.id ? updatedEvent : e
+          );
+          setDreadedEvents(updatedEvents);
+          setError(`✅ "${de.name}" corrigé automatiquement (${correctionResult.correctionCount}x)`);
+        }
+      } else if (issue.entityType === 'supportingAsset') {
+        const sa = supportingAssets.find(a => a.id === issue.entityId);
+        if (sa) {
+          const updatedAsset = {
+            ...sa,
+            [issue.field]: correctionResult.newValue,
+            [`${issue.field}_original`]: correctionResult.preservedOriginal,
+            [`${issue.field}_correctionCount`]: correctionResult.correctionCount,
+            updatedAt: new Date().toISOString()
+          };
+
+          await updateSupportingAsset(sa.id, updatedAsset);
+          const updatedAssets = supportingAssets.map(a =>
+            a.id === sa.id ? updatedAsset : a
+          );
+          dispatch(setSupportingAssets(updatedAssets));
+          setError(`✅ "${sa.name}" corrigé automatiquement (${correctionResult.correctionCount}x)`);
+        }
+      }
+
+      // 🔑 Marquer le problème comme résolu dans le gestionnaire
+      const stableKey = issue.stableKey || `${issue.entityType}:${issue.entityId}:${issue.field}`;
+
+      // Supprimer le problème de la liste SEULEMENT s'il est résolu
+      setDataQualityIssues(prev => {
+        const filtered = prev.filter(i => i.stableKey !== stableKey && i.id !== issue.id);
+        console.log('🗑️ Problème supprimé de la liste. Restants:', filtered.length);
+        return filtered;
+      });
+
+      // 🚫 NE PAS relancer l'analyse immédiatement pour éviter les boucles
+      console.log('✅ Correction terminée, analyse suspendue pour éviter les boucles');
+
+      // 🔄 Relancer l'analyse après un délai pour détecter de nouveaux problèmes
+      setTimeout(() => {
+        console.log('🔄 Re-analyse après correction...');
+        analyzeDataQuality(businessValues, dreadedEvents, supportingAssets).catch(error => {
+          console.warn('⚠️ Erreur re-analyse qualité:', error);
+        });
+      }, 2000); // 2 secondes de délai
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la correction automatique:', error);
+      setError('❌ Erreur lors de la correction automatique');
+    }
+  };
+
+  const handleManualFixDataQuality = (issue: any) => {
+    console.log('🔧 handleManualFixDataQuality appelé avec:', issue);
+
+    // Trouver l'entité correspondante et ouvrir le modal spécialisé
+    let entity = null;
+
+    if (issue.entityType === 'businessValue') {
+      entity = businessValues.find(v => v.id === issue.entityId);
+    } else if (issue.entityType === 'dreadedEvent') {
+      entity = dreadedEvents.find(e => e.id === issue.entityId);
+    } else if (issue.entityType === 'supportingAsset') {
+      entity = supportingAssets.find(a => a.id === issue.entityId);
+    }
+
+    if (entity) {
+      console.log('📝 Ouverture modal de correction spécialisé:', entity);
+      console.log('🎯 Champ problématique:', issue.field, 'Valeur actuelle:', issue.value);
+
+      // Ouvrir le modal spécialisé
+      setSelectedDataQualityIssue(issue);
+      setEntityToFix(entity);
+      setShowDataQualityFixModal(true);
+    } else {
+      console.error('❌ Entité non trouvée:', issue.entityType, issue.entityId);
+      setError(`❌ Entité non trouvée (${issue.entityType}: ${issue.entityId})`);
+    }
+  };
+
+  const handleDismissDataQualityIssue = (issueId: string) => {
+    setDataQualityIssues(prev => prev.filter(i => i.id !== issueId));
+    if (dataQualityIssues.length <= 1) {
+      setShowDataQualityAlert(false);
+    }
+  };
+
+  // 🔧 NOUVEAU : Fonction de sauvegarde depuis le modal de correction
+  const handleSaveDataQualityFix = async (updatedEntity: any) => {
+    console.log('💾 handleSaveDataQualityFix appelé avec:', updatedEntity);
+
+    if (!selectedDataQualityIssue) {
+      console.error('❌ Aucun problème sélectionné');
+      return;
+    }
+
+    try {
+      saveCurrentState();
+
+      const entityType = selectedDataQualityIssue.entityType;
+
+      if (entityType === 'businessValue') {
+        await updateBusinessValue(updatedEntity.id, {
+          ...updatedEntity,
+          updatedAt: new Date().toISOString()
+        });
+
+        const updatedValues = businessValues.map(v =>
+          v.id === updatedEntity.id ? updatedEntity : v
+        );
+        dispatch(setBusinessValues(updatedValues));
+        setError(`✅ "${updatedEntity.name}" modifié avec succès`);
+
+      } else if (entityType === 'dreadedEvent') {
+        await updateDreadedEvent(updatedEntity.id, {
+          ...updatedEntity,
+          updatedAt: new Date().toISOString()
+        });
+
+        const updatedEvents = dreadedEvents.map(e =>
+          e.id === updatedEntity.id ? updatedEntity : e
+        );
+        setDreadedEvents(updatedEvents);
+        setError(`✅ "${updatedEntity.name}" modifié avec succès`);
+
+      } else if (entityType === 'supportingAsset') {
+        await updateSupportingAsset(updatedEntity.id, {
+          ...updatedEntity,
+          updatedAt: new Date().toISOString()
+        });
+
+        const updatedAssets = supportingAssets.map(a =>
+          a.id === updatedEntity.id ? updatedEntity : a
+        );
+        dispatch(setSupportingAssets(updatedAssets));
+        setError(`✅ "${updatedEntity.name}" modifié avec succès`);
+      }
+
+      // Fermer le modal
+      setShowDataQualityFixModal(false);
+      setSelectedDataQualityIssue(null);
+      setEntityToFix(null);
+
+      // Supprimer le problème de la liste
+      const stableKey = selectedDataQualityIssue.stableKey ||
+        `${selectedDataQualityIssue.entityType}:${selectedDataQualityIssue.entityId}:${selectedDataQualityIssue.field}`;
+
+      setDataQualityIssues(prev => {
+        const filtered = prev.filter(i => i.stableKey !== stableKey && i.id !== selectedDataQualityIssue.id);
+        console.log('🗑️ Problème supprimé après correction manuelle. Restants:', filtered.length);
+        return filtered;
+      });
+
+      // Forcer la re-analyse immédiate après correction manuelle
+      console.log('🔄 Forçage re-analyse après correction manuelle...');
+      setLastAnalysisTimestamp(0); // Reset pour permettre une nouvelle analyse
+      setDataChangeCounter(prev => prev + 1); // Forcer le déclenchement
+
+      // Re-analyse différée pour s'assurer que les données sont bien mises à jour
+      setTimeout(() => {
+        console.log('🔄 Re-analyse différée après correction manuelle...');
+        analyzeDataQuality(businessValues, dreadedEvents, supportingAssets).catch(error => {
+          console.warn('⚠️ Erreur re-analyse qualité:', error);
+        });
+      }, 1500);
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde:', error);
+      setError('❌ Erreur lors de la sauvegarde des modifications');
+    }
+  };
+
+  // 🔄 NOUVEAU : Fonction de restauration de la valeur originale
+  const handleRestoreOriginalValue = async (issue: any) => {
+    console.log('🔄 handleRestoreOriginalValue appelé avec:', issue);
+
+    try {
+      const stableKey = issue.stableKey || `${issue.entityType}:${issue.entityId}:${issue.field}`;
+
+      // 🔄 Restaurer avec le gestionnaire
+      const restoreResult = dataQualityCorrectionManager.restoreOriginal(stableKey);
+
+      if (!restoreResult.success) {
+        console.warn('❌ Restauration refusée:', restoreResult.error);
+        setError(`❌ Restauration impossible: ${restoreResult.error}`);
+        return;
+      }
+
+      console.log('🔄 Restauration validée par le gestionnaire:', restoreResult);
+
+      saveCurrentState();
+
+      if (issue.entityType === 'businessValue') {
+        const bv = businessValues.find(v => v.id === issue.entityId);
+        if (bv) {
+          const updatedValue = {
+            ...bv,
+            [issue.field]: restoreResult.newValue,
+            [`${issue.field}_original`]: restoreResult.preservedOriginal,
+            [`${issue.field}_correctionCount`]: restoreResult.correctionCount,
+            updatedAt: new Date().toISOString()
+          };
+
+          await updateBusinessValue(bv.id, updatedValue);
+          const updatedValues = businessValues.map(v =>
+            v.id === bv.id ? updatedValue : v
+          );
+          dispatch(setBusinessValues(updatedValues));
+          setError(`🔄 "${bv.name}" restauré à la valeur originale`);
+        }
+      } else if (issue.entityType === 'dreadedEvent') {
+        const de = dreadedEvents.find(e => e.id === issue.entityId);
+        if (de) {
+          const updatedEvent = {
+            ...de,
+            [issue.field]: restoreResult.newValue,
+            [`${issue.field}_original`]: restoreResult.preservedOriginal,
+            [`${issue.field}_correctionCount`]: restoreResult.correctionCount,
+            updatedAt: new Date().toISOString()
+          };
+
+          await updateDreadedEvent(de.id, updatedEvent);
+          const updatedEvents = dreadedEvents.map(e =>
+            e.id === de.id ? updatedEvent : e
+          );
+          setDreadedEvents(updatedEvents);
+          setError(`🔄 "${de.name}" restauré à la valeur originale`);
+        }
+      } else if (issue.entityType === 'supportingAsset') {
+        const sa = supportingAssets.find(a => a.id === issue.entityId);
+        if (sa) {
+          const updatedAsset = {
+            ...sa,
+            [issue.field]: restoreResult.newValue,
+            [`${issue.field}_original`]: restoreResult.preservedOriginal,
+            [`${issue.field}_correctionCount`]: restoreResult.correctionCount,
+            updatedAt: new Date().toISOString()
+          };
+
+          await updateSupportingAsset(sa.id, updatedAsset);
+          const updatedAssets = supportingAssets.map(a =>
+            a.id === sa.id ? updatedAsset : a
+          );
+          dispatch(setSupportingAssets(updatedAssets));
+          setError(`🔄 "${sa.name}" restauré à la valeur originale`);
+        }
+      }
+
+      // Supprimer le problème de la liste
+      setDataQualityIssues(prev => {
+        const filtered = prev.filter(i => i.stableKey !== stableKey && i.id !== issue.id);
+        console.log('🗑️ Problème supprimé après restauration. Restants:', filtered.length);
+        return filtered;
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la restauration:', error);
+      setError('❌ Erreur lors de la restauration de la valeur originale');
+    }
+  };
+
   const handleCreateBusinessValue = async (data: Partial<BusinessValue>) => {
     try {
       if (editingBusinessValue) {
@@ -396,6 +1030,17 @@ const Workshop1 = () => {
         dispatch(setBusinessValues(updatedValues));
         setEditingBusinessValue(null);
         setError('✅ Valeur métier modifiée avec succès');
+
+        // 🔄 MISE À JOUR MANUELLE SIMPLE
+        console.log('🔄 Modification valeur métier détectée - Mise à jour manuelle');
+
+        // Lancer une nouvelle analyse après un délai
+        setTimeout(() => {
+          console.log('🔍 Re-analyse après modification valeur métier');
+          analyzeDataQuality(businessValues, dreadedEvents, supportingAssets)
+            .then(() => console.log('✅ Re-analyse terminée'))
+            .catch(error => console.error('❌ Erreur re-analyse:', error));
+        }, 1000);
       } else {
         // Mode création
         const newValue = await createBusinessValue({
@@ -476,6 +1121,17 @@ const Workshop1 = () => {
         setDreadedEvents(updatedEvents);
         setEditingDreadedEvent(null);
         setError('✅ Événement redouté modifié avec succès');
+
+        // 🔄 MISE À JOUR MANUELLE SIMPLE
+        console.log('🔄 Modification événement redouté détectée - Mise à jour manuelle');
+
+        // Lancer une nouvelle analyse après un délai
+        setTimeout(() => {
+          console.log('🔍 Re-analyse après modification événement redouté');
+          analyzeDataQuality(businessValues, dreadedEvents, supportingAssets)
+            .then(() => console.log('✅ Re-analyse terminée'))
+            .catch(error => console.error('❌ Erreur re-analyse:', error));
+        }, 1000);
       } else {
         // Mode création
         // 🔧 CORRECTION BUG: Déterminer l'impact type dynamiquement
@@ -558,6 +1214,17 @@ const Workshop1 = () => {
         dispatch(setSupportingAssets(updatedAssets));
         setEditingSupportingAsset(null);
         setError('✅ Actif support modifié avec succès');
+
+        // 🔄 MISE À JOUR MANUELLE SIMPLE
+        console.log('🔄 Modification actif support détectée - Mise à jour manuelle');
+
+        // Lancer une nouvelle analyse après un délai
+        setTimeout(() => {
+          console.log('🔍 Re-analyse après modification actif support');
+          analyzeDataQuality(businessValues, dreadedEvents, supportingAssets)
+            .then(() => console.log('✅ Re-analyse terminée'))
+            .catch(error => console.error('❌ Erreur re-analyse:', error));
+        }, 1000);
       } else {
         // Mode création
         const newAsset = await createSupportingAsset({
@@ -702,12 +1369,247 @@ const Workshop1 = () => {
         }
       />
 
-      {/* 📊 PANNEAU DE VALIDATION STANDARDISÉ */}
+      {/* 📊 PANNEAU DE VALIDATION STANDARDISÉ AVEC ACTIONS */}
       {standardValidation && (
         <StandardValidationPanel
           workshopNumber={1}
           validationResults={standardValidation.validationResults}
+          businessValues={businessValues}
+          supportingAssets={supportingAssets}
+          dreadedEvents={dreadedEvents}
+          onNavigateToSection={(section) => {
+            console.log('🧭 Navigation vers section:', section);
+
+            // Navigation améliorée vers les sections spécifiques
+            if (section.startsWith('business-value-')) {
+              // Navigation vers une valeur métier spécifique
+              const businessValueId = section.replace('business-value-', '');
+              const element = document.querySelector(`[data-business-value-id="${businessValueId}"]`);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Mettre en évidence temporairement
+                element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+                setTimeout(() => {
+                  element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+                }, 3000);
+              }
+            } else {
+              // Navigation vers une section générale
+              const sectionMap = {
+                'business-values': 'business-values-section',
+                'supporting-assets': 'supporting-assets-section',
+                'dreaded-events': 'dreaded-events-section',
+                'security-baseline': 'security-baseline-section'
+              };
+
+              const elementId = sectionMap[section as keyof typeof sectionMap] || section;
+              const element = document.getElementById(elementId);
+
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Mettre en évidence temporairement
+                element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+                setTimeout(() => {
+                  element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+                }, 3000);
+              } else {
+                console.warn('⚠️ Section non trouvée:', elementId);
+                // Fallback : scroll vers le haut
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }
+          }}
+          onAddBusinessValue={() => setIsAddValueModalOpen(true)}
+          onAddDreadedEvent={(businessValueId) => {
+            if (businessValueId) {
+              setSelectedBusinessValueId(businessValueId);
+            }
+            setIsAddEventModalOpen(true);
+          }}
+          onAddSupportingAsset={(businessValueId) => {
+            if (businessValueId) {
+              setSelectedBusinessValueId(businessValueId);
+            }
+            setIsAddAssetModalOpen(true);
+          }}
+          onAutoFix={(criterion) => {
+            console.log('🤖 Auto-fix demandé pour:', criterion);
+
+            // Logique de correction automatique améliorée
+            switch (criterion) {
+              case 'Valeurs métier identifiées':
+                setIsAddValueModalOpen(true);
+                break;
+              case 'Actifs supports cartographiés':
+                if (businessValues.length > 0) {
+                  setSelectedBusinessValueId(businessValues[0].id);
+                  setIsAddAssetModalOpen(true);
+                } else {
+                  setError('⚠️ Ajoutez d\'abord une valeur métier');
+                }
+                break;
+              case 'Événements redoutés définis':
+                if (businessValues.length > 0) {
+                  setSelectedBusinessValueId(businessValues[0].id);
+                  setIsAddEventModalOpen(true);
+                } else {
+                  setError('⚠️ Ajoutez d\'abord une valeur métier');
+                }
+                break;
+              case 'Socle de sécurité évalué':
+                // Ouvrir le panneau de suggestions IA pour la sécurité
+                setSelectedCriterion(criterion);
+                setShowAISuggestions(true);
+                break;
+              default:
+                // Ouvrir le panneau de suggestions IA générique
+                setSelectedCriterion(criterion);
+                setShowAISuggestions(true);
+                break;
+            }
+          }}
         />
+      )}
+
+      {/* 🔍 NOUVEAU : ALERTES DE QUALITÉ DES DONNÉES */}
+      {showDataQualityAlert && dataQualityIssues.length > 0 && (
+        <div className="mb-6 space-y-4">
+          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <RefreshCw className="h-5 w-5 text-blue-600" />
+              <div>
+                <h3 className="font-medium text-blue-900">Analyse de qualité des données</h3>
+                <p className="text-sm text-blue-700">
+                  <span className="font-bold text-2xl text-red-600">{dataQualityIssues.length}</span> problème{dataQualityIssues.length !== 1 ? 's' : ''} détecté{dataQualityIssues.length !== 1 ? 's' : ''}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  📊 Données: {businessValues?.length || 0} valeurs, {dreadedEvents?.length || 0} événements, {supportingAssets?.length || 0} actifs
+                </p>
+                <p className="text-xs text-blue-600">
+                  🔄 Compteur: {dataChangeCounter} | ⏰ Dernière analyse: {lastAnalysisTimestamp ? new Date(lastAnalysisTimestamp).toLocaleTimeString() : 'Jamais'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log('🔄 Re-analyse manuelle forcée');
+                  setLastAnalysisTimestamp(0);
+                  setDataChangeCounter(prev => prev + 1);
+                  analyzeDataQuality(businessValues, dreadedEvents, supportingAssets);
+                }}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualiser l'analyse
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  try {
+                    console.log('🧪 TEST DIAGNOSTIC - État actuel:');
+                    console.log('📊 businessValues:', businessValues?.length || 0, businessValues);
+                    console.log('📊 dreadedEvents:', dreadedEvents?.length || 0, dreadedEvents);
+                    console.log('📊 supportingAssets:', supportingAssets?.length || 0, supportingAssets);
+                    console.log('📊 dataQualityIssues:', dataQualityIssues?.length || 0, dataQualityIssues);
+                    console.log('📊 dataChangeCounter:', dataChangeCounter);
+                    console.log('📊 lastAnalysisTimestamp:', lastAnalysisTimestamp ? new Date(lastAnalysisTimestamp).toLocaleTimeString() : 'Jamais');
+
+                    // Test direct de l'analyse
+                    console.log('🧪 Lancement analyse directe...');
+                    if (typeof analyzeDataQuality === 'function') {
+                      analyzeDataQuality(businessValues || [], dreadedEvents || [], supportingAssets || [])
+                        .then(() => console.log('✅ Analyse terminée'))
+                        .catch(error => console.error('❌ Erreur analyse:', error));
+                    } else {
+                      console.error('❌ analyzeDataQuality n\'est pas une fonction');
+                    }
+                  } catch (error) {
+                    console.error('❌ Erreur dans le diagnostic:', error);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                🧪 Test Diagnostic
+              </Button>
+
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  marginRight: '8px'
+                }}
+                onClick={() => {
+                  try {
+                    console.log('🔥 TEST SIMPLE - Clic détecté !');
+                    alert('Test simple fonctionne !');
+                  } catch (error) {
+                    console.error('Erreur test simple:', error);
+                    alert('Erreur: ' + error.message);
+                  }
+                }}
+              >
+                🔥 Test Simple
+              </button>
+
+              <button
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  try {
+                    console.log('🔍 LANCEMENT ANALYSE MANUELLE');
+                    console.log('📊 Données:', {
+                      businessValues: businessValues?.length || 0,
+                      dreadedEvents: dreadedEvents?.length || 0,
+                      supportingAssets: supportingAssets?.length || 0
+                    });
+
+                    // Lancer l'analyse directement
+                    analyzeDataQuality(businessValues || [], dreadedEvents || [], supportingAssets || [])
+                      .then(() => {
+                        console.log('✅ Analyse terminée avec succès');
+                        alert('Analyse terminée ! Vérifiez la console et le compteur.');
+                      })
+                      .catch(error => {
+                        console.error('❌ Erreur analyse:', error);
+                        alert('Erreur analyse: ' + error.message);
+                      });
+                  } catch (error) {
+                    console.error('❌ Erreur bouton analyse:', error);
+                    alert('Erreur bouton: ' + error.message);
+                  }
+                }}
+              >
+                🔍 Lancer Analyse
+              </button>
+            </div>
+          </div>
+
+          <DataQualityAlert
+            issues={dataQualityIssues}
+            onAutoFix={handleAutoFixDataQuality}
+            onManualFix={handleManualFixDataQuality}
+            onDismiss={handleDismissDataQualityIssue}
+            onRestoreOriginal={handleRestoreOriginalValue} // 🔄 NOUVEAU
+          />
+        </div>
       )}
 
       {/* 📋 GUIDE UTILISATEUR AMÉLIORÉ */}
@@ -742,7 +1644,7 @@ const Workshop1 = () => {
       <div className="space-y-8">
 
         {/* Section Valeurs Métier - Layout amélioré */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div id="business-values-section" className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -783,7 +1685,11 @@ const Workshop1 = () => {
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {businessValues.map((value) => (
-                  <div key={value.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div
+                    key={value.id}
+                    data-business-value-id={value.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 truncate">{value.name}</h3>
@@ -853,7 +1759,7 @@ const Workshop1 = () => {
         </div>
 
         {/* Section Événements Redoutés - Layout amélioré */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div id="dreaded-events-section" className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200 bg-red-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -929,7 +1835,7 @@ const Workshop1 = () => {
         </div>
 
         {/* Section Actifs Supports - Layout amélioré */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div id="supporting-assets-section" className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-6 py-4 border-b border-gray-200 bg-green-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -1021,6 +1927,98 @@ const Workshop1 = () => {
           onRestorePrevious={handleRestorePrevious}
           hasPreviousState={previousState !== null}
         />
+
+        {/* 🛡️ Section Socle de Sécurité */}
+        <div id="security-baseline" className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Shield className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Socle de Sécurité</h2>
+                  <p className="text-sm text-gray-600">Évaluation des mesures de sécurité existantes</p>
+                </div>
+              </div>
+              <div className="text-sm text-gray-500">
+                {supportingAssets.filter(a => a.securityLevel).length}/{supportingAssets.length} actifs évalués
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {supportingAssets.length === 0 ? (
+              <div className="text-center py-12">
+                <Shield className="mx-auto h-16 w-16 text-gray-300" />
+                <h3 className="mt-4 text-lg font-medium text-gray-900">Aucun actif à évaluer</h3>
+                <p className="mt-2 text-gray-600 max-w-md mx-auto">
+                  Créez d'abord des actifs supports pour pouvoir évaluer votre socle de sécurité.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {supportingAssets.map((asset) => (
+                    <div
+                      key={asset.id}
+                      className={`p-4 border rounded-lg ${
+                        asset.securityLevel
+                          ? 'border-green-200 bg-green-50'
+                          : 'border-yellow-200 bg-yellow-50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900">{asset.name}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{asset.type}</p>
+                          {asset.securityLevel ? (
+                            <div className="mt-2">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                asset.securityLevel === 'high'
+                                  ? 'bg-red-100 text-red-800'
+                                  : asset.securityLevel === 'medium'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {asset.securityLevel === 'high' && '🔴 Critique'}
+                                {asset.securityLevel === 'medium' && '🟡 Important'}
+                                {asset.securityLevel === 'low' && '🟢 Normal'}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="mt-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                ⚪ Non évalué
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {supportingAssets.filter(a => !a.securityLevel).length > 0 && (
+                  <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-yellow-800">
+                          ⚠️ Évaluation incomplète
+                        </h3>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          {supportingAssets.filter(a => !a.securityLevel).length} actif(s) support n'ont pas encore été évalués.
+                          Cliquez sur "Modifier" pour définir leur niveau de criticité.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* 📊 Résumé et Métriques */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -1175,6 +2173,61 @@ const Workshop1 = () => {
           }}
         />
       )}
+
+      {/* 🤖 PANNEAU SUGGESTIONS IA POUR CORRECTION AUTOMATIQUE */}
+      {showAISuggestions && (
+        <AISuggestionPanel
+          criterion={selectedCriterion}
+          businessValues={businessValues}
+          supportingAssets={supportingAssets}
+          dreadedEvents={dreadedEvents}
+          onClose={() => setShowAISuggestions(false)}
+          onApplySuggestion={(suggestion) => {
+            setError(`✅ Suggestion appliquée : ${suggestion.title}`);
+          }}
+          callbacks={{
+            onAddBusinessValue: () => {
+              setShowAISuggestions(false);
+              setIsAddValueModalOpen(true);
+            },
+            onAddSupportingAsset: (businessValueId) => {
+              setShowAISuggestions(false);
+              if (businessValueId) {
+                setSelectedBusinessValueId(businessValueId);
+              }
+              setIsAddAssetModalOpen(true);
+            },
+            onAddDreadedEvent: (businessValueId) => {
+              setShowAISuggestions(false);
+              if (businessValueId) {
+                setSelectedBusinessValueId(businessValueId);
+              }
+              setIsAddEventModalOpen(true);
+            },
+            onNavigateToSection: (section) => {
+              setShowAISuggestions(false);
+              const element = document.getElementById(section);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          }}
+        />
+      )}
+
+      {/* 🔧 NOUVEAU : MODAL DE CORRECTION MANUELLE */}
+      <DataQualityFixModal
+        isOpen={showDataQualityFixModal}
+        onClose={() => {
+          setShowDataQualityFixModal(false);
+          setSelectedDataQualityIssue(null);
+          setEntityToFix(null);
+        }}
+        issue={selectedDataQualityIssue}
+        entity={entityToFix}
+        onSave={handleSaveDataQualityFix}
+        entityType={selectedDataQualityIssue?.entityType || 'businessValue'}
+      />
     </div>
   );
 };

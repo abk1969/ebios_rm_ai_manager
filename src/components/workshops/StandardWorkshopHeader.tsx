@@ -2,6 +2,7 @@ import React from 'react';
 import { Info } from 'lucide-react';
 import Button from '@/components/ui/button';
 import AICoherenceIndicator from '@/components/ai/AICoherenceIndicator';
+import WorkshopMetricsDisplay from '@/components/workshops/WorkshopMetricsDisplay';
 
 interface StandardWorkshopHeaderProps {
   workshopNumber: 1 | 2 | 3 | 4 | 5;
@@ -65,6 +66,7 @@ const StandardWorkshopHeader: React.FC<StandardWorkshopHeaderProps> = ({
           <p className="mt-2 text-sm text-gray-600">
             {description}
           </p>
+
         </div>
         <div className="flex items-center space-x-4">
           {/* 🤖 INDICATEUR IA STANDARDISÉ */}
@@ -76,7 +78,7 @@ const StandardWorkshopHeader: React.FC<StandardWorkshopHeaderProps> = ({
             autoRefresh={true}
             refreshInterval={60000}
           />
-          
+
           {/* 📚 BOUTON AIDE ANSSI */}
           <Button
             variant="outline"

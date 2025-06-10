@@ -1,20 +1,21 @@
-import { 
-  BusinessValue, 
-  SupportingAsset, 
-  RiskSource, 
-  DreadedEvent, 
+import {
+  BusinessValue,
+  SupportingAsset,
+  RiskSource,
+  DreadedEvent,
   StrategicScenario,
   SecurityMeasure,
   GravityScale,
   LikelihoodScale,
   RiskLevel
 } from '@/types/ebios';
-import { 
+import {
   RISK_SOURCE_CATEGORIES,
   SUPPORTING_ASSET_TYPES,
   EbiosUtils,
-  EBIOS_SCALES 
+  EBIOS_SCALES
 } from '@/lib/ebios-constants';
+import { dataQualityDetector, DataQualityReport } from './ai/DataQualityDetector';
 
 export interface AISuggestion {
   id: string;
@@ -107,6 +108,117 @@ class AIAssistantService {
     }
 
     return suggestions;
+  }
+
+  /**
+   * 🔍 NOUVEAU : Valide la qualité des données saisies
+   */
+  validateDataQuality(data: {
+    businessValues?: BusinessValue[];
+    dreadedEvents?: DreadedEvent[];
+    supportingAssets?: SupportingAsset[];
+  }): ValidationResult {
+    const errors: AISuggestion[] = [];
+    const warnings: AISuggestion[] = [];
+    const suggestions: AISuggestion[] = [];
+    let score = 100;
+
+    // Validation des valeurs métier
+    if (data.businessValues) {
+      for (const bv of data.businessValues) {
+        const qualityReport = dataQualityDetector.analyzeBusinessValue(bv.name, bv.description);
+
+        if (!qualityReport.isValid) {
+          for (const issue of qualityReport.issues) {
+            if (issue.severity === 'critical' || issue.severity === 'high') {
+              errors.push({
+                id: `quality-${issue.id}`,
+                type: 'error',
+                title: `❌ Données invalides : ${bv.name}`,
+                description: issue.message,
+                actionText: issue.autoFixAvailable ? 'Corriger automatiquement' : 'Corriger manuellement',
+                priority: issue.severity === 'critical' ? 'critical' : 'high',
+                category: 'data-quality',
+                relatedData: {
+                  field: issue.field,
+                  suggestedValue: issue.suggestedValue,
+                  originalValue: issue.value
+                },
+                source: 'expert-knowledge'
+              });
+            }
+          }
+          score -= (100 - qualityReport.overallScore) / 4;
+        }
+      }
+    }
+
+    // Validation des événements redoutés
+    if (data.dreadedEvents) {
+      for (const de of data.dreadedEvents) {
+        const qualityReport = dataQualityDetector.analyzeDreadedEvent(de.name, de.description);
+
+        if (!qualityReport.isValid) {
+          for (const issue of qualityReport.issues) {
+            if (issue.severity === 'critical' || issue.severity === 'high') {
+              errors.push({
+                id: `quality-${issue.id}`,
+                type: 'error',
+                title: `❌ Événement redouté invalide : ${de.name}`,
+                description: issue.message,
+                actionText: issue.autoFixAvailable ? 'Corriger automatiquement' : 'Corriger manuellement',
+                priority: issue.severity === 'critical' ? 'critical' : 'high',
+                category: 'data-quality',
+                relatedData: {
+                  field: issue.field,
+                  suggestedValue: issue.suggestedValue,
+                  originalValue: issue.value
+                },
+                source: 'expert-knowledge'
+              });
+            }
+          }
+          score -= (100 - qualityReport.overallScore) / 4;
+        }
+      }
+    }
+
+    // Validation des actifs supports
+    if (data.supportingAssets) {
+      for (const sa of data.supportingAssets) {
+        const qualityReport = dataQualityDetector.analyzeSupportingAsset(sa.name, sa.description);
+
+        if (!qualityReport.isValid) {
+          for (const issue of qualityReport.issues) {
+            if (issue.severity === 'critical' || issue.severity === 'high') {
+              warnings.push({
+                id: `quality-${issue.id}`,
+                type: 'warning',
+                title: `⚠️ Actif support suspect : ${sa.name}`,
+                description: issue.message,
+                actionText: issue.autoFixAvailable ? 'Corriger automatiquement' : 'Corriger manuellement',
+                priority: issue.severity === 'critical' ? 'critical' : 'high',
+                category: 'data-quality',
+                relatedData: {
+                  field: issue.field,
+                  suggestedValue: issue.suggestedValue,
+                  originalValue: issue.value
+                },
+                source: 'expert-knowledge'
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      suggestions,
+      score: Math.max(0, score)
+    };
   }
 
   /**

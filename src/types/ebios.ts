@@ -96,6 +96,32 @@ export interface Mission {
   // 🔧 CORRECTION: Propriétés manquantes utilisées dans le code
   organization?: string; // Nom de l'organisation
   objective?: string; // Objectif de la mission
+
+  // 🆕 EXTENSIONS ARCHITECTURE AGENTIC
+  agentConfiguration?: {
+    enabledAgents: string[];
+    fallbackMode: boolean;
+    circuitBreakerEnabled: boolean;
+    validationLevel: 'basic' | 'standard' | 'strict' | 'anssi_compliant';
+  };
+
+  // 🆕 TRAÇABILITÉ EBIOS RM
+  ebiosTraceability?: {
+    workshopStates: EbiosWorkshopState[];
+    decisionLog: DecisionLogEntry[];
+    validationHistory: ValidationHistoryEntry[];
+    complianceScore: number;
+    lastAuditDate?: string;
+  };
+
+  // 🆕 MÉTRIQUES DE PERFORMANCE
+  performanceMetrics?: {
+    completionTime: number; // en heures
+    agentUsageRate: number; // 0-1
+    fallbackUsageRate: number; // 0-1
+    userSatisfactionScore: number; // 0-5
+    anssiComplianceScore: number; // 0-1
+  };
 }
 
 export interface DreadedEvent {
@@ -600,4 +626,131 @@ export interface ComplianceGap {
   requiredStatus: string;
   priority: GravityScale;
   remediationPlan?: string;
+}
+
+// 🆕 TYPES ARCHITECTURE AGENTIC - EXTENSIONS EBIOS RM
+
+// État des ateliers EBIOS
+export interface EbiosWorkshopState {
+  workshop: 1 | 2 | 3 | 4 | 5;
+  status: 'not_started' | 'in_progress' | 'completed' | 'validated' | 'requires_review';
+  completionRate: number; // 0-1
+  startedAt?: string;
+  completedAt?: string;
+  validatedAt?: string;
+  validatedBy?: string;
+  participants: WorkshopParticipant[];
+  deliverables: WorkshopDeliverable[];
+  issues: WorkshopIssue[];
+  agentContributions?: AgentContribution[];
+}
+
+export interface WorkshopParticipant {
+  userId: string;
+  role: 'facilitator' | 'expert' | 'stakeholder' | 'observer';
+  name: string;
+  organization?: string;
+  expertise: string[];
+  participationRate: number; // 0-1
+}
+
+export interface WorkshopDeliverable {
+  id: string;
+  type: 'document' | 'matrix' | 'diagram' | 'report';
+  name: string;
+  description: string;
+  status: 'draft' | 'review' | 'approved' | 'final';
+  createdAt: string;
+  createdBy: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  version: string;
+  content?: any;
+}
+
+export interface WorkshopIssue {
+  id: string;
+  severity: 'info' | 'warning' | 'error' | 'critical';
+  category: 'methodology' | 'data_quality' | 'compliance' | 'technical';
+  title: string;
+  description: string;
+  detectedAt: string;
+  detectedBy: 'user' | 'agent' | 'validation';
+  status: 'open' | 'in_progress' | 'resolved' | 'deferred';
+  resolution?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+}
+
+export interface AgentContribution {
+  agentId: string;
+  agentName: string;
+  contributionType: 'suggestion' | 'validation' | 'generation' | 'analysis';
+  description: string;
+  confidence: number; // 0-1
+  timestamp: string;
+  accepted: boolean;
+  feedback?: string;
+}
+
+// Journal des décisions
+export interface DecisionLogEntry {
+  id: string;
+  timestamp: string;
+  userId: string;
+  workshopStep: string;
+  decisionType: 'creation' | 'modification' | 'deletion' | 'validation' | 'approval';
+  entityType: string;
+  entityId: string;
+  previousValue?: any;
+  newValue: any;
+  rationale: string;
+  aiRecommendation?: {
+    agentId: string;
+    recommendation: any;
+    confidence: number;
+    reasoning: string[];
+    accepted: boolean;
+  };
+  impactAssessment?: {
+    affectedEntities: string[];
+    riskLevel: 'low' | 'medium' | 'high' | 'critical';
+    mitigationMeasures: string[];
+  };
+  reviewRequired: boolean;
+  reviewedBy?: string;
+  reviewedAt?: string;
+}
+
+// Historique de validation
+export interface ValidationHistoryEntry {
+  id: string;
+  timestamp: string;
+  validationType: 'workshop' | 'entity' | 'global' | 'anssi_compliance';
+  workshop?: number;
+  entityType?: string;
+  entityId?: string;
+  validationResult: {
+    isValid: boolean;
+    score: number; // 0-100
+    criticalIssues: string[];
+    warnings: string[];
+    recommendations: string[];
+  };
+  validatedBy: 'user' | 'agent' | 'system';
+  validatorId?: string;
+  anssiCompliance?: {
+    workshop1: number;
+    workshop2: number;
+    workshop3: number;
+    workshop4: number;
+    workshop5: number;
+    overall: number;
+  };
+}
+
+// Interface Timestamp pour compatibilité
+export interface Timestamp {
+  seconds: number;
+  nanoseconds: number;
 }

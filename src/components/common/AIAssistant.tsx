@@ -59,11 +59,29 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
       // Générer suggestions et validations selon l'atelier
       switch (workshopId) {
         case 1:
+          // 🔍 NOUVEAU : Validation de qualité des données
+          const qualityValidation = aiAssistant.validateDataQuality({
+            businessValues: data.businessValues,
+            dreadedEvents: data.dreadedEvents,
+            supportingAssets: data.supportingAssets
+          });
+
           if (data.businessValues) {
             newSuggestions = aiAssistant.suggestBusinessValues(data.businessValues, data.organizationType);
           }
           if (data.dreadedEvents && data.businessValues) {
-            newValidation = aiAssistant.validateDreadedEvents(data.dreadedEvents, data.businessValues);
+            const methodValidation = aiAssistant.validateDreadedEvents(data.dreadedEvents, data.businessValues);
+
+            // Combiner validation qualité + validation méthodologique
+            newValidation = {
+              isValid: qualityValidation.isValid && methodValidation.isValid,
+              errors: [...qualityValidation.errors, ...methodValidation.errors],
+              warnings: [...qualityValidation.warnings, ...methodValidation.warnings],
+              suggestions: [...qualityValidation.suggestions, ...methodValidation.suggestions],
+              score: Math.min(qualityValidation.score, methodValidation.score)
+            };
+          } else {
+            newValidation = qualityValidation;
           }
           break;
 

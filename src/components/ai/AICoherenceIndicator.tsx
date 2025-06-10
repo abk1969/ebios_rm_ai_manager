@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle, Info, RefreshCw, TrendingUp, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ebiosCoherenceService, type CoherenceCheckResult } from '@/services/ai/EbiosCoherenceService';
+import MetricTooltip from '@/components/ui/MetricTooltip';
 
 interface AICoherenceIndicatorProps {
   missionId: string;
@@ -156,11 +157,19 @@ const AICoherenceIndicator: React.FC<AICoherenceIndicatorProps> = ({
           </>
         )}
 
-        {/* Label optionnel */}
+        {/* Label optionnel avec bulle d'aide */}
         {size !== 'sm' && (
-          <span className="text-gray-600 text-xs">
-            Cohérence
-          </span>
+          <div className="flex items-center gap-1">
+            <span className="text-gray-600 text-xs">
+              Cohérence
+            </span>
+            <MetricTooltip
+              metricType="conformity"
+              workshop={typeof workshop === 'number' ? workshop : undefined}
+              value={scorePercent}
+              className="ml-1"
+            />
+          </div>
         )}
       </div>
 

@@ -328,10 +328,10 @@ export class ANSSIValidationService {
   static validateMission(mission: Mission): ValidationResult {
     // Validation consolidée de tous les workshops
     const results: ValidationResult[] = [];
-    
+
     // Ajouter les validations spécifiques selon les données disponibles
     // Cette méthode sera étendue avec les autres workshops
-    
+
     return {
       isValid: false,
       score: 0,
@@ -347,6 +347,231 @@ export class ANSSIValidationService {
         overall: 0
       }
     };
+  }
+
+  /**
+   * 🆕 VALIDATION WORKSHOP 3 - SCÉNARIOS STRATÉGIQUES (CRITIQUE ANSSI)
+   */
+  static validateWorkshop3(
+    strategicScenarios: StrategicScenario[],
+    riskSources: RiskSource[],
+    businessValues: BusinessValue[]
+  ): ValidationResult {
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    const recommendations: string[] = [];
+    let score = 100;
+
+    // CRITIQUE: Couverture des sources de risque retenues
+    const retainedSources = riskSources.filter(rs => rs.pertinence >= 2);
+    const scenarioSources = [...new Set(strategicScenarios.map(ss => ss.riskSourceId))];
+
+    const uncoveredSources = retainedSources.filter(rs =>
+      !scenarioSources.includes(rs.id)
+    );
+
+    if (uncoveredSources.length > 0) {
+      issues.push(`DISQUALIFIANT: ${uncoveredSources.length} source(s) de risque retenue(s) sans scénario stratégique`);
+      score -= 40;
+    }
+
+    // CRITIQUE: Cartographie écosystème complète
+    const ecosystemCoverage = this.validateEcosystemMapping(strategicScenarios, businessValues);
+    if (ecosystemCoverage < 0.8) {
+      issues.push('DISQUALIFIANT: Cartographie écosystème incomplète (< 80%)');
+      score -= 30;
+    }
+
+    // CRITIQUE: Évaluation vraisemblance conforme ANSSI
+    const invalidLikelihoods = strategicScenarios.filter(ss =>
+      !ss.likelihood || ss.likelihood < 1 || ss.likelihood > 4
+    );
+
+    if (invalidLikelihoods.length > 0) {
+      issues.push(`DISQUALIFIANT: ${invalidLikelihoods.length} scénario(s) avec vraisemblance non conforme ANSSI`);
+      score -= 25;
+    }
+
+    // AVERTISSEMENT: Diversité des scénarios
+    if (strategicScenarios.length < 5) {
+      warnings.push('Nombre de scénarios stratégiques insuffisant (minimum 5 recommandé)');
+      score -= 10;
+    }
+
+    // RECOMMANDATIONS ANSSI
+    if (score >= 95) {
+      recommendations.push('Atelier 3 conforme ANSSI - Procéder à l\'atelier 4');
+    } else if (score >= 80) {
+      recommendations.push('Corriger les avertissements avant validation finale');
+    } else {
+      recommendations.push('🚨 ARRÊT OBLIGATOIRE - Corriger les problèmes disqualifiants');
+    }
+
+    return {
+      isValid: issues.length === 0,
+      score: Math.max(0, score),
+      criticalIssues: issues,
+      warnings,
+      recommendations,
+      anssiCompliance: {
+        workshop1: 0,
+        workshop2: 0,
+        workshop3: score,
+        workshop4: 0,
+        workshop5: 0,
+        overall: score / 5
+      }
+    };
+  }
+
+  /**
+   * 🆕 VALIDATION WORKSHOP 4 - SCÉNARIOS OPÉRATIONNELS (CRITIQUE ANSSI)
+   */
+  static validateWorkshop4(
+    operationalScenarios: any[],
+    attackPaths: AttackPath[],
+    strategicScenarios: StrategicScenario[]
+  ): ValidationResult {
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    const recommendations: string[] = [];
+    let score = 100;
+
+    // CRITIQUE: Modes opératoires MITRE ATT&CK
+    const pathsWithMitre = attackPaths.filter(ap =>
+      ap.techniques && ap.techniques.length > 0
+    );
+
+    if (pathsWithMitre.length / attackPaths.length < 0.8) {
+      issues.push('DISQUALIFIANT: Moins de 80% des chemins avec techniques MITRE ATT&CK');
+      score -= 35;
+    }
+
+    // CRITIQUE: Cyber kill chains complètes
+    const completeKillChains = attackPaths.filter(ap =>
+      ap.steps && ap.steps.length >= 3
+    );
+
+    if (completeKillChains.length / attackPaths.length < 0.7) {
+      issues.push('DISQUALIFIANT: Moins de 70% des chemins avec kill chain complète');
+      score -= 30;
+    }
+
+    // CRITIQUE: Calcul vraisemblance probabiliste
+    const pathsWithProbability = attackPaths.filter(ap =>
+      ap.feasibility && ap.detectability
+    );
+
+    if (pathsWithProbability.length / attackPaths.length < 0.9) {
+      issues.push('DISQUALIFIANT: Calcul probabiliste manquant sur plus de 10% des chemins');
+      score -= 25;
+    }
+
+    // AVERTISSEMENT: Couverture scénarios stratégiques
+    const strategicCoverage = this.validateStrategicCoverage(attackPaths, strategicScenarios);
+    if (strategicCoverage < 0.8) {
+      warnings.push('Couverture incomplète des scénarios stratégiques par les chemins opérationnels');
+      score -= 10;
+    }
+
+    return {
+      isValid: issues.length === 0,
+      score: Math.max(0, score),
+      criticalIssues: issues,
+      warnings,
+      recommendations,
+      anssiCompliance: {
+        workshop1: 0,
+        workshop2: 0,
+        workshop3: 0,
+        workshop4: score,
+        workshop5: 0,
+        overall: score / 5
+      }
+    };
+  }
+
+  /**
+   * 🆕 VALIDATION WORKSHOP 5 - TRAITEMENT DU RISQUE (CRITIQUE ANSSI)
+   */
+  static validateWorkshop5(
+    securityMeasures: SecurityMeasure[],
+    strategicScenarios: StrategicScenario[],
+    operationalScenarios: any[]
+  ): ValidationResult {
+    const issues: string[] = [];
+    const warnings: string[] = [];
+    const recommendations: string[] = [];
+    let score = 100;
+
+    // CRITIQUE: Plan de traitement complet
+    if (securityMeasures.length === 0) {
+      issues.push('DISQUALIFIANT: Aucune mesure de sécurité définie');
+      score -= 50;
+    }
+
+    // CRITIQUE: Analyse coût/efficacité
+    const measuresWithCostAnalysis = securityMeasures.filter(sm =>
+      sm.implementationCost && sm.effectiveness
+    );
+
+    if (measuresWithCostAnalysis.length / securityMeasures.length < 0.8) {
+      issues.push('DISQUALIFIANT: Analyse coût/efficacité manquante sur plus de 20% des mesures');
+      score -= 30;
+    }
+
+    // CRITIQUE: ROI sécurité calculé
+    const measuresWithROI = securityMeasures.filter(sm =>
+      sm.riskReduction && sm.riskReduction > 0
+    );
+
+    if (measuresWithROI.length / securityMeasures.length < 0.7) {
+      issues.push('DISQUALIFIANT: ROI sécurité non calculé pour plus de 30% des mesures');
+      score -= 25;
+    }
+
+    // CRITIQUE: Suivi risques résiduels
+    const residualRiskTracking = this.validateResidualRiskTracking(securityMeasures, strategicScenarios);
+    if (!residualRiskTracking) {
+      issues.push('DISQUALIFIANT: Suivi des risques résiduels non implémenté');
+      score -= 20;
+    }
+
+    return {
+      isValid: issues.length === 0,
+      score: Math.max(0, score),
+      criticalIssues: issues,
+      warnings,
+      recommendations,
+      anssiCompliance: {
+        workshop1: 0,
+        workshop2: 0,
+        workshop3: 0,
+        workshop4: 0,
+        workshop5: score,
+        overall: score / 5
+      }
+    };
+  }
+
+  // Méthodes utilitaires privées
+  private static validateEcosystemMapping(scenarios: StrategicScenario[], businessValues: BusinessValue[]): number {
+    // Calcul du taux de couverture de l'écosystème
+    const coveredValues = [...new Set(scenarios.map(s => s.targetBusinessValueId))];
+    return coveredValues.length / businessValues.length;
+  }
+
+  private static validateStrategicCoverage(attackPaths: AttackPath[], strategicScenarios: StrategicScenario[]): number {
+    // Calcul de la couverture des scénarios stratégiques
+    const scenariosWithPaths = strategicScenarios.filter(ss =>
+      attackPaths.some(ap => ap.name?.includes(ss.name) || false)
+    );
+    return scenariosWithPaths.length / strategicScenarios.length;
+  }
+
+  private static validateResidualRiskTracking(measures: SecurityMeasure[], scenarios: StrategicScenario[]): boolean {
+    // Vérification que le suivi des risques résiduels est en place
+    return measures.some(m => m.riskReduction && m.riskReduction < 100);
   }
 
   /**

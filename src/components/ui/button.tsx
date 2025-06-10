@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'default';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'default';
 
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
@@ -25,6 +25,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             'border border-gray-300 bg-transparent hover:bg-gray-100': variant === 'outline',
             'bg-transparent hover:bg-gray-100': variant === 'ghost',
             'bg-red-600 text-white hover:bg-red-700': variant === 'danger',
+            'bg-green-600 text-white hover:bg-green-700': variant === 'success',
           },
           {
             'h-8 px-3 text-sm': size === 'sm',
