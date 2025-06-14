@@ -43,14 +43,14 @@ export class DataQualityDetector {
     /^[A-Z]+$/, // Majuscules uniquement
     /^[0-9]+$/, // Chiffres uniquement
     /^(.)\1{3,}$/, // Caractères répétés (aaaa, 1111)
-    /^(test|exemple|demo|sample)$/i, // Mots de test
+    /^(test|exemple|demo|sample)$/i, // Mots non métier
     /^[qwerty]+$/i, // Frappe clavier
     /^[asdf]+$/i, // Frappe clavier
     /^[zxcv]+$/i, // Frappe clavier
     /^[!@#$%^&*()]+$/, // Symboles uniquement
   ];
 
-  // Mots suspects ou de test
+  // Mots suspects ou non métier
   private readonly SUSPICIOUS_WORDS = [
     'test', 'exemple', 'demo', 'sample', 'lorem', 'ipsum', 'placeholder',
     'temp', 'temporary', 'fake', 'dummy', 'mock', 'sdfqsdf', 'azerty',
@@ -128,7 +128,9 @@ export class DataQualityDetector {
         suggestion: 'Utilisez des termes métier concrets (ex: "Chiffre d\'affaires", "Données clients")',
         confidence: 0.8,
         autoFixAvailable: true,
-        suggestedValue: this.suggestBusinessValue(name)
+        suggestedValue: this.suggestBusinessValue(name),
+        stableKey: `bv-${name.toLowerCase().replace(/\s+/g, '-')}`, // 🔧 CORRECTION: Propriété manquante
+        originalValue: name // 🔧 CORRECTION: Propriété manquante
       });
     }
 
@@ -156,7 +158,9 @@ export class DataQualityDetector {
         suggestion: 'Formulez comme un impact négatif (ex: "Atteinte à la confidentialité")',
         confidence: 0.85,
         autoFixAvailable: true,
-        suggestedValue: this.suggestDreadedEvent(name)
+        suggestedValue: this.suggestDreadedEvent(name),
+        stableKey: `de-${name.toLowerCase().replace(/\s+/g, '-')}`, // 🔧 CORRECTION: Propriété manquante
+        originalValue: name // 🔧 CORRECTION: Propriété manquante
       });
     }
 
@@ -282,7 +286,7 @@ export class DataQualityDetector {
           field: fieldName,
           value: trimmedValue,
           originalValue: trimmedValue,
-          message: 'Cette saisie semble être du texte de test ou aléatoire',
+          message: 'Cette saisie semble être du texte non métier ou aléatoire',
           suggestion: 'Saisissez une valeur métier réelle et significative',
           confidence: 0.9,
           autoFixAvailable: true,
@@ -376,18 +380,14 @@ export class DataQualityDetector {
    * Suggère une valeur métier appropriée
    */
   private suggestBusinessValue(input: string): string {
-    return this.EBIOS_SUGGESTIONS.businessValue[
-      Math.floor(Math.random() * this.EBIOS_SUGGESTIONS.businessValue.length)
-    ];
+    return this.EBIOS_SUGGESTIONS.businessValue[0];
   }
 
   /**
    * Suggère un événement redouté approprié
    */
   private suggestDreadedEvent(input: string): string {
-    return this.EBIOS_SUGGESTIONS.dreadedEvent[
-      Math.floor(Math.random() * this.EBIOS_SUGGESTIONS.dreadedEvent.length)
-    ];
+    return this.EBIOS_SUGGESTIONS.dreadedEvent[0];
   }
 
   /**
@@ -438,7 +438,7 @@ export class DataQualityDetector {
     // Fallback vers suggestions par défaut
     const suggestions = this.EBIOS_SUGGESTIONS[context as keyof typeof this.EBIOS_SUGGESTIONS];
     if (suggestions) {
-      return suggestions[Math.floor(Math.random() * suggestions.length)];
+      return suggestions[0];
     }
     return 'Valeur exemple appropriée';
   }

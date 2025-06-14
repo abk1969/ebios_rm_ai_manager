@@ -90,7 +90,7 @@ export class AuditTrailService {
    */
   async logDecision(entry: Omit<DecisionLogEntry, 'id' | 'timestamp'>): Promise<string> {
     const logEntry: DecisionLogEntry = {
-      id: `decision-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `decision-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
       timestamp: new Date(),
       ...entry
     };
@@ -261,9 +261,12 @@ export class AuditTrailService {
       entityId: decisionId,
       decisionType: 'validate',
       decisionData: {
-        originalDecision: decisionId,
-        validationStatus: status,
-        comments
+        before: { status: 'pending' },
+        after: { status: status },
+        changes: {
+          validationStatus: { from: 'pending', to: status },
+          comments: { from: '', to: comments || '' }
+        }
       },
       humanDecision: {
         userId: validatorId,

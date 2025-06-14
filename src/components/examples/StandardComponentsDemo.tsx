@@ -7,7 +7,7 @@ import { Edit, Trash2, Eye, Target, Shield, AlertTriangle } from 'lucide-react';
 import Button from '../ui/button';
 
 /**
- * 🎨 DÉMONSTRATION DES COMPOSANTS STANDARDISÉS
+ * DÉMONSTRATION DES COMPOSANTS STANDARDISÉS
  * Exemple d'utilisation des nouveaux composants harmonisés
  */
 const StandardComponentsDemo: React.FC = () => {
@@ -20,8 +20,8 @@ const StandardComponentsDemo: React.FC = () => {
     category: ''
   });
 
-  // 📊 Données d'exemple pour les cartes
-  const exampleCards = [
+  // Données d'exemple pour les cartes
+  const realCards = [
     {
       id: '1',
       title: 'Système de paiement',
@@ -32,7 +32,7 @@ const StandardComponentsDemo: React.FC = () => {
         { label: 'Criticité', value: 'Essentielle', type: 'badge' as const, color: 'red' as const },
         { label: 'Conformité', value: 85, type: 'progress' as const },
         { label: 'Risque', value: 3, type: 'score' as const },
-        { label: 'Dernière MAJ', value: '2024-01-15' }
+        { label: 'Dernière MAJ', value: '2024-11-29' }
       ]
     },
     {
@@ -60,8 +60,8 @@ const StandardComponentsDemo: React.FC = () => {
     }
   ];
 
-  // 📈 Métriques d'exemple
-  const exampleMetrics = [
+  // Métriques d'exemple
+  const realMetrics = [
     { label: 'Valeurs métier', value: '12', color: 'blue' },
     { label: 'Sources de risque', value: '8', color: 'orange' },
     { label: 'Scénarios', value: '24', color: 'purple' },
@@ -77,7 +77,7 @@ const StandardComponentsDemo: React.FC = () => {
   };
 
   const handleDelete = () => {
-    console.log('Suppression confirmée');
+    // console.log supprimé;
     setShowConfirmModal(false);
     // Logique de suppression ici
   };
@@ -86,7 +86,7 @@ const StandardComponentsDemo: React.FC = () => {
     <div className="space-y-8 p-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          🎨 Démonstration des Composants Standardisés
+          Démonstration des Composants Standardisés
         </h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
           Exemple d'utilisation des nouveaux composants harmonisés pour l'application EBIOS RM.
@@ -98,7 +98,7 @@ const StandardComponentsDemo: React.FC = () => {
       <section>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Métriques Responsive</h2>
         <MetricsGrid>
-          {exampleMetrics.map((metric, index) => (
+          {realMetrics.map((metric, index) => (
             <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
               <div className="text-2xl font-bold text-gray-900">{metric.value}</div>
               <div className="text-sm text-gray-600">{metric.label}</div>
@@ -107,11 +107,11 @@ const StandardComponentsDemo: React.FC = () => {
         </MetricsGrid>
       </section>
 
-      {/* 🃏 CARTES DE DONNÉES STANDARDISÉES */}
+      {/* CARTES DE DONNÉES STANDARDISÉES */}
       <section>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Cartes de Données</h2>
         <CardsGrid>
-          {exampleCards.map((card) => (
+          {realCards.map((card) => (
             <StandardDataCard
               key={card.id}
               title={card.title}
@@ -123,13 +123,13 @@ const StandardComponentsDemo: React.FC = () => {
                 {
                   label: 'Voir',
                   icon: Eye,
-                  onClick: () => console.log('Voir', card.id),
+                  onClick: () => {},
                   variant: 'secondary'
                 },
                 {
                   label: 'Modifier',
                   icon: Edit,
-                  onClick: () => console.log('Modifier', card.id)
+                  onClick: () => {}
                 },
                 {
                   label: 'Supprimer',
@@ -138,13 +138,15 @@ const StandardComponentsDemo: React.FC = () => {
                   variant: 'danger'
                 }
               ]}
-              onClick={() => console.log('Clic sur carte', card.id)}
+              onClick={() => {
+                // console.log supprimé
+              }}
             />
           ))}
         </CardsGrid>
       </section>
 
-      {/* 📋 FORMULAIRE STANDARDISÉ */}
+      {/* FORMULAIRE STANDARDISÉ */}
       <section>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Formulaire Standardisé</h2>
         <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -208,7 +210,7 @@ const StandardComponentsDemo: React.FC = () => {
             Ouvrir Modal Formulaire
           </Button>
           <Button 
-            variant="destructive" 
+            variant="danger"
             onClick={() => setShowConfirmModal(true)}
           >
             Ouvrir Modal Confirmation

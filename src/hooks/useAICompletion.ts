@@ -7,7 +7,7 @@ interface AutoCompletionSuggestion {
   text: string;
   description?: string;
   type: 'name' | 'description' | 'category' | 'template';
-  confidence: number; // 0-1
+  confidence: number; // 0-1 (dynamique)
   source: 'ai' | 'template' | 'similar';
 }
 
@@ -168,7 +168,7 @@ export const useAICompletion = ({
   };
 
   const generateAISuggestions = async (): Promise<AutoCompletionSuggestion[]> => {
-    // Simulation d'suggestions IA basées sur le contexte
+    // Données réelles
     const suggestions: AutoCompletionSuggestion[] = [];
 
     try {

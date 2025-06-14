@@ -289,7 +289,7 @@ export class SecureLogger {
    * Génère un ID de session unique
    */
   private generateSessionId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
   }
 
   /**
