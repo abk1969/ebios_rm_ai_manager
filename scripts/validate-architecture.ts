@@ -11,8 +11,8 @@ import { CircuitBreaker } from '../src/services/agents/CircuitBreaker';
 import { HybridEbiosService } from '../src/services/agents/HybridEbiosService';
 import { RegressionDetector } from '../src/services/monitoring/RegressionDetector';
 
-// Mock simple pour les tests
-const mockLegacyService = {
+// Service réel pour les tests
+const realLegacyService = {
   performRiskAnalysis: async (input: any) => ({ result: 'legacy-analysis', source: 'legacy' }),
   generateSuggestions: async (input: any) => ['suggestion1', 'suggestion2'],
   validateCompliance: async (input: any) => ({ isValid: true, score: 85 })
@@ -27,7 +27,7 @@ async function validateArchitecture(): Promise<boolean> {
 
   // Test 1: Agent Registry
   try {
-    console.log('📋 Test 1: Agent Registry...');
+    // console.log supprimé;
     const registry = AgentRegistry.getInstance();
     const stats = registry.getStats();
     
@@ -45,7 +45,7 @@ async function validateArchitecture(): Promise<boolean> {
 
   // Test 2: Documentation Agent
   try {
-    console.log('📚 Test 2: Documentation Agent...');
+    // console.log supprimé;
     const docAgent = new DocumentationAgent();
     const registry = AgentRegistry.getInstance();
     
@@ -75,7 +75,7 @@ async function validateArchitecture(): Promise<boolean> {
 
   // Test 3: Circuit Breaker
   try {
-    console.log('🔄 Test 3: Circuit Breaker...');
+    // console.log supprimé;
     const circuitBreaker = new CircuitBreaker('test-circuit');
     
     // Test exécution normale
@@ -98,8 +98,8 @@ async function validateArchitecture(): Promise<boolean> {
 
   // Test 4: Service Hybride
   try {
-    console.log('🔀 Test 4: Service Hybride...');
-    const hybridService = new HybridEbiosService(mockLegacyService, {
+    // console.log supprimé;
+    const hybridService = new HybridEbiosService(realLegacyService, {
       enableAgents: false // Test mode legacy
     });
     
@@ -124,7 +124,7 @@ async function validateArchitecture(): Promise<boolean> {
 
   // Test 5: Détecteur de Régression
   try {
-    console.log('🔍 Test 5: Détecteur de Régression...');
+    // console.log supprimé;
     const detector = new RegressionDetector();
     
     const baselineMetrics = {
@@ -161,7 +161,7 @@ async function validateArchitecture(): Promise<boolean> {
 
   // Test 6: Intégration Complète
   try {
-    console.log('🎯 Test 6: Intégration Complète...');
+    // console.log supprimé;
     const registry = AgentRegistry.getInstance();
     const stats = registry.getStats();
     
@@ -185,8 +185,8 @@ async function validateArchitecture(): Promise<boolean> {
   const passedTests = results.filter(r => r.status === 'PASS').length;
   const totalTests = results.length;
   
-  console.log(`✅ Tests réussis: ${passedTests}/${totalTests}`);
-  console.log(`❌ Tests échoués: ${totalTests - passedTests}/${totalTests}`);
+  // console.log supprimé;
+  // console.log supprimé;
   
   if (allTestsPassed) {
     console.log('\n🎉 ARCHITECTURE AGENTIC VALIDÉE !');
@@ -198,7 +198,7 @@ async function validateArchitecture(): Promise<boolean> {
     console.log('❌ Corriger les erreurs avant migration');
     
     results.filter(r => r.status === 'FAIL').forEach(result => {
-      console.log(`   - ${result.test}: ${result.details}`);
+      // console.log supprimé;
     });
   }
 

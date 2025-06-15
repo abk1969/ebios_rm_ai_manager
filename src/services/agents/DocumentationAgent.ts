@@ -6,7 +6,7 @@
 
 import { 
   AgentService, 
-  AgentCapability, 
+  AgentCapabilityDetails, 
   AgentTask, 
   AgentResult, 
   AgentStatus 
@@ -155,7 +155,7 @@ export class DocumentationAgent implements AgentService {
   readonly name = 'Agent Documentation EBIOS RM';
   readonly version = '1.0.0';
 
-  getCapabilities(): AgentCapability[] {
+  getCapabilities(): AgentCapabilityDetails[] {
     return [
       {
         id: 'explain-concept',

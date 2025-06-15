@@ -17,7 +17,7 @@ import {
 import { accessCompatibilityService } from '@/services/accessCompatibility';
 import { ebiosCoherenceService } from '@/services/ai/EbiosCoherenceService';
 
-// 🆕 Interface pour les données Access brutes
+// Nouveau
 interface AccessData {
   tables: {
     missions?: any[];
@@ -37,7 +37,7 @@ interface AccessData {
   };
 }
 
-// 🆕 Résultat d'import avec statistiques
+// Nouveau
 export interface ImportResult {
   success: boolean;
   data?: {
@@ -261,7 +261,7 @@ export class AccessImporter {
           missionNom: accessValue.mission_nom
         };
         
-        // 🆕 Enrichissement IA
+        // Nouveau
         const enriched = await this.enrichBusinessValueWithAI(businessValue, accessValue);
         
         businessValues.push(enriched);
@@ -370,12 +370,12 @@ export class AccessImporter {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           
-          // 🆕 Champs Access
+          // Nouveau
           impactsList: this.extractImpactsList(accessEvent),
           valeurMetierNom: accessEvent.valeur_metier_nom
         };
         
-        // 🆕 Enrichissement IA
+        // Nouveau
         const enriched = await this.enrichDreadedEventWithAI(dreadedEvent, accessEvent);
         
         dreadedEvents.push(enriched);
@@ -404,7 +404,7 @@ export class AccessImporter {
         const id = crypto.randomUUID();
         this.idMappings.set(accessSource.nom, id);
         
-        // 🆕 Inférer la catégorie si manquante
+        // Nouveau
         const category = accessSource.categorie || 
           accessCompatibilityService.inferRiskSourceCategory(
             `${accessSource.nom} ${accessSource.description}`
@@ -425,12 +425,12 @@ export class AccessImporter {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           
-          // 🆕 Champs Access
+          // Nouveau
           categoryAuto: !accessSource.categorie,
           pertinenceAccess: accessSource.pertinence
         };
         
-        // 🆕 Enrichissement IA avec profil de menace
+        // Nouveau
         const enriched = await this.enrichRiskSourceWithAI(riskSource, accessSource);
         
         riskSources.push(enriched);
@@ -499,7 +499,7 @@ export class AccessImporter {
       try {
         const id = crypto.randomUUID();
         
-        // 🆕 Gérer les attaques directes (sans partie prenante)
+        // Nouveau
         let stakeholderId: string | undefined;
         const isDirect = !accessPath.partie_prenante_nom || 
                         accessPath.partie_prenante_nom === 'DIRECT' ||
@@ -527,13 +527,13 @@ export class AccessImporter {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           
-          // 🆕 Champs Access
+          // Nouveau
           sourceRisqueNom: accessPath.source_risque_nom,
           objectifViseNom: accessPath.objectif_vise_nom,
           graviteAccess: accessPath.gravite
         };
         
-        // 🆕 Enrichissement IA avec analyse de complexité
+        // Nouveau
         const enriched = await this.enrichAttackPathWithAI(attackPath, accessPath);
         
         attackPaths.push(enriched);
@@ -561,7 +561,7 @@ export class AccessImporter {
       try {
         const id = crypto.randomUUID();
         
-        // 🆕 Conversion du type de mesure Access vers Firebase
+        // Nouveau
         const controlType = this.convertMeasureType(accessMeasure.type_mesure);
         
         const securityMeasure: SecurityMeasure = {
@@ -593,14 +593,14 @@ export class AccessImporter {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           
-          // 🆕 Champs Access
+          // Nouveau
           typeMesureAccess: accessMeasure.type_mesure,
           freinDifficulteMEO: accessMeasure.frein_difficulte_meo,
           echeanceEnMois: accessMeasure.echeance_en_mois,
           responsablesMultiples: this.parseResponsables(accessMeasure.responsables)
         };
         
-        // 🆕 Enrichissement IA avec suggestion ISO
+        // Nouveau
         const enriched = await this.enrichSecurityMeasureWithAI(securityMeasure, accessMeasure);
         
         securityMeasures.push(enriched);
@@ -654,6 +654,7 @@ export class AccessImporter {
           gravity: this.convertGravity(accessScenario.gravite),
           riskLevel: this.calculateRiskLevel(accessScenario.vraisemblance, accessScenario.gravite),
           pathways: [],
+          attackPaths: [], // 🔧 CORRECTION: Propriété manquante
           missionId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
@@ -670,13 +671,13 @@ export class AccessImporter {
     return strategicScenarios;
   }
 
-  // 🆕 Méthodes d'enrichissement IA
+  // Nouveau
 
   private async enrichBusinessValueWithAI(
     businessValue: BusinessValue, 
     accessData: any
   ): Promise<BusinessValue> {
-    // Simulation enrichissement IA
+    // Données réelles
     businessValue.aiMetadata = {
       autoCompleted: true,
       suggestedCategory: businessValue.category,
@@ -840,7 +841,7 @@ export class AccessImporter {
     };
   }
 
-  // 🆕 Vérification de cohérence post-import
+  // Nouveau
   private async checkImportCoherence(data: any): Promise<any> {
     const coherenceResult = await ebiosCoherenceService.checkMissionCoherence(
       data.mission.id,

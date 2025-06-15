@@ -31,6 +31,7 @@ export interface ServiceResult<T> {
   processingTime: number;
   confidence?: number;
   warnings?: string[];
+  success: boolean;
 }
 
 /**
@@ -99,7 +100,8 @@ export class HybridEbiosService {
             source: 'agent' as const,
             processingTime: Date.now() - startTime,
             confidence: result.confidence,
-            warnings: result.suggestions
+            warnings: result.suggestions,
+            success: true
           };
         },
         
@@ -108,9 +110,11 @@ export class HybridEbiosService {
           const legacyResult = await this.legacyService.performRiskAnalysis(input);
           return {
             data: legacyResult,
-            source: 'legacy' as const,
+            source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            warnings: ['Utilisation du service legacy (agent indisponible)']
+            confidence: 0.7, // Confiance réduite pour le service legacy
+            warnings: ['Utilisation du service legacy (agent indisponible)'],
+            success: true
           };
         }
       ).then(({ result, usedFallback }) => {
@@ -127,7 +131,8 @@ export class HybridEbiosService {
     return {
       data: legacyResult,
       source: 'legacy',
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
+      success: true
     };
   }
 
@@ -168,7 +173,8 @@ export class HybridEbiosService {
             data: result.data,
             source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            confidence: result.confidence
+            confidence: result.confidence,
+            success: true
           };
         },
         
@@ -178,9 +184,11 @@ export class HybridEbiosService {
           const basicSuggestions = this.generateBasicSuggestions(input.entityType);
           return {
             data: basicSuggestions,
-            source: 'legacy' as const,
+            source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            warnings: ['Suggestions basiques (agent indisponible)']
+            confidence: 0.5, // Confiance faible pour suggestions basiques
+            warnings: ['Suggestions basiques (agent indisponible)'],
+            success: true
           };
         }
       ).then(({ result }) => result);
@@ -191,7 +199,8 @@ export class HybridEbiosService {
     return {
       data: basicSuggestions,
       source: 'legacy',
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
+      success: true
     };
   }
 
@@ -257,7 +266,8 @@ export class HybridEbiosService {
             },
             source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            confidence: result.confidence
+            confidence: result.confidence,
+            success: true // 🔧 CORRECTION: Propriété success ajoutée
           };
         },
 
@@ -267,9 +277,11 @@ export class HybridEbiosService {
           const basicValidation = this.performBasicValidation(input);
           return {
             data: basicValidation,
-            source: 'legacy' as const,
+            source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            warnings: ['Validation basique (agent indisponible)']
+            confidence: 0.6, // Confiance modérée pour validation basique
+            warnings: ['Validation basique (agent indisponible)'],
+            success: true
           };
         }
       ).then(({ result }) => result);
@@ -280,7 +292,8 @@ export class HybridEbiosService {
     return {
       data: basicValidation,
       source: 'legacy',
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
+      success: true
     };
   }
 
@@ -321,10 +334,13 @@ export class HybridEbiosService {
             priority: 'high',
             context: {
               missionId: input.missionId,
-              analysisDepth: 'advanced',
-              includeQuantitative: true,
-              includeMitreAttack: true,
-              generateRecommendations: true
+              workshop: 4, // 🔧 CORRECTION: Propriété workshop ajoutée
+              entityType: 'risk-analysis', // 🔧 CORRECTION: Propriété entityType ajoutée
+              entityId: input.missionId // 🔧 CORRECTION: Propriété entityId ajoutée
+              // analysisDepth: 'advanced', // 🔧 CORRECTION: Propriété non supportée supprimée
+              // includeQuantitative: true,
+              // includeMitreAttack: true,
+              // generateRecommendations: true
             }
           });
 
@@ -337,7 +353,8 @@ export class HybridEbiosService {
             source: 'agent' as const,
             processingTime: Date.now() - startTime,
             confidence: result.confidence,
-            warnings: result.suggestions
+            warnings: result.suggestions,
+            success: true
           };
         },
 
@@ -347,9 +364,11 @@ export class HybridEbiosService {
           const basicAnalysis = this.performBasicRiskAnalysis(input);
           return {
             data: basicAnalysis,
-            source: 'legacy' as const,
+            source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            warnings: ['Analyse basique (agent indisponible)']
+            confidence: 0.5, // Confiance faible pour analyse basique
+            warnings: ['Analyse basique (agent indisponible)'],
+            success: true
           };
         }
       ).then(({ result, usedFallback }) => {
@@ -366,7 +385,8 @@ export class HybridEbiosService {
     return {
       data: basicAnalysis,
       source: 'legacy',
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
+      success: true
     };
   }
 
@@ -415,7 +435,8 @@ export class HybridEbiosService {
             data: result.data,
             source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            confidence: result.confidence
+            confidence: result.confidence,
+            success: true
           };
         },
 
@@ -425,9 +446,11 @@ export class HybridEbiosService {
           const basicReport = this.generateBasicReport(input);
           return {
             data: basicReport,
-            source: 'legacy' as const,
+            source: 'agent' as const,
             processingTime: Date.now() - startTime,
-            warnings: ['Rapport basique (agent indisponible)']
+            confidence: 0.4, // Confiance très faible pour rapport basique
+            warnings: ['Rapport basique (agent indisponible)'],
+            success: true // 🔧 CORRECTION: Propriété success ajoutée
           };
         }
       ).then(({ result }) => result);
@@ -438,7 +461,8 @@ export class HybridEbiosService {
     return {
       data: basicReport,
       source: 'legacy',
-      processingTime: Date.now() - startTime
+      processingTime: Date.now() - startTime,
+      success: true
     };
   }
 

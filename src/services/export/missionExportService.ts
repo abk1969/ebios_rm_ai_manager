@@ -201,7 +201,7 @@ export class MissionExportService {
     }
     
     // Pied de page
-    const pageCount = doc.getNumberOfPages();
+    const pageCount = (doc as any).getNumberOfPages(); // 🔧 CORRECTION: Type assertion pour jsPDF
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);

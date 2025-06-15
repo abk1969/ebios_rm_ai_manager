@@ -29,7 +29,7 @@ export interface StandardDataCardProps {
 }
 
 /**
- * 🎨 COMPOSANT DE CARTE DE DONNÉES STANDARDISÉ
+ * COMPOSANT DE CARTE DE DONNÉES STANDARDISÉ
  * Harmonise l'affichage des entités EBIOS RM (valeurs métier, sources de risque, etc.)
  */
 const StandardDataCard: React.FC<StandardDataCardProps> = ({
@@ -46,7 +46,7 @@ const StandardDataCard: React.FC<StandardDataCardProps> = ({
   showMenu = true
 }) => {
 
-  // 🎨 Couleurs de statut
+  // Couleurs de statut
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800 border-green-200';
@@ -57,7 +57,7 @@ const StandardDataCard: React.FC<StandardDataCardProps> = ({
     }
   };
 
-  // 🎨 Couleurs de priorité
+  // Couleurs de priorité
   const getPriorityColor = (priority?: number) => {
     switch (priority) {
       case 4: return 'bg-red-100 text-red-800 border-red-200';
@@ -68,7 +68,7 @@ const StandardDataCard: React.FC<StandardDataCardProps> = ({
     }
   };
 
-  // 🎨 Couleurs de métadonnées
+  // Couleurs de métadonnées
   const getMetadataColor = (color?: string) => {
     switch (color) {
       case 'blue': return 'bg-blue-100 text-blue-800';

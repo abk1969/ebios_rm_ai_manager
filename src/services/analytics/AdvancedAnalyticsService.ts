@@ -410,7 +410,7 @@ export class AdvancedAnalyticsService {
     // Stockage des métriques avec timestamp
     Object.entries(data).forEach(([category, metrics]) => {
       if (typeof metrics === 'object') {
-        Object.entries(metrics).forEach(([key, value]) => {
+        Object.entries(metrics || {}).forEach(([key, value]) => { // 🔧 CORRECTION: Null check
           const metricId = `${category}_${key}`;
           const history = this.metricsHistory.get(metricId) || [];
           
@@ -542,10 +542,10 @@ export class AdvancedAnalyticsService {
     const keyMetrics: Record<string, number> = {};
     
     // Calcul des métriques clés
-    Object.entries(periodData).forEach(([metricId, history]: [string, any[]]) => {
-      if (history.length > 0) {
-        const values = history.map(entry => entry.value);
-        keyMetrics[metricId] = values.reduce((sum, val) => sum + val, 0) / values.length;
+    Object.entries(periodData).forEach(([metricId, history]) => { // 🔧 CORRECTION: Suppression du type explicite
+      if ((history as any[]).length > 0) { // 🔧 CORRECTION: Type assertion
+        const values = (history as any[]).map((entry: any) => entry.value); // 🔧 CORRECTION: Types explicites
+        keyMetrics[metricId] = values.reduce((sum: number, val: number) => sum + val, 0) / values.length; // 🔧 CORRECTION: Types explicites
       }
     });
     

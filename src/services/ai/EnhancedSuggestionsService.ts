@@ -3,9 +3,10 @@
  * Intègre les référentiels ISO 27002, NIST CSF, CIS Controls, MITRE ATT&CK
  */
 
-import { BusinessValue, DreadedEvent, SupportingAsset, RiskSource, RiskObjective, OperationalMode } from '../../types/ebios';
+import { BusinessValue, DreadedEvent, SupportingAsset, RiskSource, RiskObjective, OperationalMode, Mission } from '../../types/ebios';
 import { getRelevantControls, generateFrameworkRecommendations } from '../../lib/security-frameworks';
 import { MITRE_TECHNIQUES } from '../../lib/ebios-constants';
+import { MissionContextMapper } from './MissionContextMapper';
 
 export interface EnhancedSuggestion {
   id: string;
@@ -31,18 +32,31 @@ export class EnhancedSuggestionsService {
   
   /**
    * Génère des suggestions d'événements redoutés enrichies avec les référentiels
+   * 🆕 AMÉLIORATION: Prend en compte le contexte de mission pour des suggestions plus pertinentes
    */
   static generateEnhancedDreadedEvents(
     businessValue: BusinessValue,
-    existingEvents: DreadedEvent[]
+    existingEvents: DreadedEvent[],
+    mission?: Mission // 🆕 AJOUT: Contexte de mission optionnel
   ): EnhancedSuggestion[] {
     const suggestions: EnhancedSuggestion[] = [];
     const category = businessValue.category;
     const name = businessValue.name.toLowerCase();
     const description = businessValue.description?.toLowerCase() || '';
-    
-    // Templates enrichis par catégorie et référentiels
-    const templates = this.getDreadedEventTemplates(category, name, description);
+
+    // 🆕 AMÉLIORATION: Enrichissement avec le contexte de mission
+    const missionContext = mission?.missionContext;
+    const organizationalContext = mission ? MissionContextMapper.mapToOrganizationalContext(mission) : null;
+
+    console.log('🎯 Génération suggestions événements redoutés avec contexte:', {
+      businessValue: businessValue.name,
+      sector: missionContext?.sector,
+      organizationSize: missionContext?.organizationSize,
+      hasContext: !!organizationalContext
+    });
+
+    // Templates enrichis par catégorie, référentiels ET contexte organisationnel
+    const templates = this.getDreadedEventTemplates(category, name, description, organizationalContext);
     
     // Filtrer les suggestions déjà existantes
     const existingNames = existingEvents.map(e => e.name.toLowerCase());
@@ -65,16 +79,29 @@ export class EnhancedSuggestionsService {
 
   /**
    * Génère des suggestions d'actifs supports enrichies
+   * 🆕 AMÉLIORATION: Prend en compte le contexte de mission
    */
   static generateEnhancedSupportingAssets(
     businessValue: BusinessValue,
-    existingAssets: SupportingAsset[]
+    existingAssets: SupportingAsset[],
+    mission?: Mission // 🆕 AJOUT: Contexte de mission optionnel
   ): EnhancedSuggestion[] {
     const suggestions: EnhancedSuggestion[] = [];
     const category = businessValue.category;
     const name = businessValue.name.toLowerCase();
-    
-    const templates = this.getSupportingAssetTemplates(category, name);
+
+    // 🆕 AMÉLIORATION: Enrichissement avec le contexte de mission
+    const missionContext = mission?.missionContext;
+    const organizationalContext = mission ? MissionContextMapper.mapToOrganizationalContext(mission) : null;
+
+    console.log('🎯 Génération suggestions actifs supports avec contexte:', {
+      businessValue: businessValue.name,
+      siComponents: missionContext?.siComponents?.length || 0,
+      technologies: missionContext?.mainTechnologies?.length || 0,
+      hasContext: !!organizationalContext
+    });
+
+    const templates = this.getSupportingAssetTemplates(category, name, organizationalContext);
     const existingNames = existingAssets.map(a => a.name.toLowerCase());
     
     templates.forEach((template, index) => {
@@ -94,16 +121,34 @@ export class EnhancedSuggestionsService {
 
   /**
    * Templates d'événements redoutés par catégorie avec référentiels
+   * 🆕 AMÉLIORATION: Enrichi avec le contexte organisationnel
    */
   private static getDreadedEventTemplates(
-    category: string, 
-    name: string, 
-    description: string
+    category: string,
+    name: string,
+    description: string,
+    organizationalContext?: any // 🆕 AJOUT: Contexte organisationnel
   ): Omit<EnhancedSuggestion, 'id' | 'type'>[] {
     const isDataRelated = name.includes('données') || name.includes('base') || description.includes('information');
     const isSystemRelated = name.includes('système') || name.includes('application') || name.includes('service');
     const isProcessRelated = name.includes('processus') || name.includes('métier') || category === 'primary';
-    
+
+    // 🆕 AMÉLIORATION: Analyse du contexte organisationnel
+    const isHealthcareSector = organizationalContext?.sector?.toLowerCase().includes('santé') ||
+                              organizationalContext?.sector?.toLowerCase().includes('hôpital');
+    const isFinancialSector = organizationalContext?.sector?.toLowerCase().includes('finance') ||
+                             organizationalContext?.sector?.toLowerCase().includes('banque');
+    const isSmallOrg = organizationalContext?.size === 'small';
+    const hasHighRiskAppetite = organizationalContext?.riskAppetite === 'high';
+
+    console.log('🎯 Contexte pour templates événements redoutés:', {
+      isHealthcareSector,
+      isFinancialSector,
+      isSmallOrg,
+      hasHighRiskAppetite,
+      sector: organizationalContext?.sector
+    });
+
     const templates: Omit<EnhancedSuggestion, 'id' | 'type'>[] = [];
     
     if (isDataRelated) {
@@ -208,19 +253,114 @@ export class EnhancedSuggestionsService {
         confidence: 0.65
       }
     );
-    
+
+    // 🆕 AMÉLIORATION: Templates spécifiques au secteur d'activité
+    if (isHealthcareSector) {
+      templates.push(
+        {
+          title: 'Violation de confidentialité des données patients',
+          description: 'Accès non autorisé aux dossiers médicaux et données de santé',
+          priority: 'critical',
+          frameworks: {
+            iso27002: ['8.12', '8.24'], // DLP, Cryptography
+            nist: ['PR.DS-1', 'PR.DS-5'], // Data Security
+            cis: ['CIS-3', 'CIS-14'] // Data Protection, Awareness
+          },
+          reasoning: 'Risque critique spécifique au secteur de la santé - Réglementation HDS',
+          confidence: 0.95
+        },
+        {
+          title: 'Interruption des soins critiques',
+          description: 'Dysfonctionnement des systèmes impactant la continuité des soins',
+          priority: 'critical',
+          frameworks: {
+            iso27002: ['8.6', '8.14'], // Capacity, Business Continuity
+            nist: ['RC.RP-1', 'ID.BE-3'], // Recovery, Business Environment
+            cis: ['CIS-11', 'CIS-12'] // Data Recovery, Network Infrastructure
+          },
+          reasoning: 'Continuité des soins vitale dans le secteur de la santé',
+          confidence: 0.9
+        }
+      );
+    }
+
+    if (isFinancialSector) {
+      templates.push(
+        {
+          title: 'Fraude financière par manipulation de données',
+          description: 'Altération malveillante des transactions et comptes financiers',
+          priority: 'critical',
+          frameworks: {
+            iso27002: ['8.9', '8.24'], // Configuration, Cryptography
+            nist: ['PR.DS-6', 'DE.AE-2'], // Integrity, Anomaly Detection
+            cis: ['CIS-3', 'CIS-8'] // Data Protection, Audit Logs
+          },
+          reasoning: 'Risque majeur spécifique au secteur financier - Réglementation bancaire',
+          confidence: 0.95
+        },
+        {
+          title: 'Blanchiment d\'argent par compromission système',
+          description: 'Utilisation malveillante des systèmes pour des activités illicites',
+          priority: 'high',
+          frameworks: {
+            iso27002: ['8.16', '8.25'], // Monitoring, Threat Intelligence
+            nist: ['DE.CM-1', 'RS.AN-1'], // Continuous Monitoring, Analysis
+            cis: ['CIS-8', 'CIS-13'] // Audit Logs, Network Monitoring
+          },
+          reasoning: 'Conformité réglementaire anti-blanchiment dans le secteur financier',
+          confidence: 0.85
+        }
+      );
+    }
+
+    // 🆕 AMÉLIORATION: Ajustements selon la taille de l'organisation
+    if (isSmallOrg) {
+      templates.push({
+        title: 'Attaque ciblée sur ressources limitées',
+        description: 'Exploitation des faiblesses liées aux ressources sécurité limitées',
+        priority: 'high',
+        frameworks: {
+          iso27002: ['5.1', '8.1'], // Policies, Endpoint Protection
+          nist: ['PR.AT-1', 'PR.IP-1'], // Awareness Training, Baseline Configuration
+          cis: ['CIS-1', 'CIS-14'] // Asset Inventory, Awareness
+        },
+        reasoning: 'Risque spécifique aux petites organisations avec ressources sécurité limitées',
+        confidence: 0.8
+      });
+    }
+
     return templates;
   }
 
   /**
    * Templates d'actifs supports par catégorie
+   * 🆕 AMÉLIORATION: Enrichi avec le contexte organisationnel
    */
   private static getSupportingAssetTemplates(
     category: string,
-    name: string
+    name: string,
+    organizationalContext?: any // 🆕 AJOUT: Contexte organisationnel
   ): Omit<EnhancedSuggestion, 'id' | 'type'>[] {
     const templates: Omit<EnhancedSuggestion, 'id' | 'type'>[] = [];
-    
+
+    // 🆕 AMÉLIORATION: Analyse du contexte organisationnel pour actifs spécifiques
+    const isHealthcareSector = organizationalContext?.sector?.toLowerCase().includes('santé') ||
+                              organizationalContext?.sector?.toLowerCase().includes('hôpital');
+    const isFinancialSector = organizationalContext?.sector?.toLowerCase().includes('finance') ||
+                             organizationalContext?.sector?.toLowerCase().includes('banque');
+    const hasCloudTech = organizationalContext?.technologies?.some((tech: string) =>
+                        tech.toLowerCase().includes('cloud')) || false;
+    const hasMobileTech = organizationalContext?.technologies?.some((tech: string) =>
+                         tech.toLowerCase().includes('mobile')) || false;
+
+    console.log('🎯 Contexte pour templates actifs supports:', {
+      isHealthcareSector,
+      isFinancialSector,
+      hasCloudTech,
+      hasMobileTech,
+      technologies: organizationalContext?.technologies?.length || 0
+    });
+
     // Actifs communs selon la catégorie de valeur métier
     if (category === 'primary' || name.includes('données')) {
       templates.push(
@@ -278,7 +418,97 @@ export class EnhancedSuggestionsService {
         confidence: 0.75
       }
     );
-    
+
+    // 🆕 AMÉLIORATION: Actifs spécifiques au secteur d'activité
+    if (isHealthcareSector) {
+      templates.push(
+        {
+          title: 'Système d\'Information Hospitalier (SIH)',
+          description: 'Système central de gestion des données patients et des soins',
+          priority: 'critical',
+          frameworks: {
+            iso27002: ['8.9', '8.24'], // Configuration, Cryptography
+            nist: ['PR.DS-1', 'PR.DS-2'], // Data-at-rest, Data-in-transit
+            cis: ['CIS-3', 'CIS-4'] // Data Protection, Secure Configuration
+          },
+          reasoning: 'Actif critique spécifique au secteur de la santé - Conformité HDS',
+          confidence: 0.95
+        },
+        {
+          title: 'Équipements médicaux connectés',
+          description: 'Dispositifs médicaux IoT et systèmes de monitoring patients',
+          priority: 'high',
+          frameworks: {
+            iso27002: ['8.1', '8.6'], // Endpoint Protection, Network Management
+            nist: ['PR.PT-1', 'PR.AC-5'], // Protective Technology, Network Integrity
+            cis: ['CIS-1', 'CIS-12'] // Asset Inventory, Network Infrastructure
+          },
+          reasoning: 'Sécurisation IoT médical selon CIS-1/12 et ISO 27002:8.1',
+          confidence: 0.85
+        }
+      );
+    }
+
+    if (isFinancialSector) {
+      templates.push(
+        {
+          title: 'Système de paiement et transactions',
+          description: 'Infrastructure de traitement des paiements et transactions financières',
+          priority: 'critical',
+          frameworks: {
+            iso27002: ['8.24', '8.16'], // Cryptography, Monitoring
+            nist: ['PR.DS-2', 'DE.CM-1'], // Data-in-transit, Continuous Monitoring
+            cis: ['CIS-3', 'CIS-8'] // Data Protection, Audit Logs
+          },
+          reasoning: 'Actif critique financier - Conformité PCI DSS et réglementation bancaire',
+          confidence: 0.95
+        },
+        {
+          title: 'Système de détection de fraude',
+          description: 'Outils d\'analyse et de détection des transactions suspectes',
+          priority: 'high',
+          frameworks: {
+            iso27002: ['8.16', '8.25'], // Monitoring, Threat Intelligence
+            nist: ['DE.AE-2', 'RS.AN-1'], // Anomaly Detection, Analysis
+            cis: ['CIS-8', 'CIS-13'] // Audit Logs, Network Monitoring
+          },
+          reasoning: 'Détection fraude selon NIST DE.AE-2 et CIS-8',
+          confidence: 0.9
+        }
+      );
+    }
+
+    // 🆕 AMÉLIORATION: Actifs selon les technologies utilisées
+    if (hasCloudTech) {
+      templates.push({
+        title: 'Infrastructure cloud hybride',
+        description: 'Services cloud publics et privés avec interconnexions sécurisées',
+        priority: 'high',
+        frameworks: {
+          iso27002: ['8.6', '8.24'], // Network Management, Cryptography
+          nist: ['PR.PT-3', 'PR.DS-2'], // Communications Protection, Data-in-transit
+          cis: ['CIS-12', 'CIS-14'] // Network Infrastructure, Awareness
+        },
+        reasoning: 'Sécurisation cloud selon NIST PR.PT-3 et CIS-12',
+        confidence: 0.8
+      });
+    }
+
+    if (hasMobileTech) {
+      templates.push({
+        title: 'Applications mobiles métier',
+        description: 'Applications mobiles d\'entreprise et dispositifs BYOD',
+        priority: 'medium',
+        frameworks: {
+          iso27002: ['8.1', '8.5'], // Endpoint Protection, MFA
+          nist: ['PR.PT-1', 'PR.AC-1'], // Protective Technology, Access Control
+          cis: ['CIS-1', 'CIS-5'] // Asset Inventory, Account Management
+        },
+        reasoning: 'Sécurisation mobile selon CIS-1/5 et ISO 27002:8.1',
+        confidence: 0.75
+      });
+    }
+
     return templates;
   }
 

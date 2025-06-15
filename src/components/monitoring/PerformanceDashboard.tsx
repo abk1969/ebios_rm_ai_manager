@@ -61,7 +61,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
       setReport(performanceReport);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('Erreur lors du chargement des données de performance:', error);
+      // console.error supprimé;
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
     );
   };
 
-  // 📈 Graphique de tendance simple
+  // Métriques
   const renderTrendChart = (metrics: any[], title: string) => {
     if (!metrics || metrics.length === 0) return null;
 
@@ -309,7 +309,7 @@ const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
         </MetricsGrid>
       )}
 
-      {/* 📈 GRAPHIQUES DE TENDANCE */}
+      {/* GRAPHIQUES DE TENDANCE */}
       {report && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {renderTrendChart(report.metrics.performance, 'Performance (LCP)')}

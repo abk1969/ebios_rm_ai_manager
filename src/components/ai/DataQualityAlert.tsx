@@ -8,12 +8,23 @@ import { AlertTriangle, Zap, RefreshCw, CheckCircle, X, RotateCcw } from 'lucide
 import Button from '../ui/button';
 import { DataQualityIssue } from '../../services/ai/DataQualityDetector';
 
+// Extension de l'interface pour les propriétés A2A
+interface ExtendedDataQualityIssue extends DataQualityIssue {
+  a2aSuggestions?: any[];
+  agentsUsed?: string[];
+  mcpToolsUsed?: string[];
+  fallbackUsed?: boolean;
+  entityType?: string;
+  entityId?: string;
+  entityName?: string;
+}
+
 interface DataQualityAlertProps {
-  issues: DataQualityIssue[];
-  onAutoFix?: (issue: DataQualityIssue) => void;
+  issues: ExtendedDataQualityIssue[];
+  onAutoFix?: (issue: ExtendedDataQualityIssue) => void;
   onDismiss?: (issueId: string) => void;
-  onManualFix?: (issue: DataQualityIssue) => void;
-  onRestoreOriginal?: (issue: DataQualityIssue) => void; // 🔄 NOUVEAU
+  onManualFix?: (issue: ExtendedDataQualityIssue) => void;
+  onRestoreOriginal?: (issue: ExtendedDataQualityIssue) => void; // 🔄 NOUVEAU
   className?: string;
 }
 
@@ -63,7 +74,7 @@ const DataQualityAlert: React.FC<DataQualityAlertProps> = ({
     }
   };
 
-  const renderIssue = (issue: DataQualityIssue) => {
+  const renderIssue = (issue: ExtendedDataQualityIssue) => {
     console.log('🔍 Rendu issue:', {
       id: issue.id,
       autoFixAvailable: issue.autoFixAvailable,
@@ -101,16 +112,16 @@ const DataQualityAlert: React.FC<DataQualityAlertProps> = ({
                 <div className="mt-2 p-2 bg-white bg-opacity-50 rounded border border-current border-opacity-20">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-medium">
-                      Suggestion IA {issue.a2aSuggestions?.length > 0 ? '(A2A Enhanced)' : ''}:
+                      Suggestion IA {issue.a2aSuggestions && issue.a2aSuggestions.length > 0 ? '(A2A Enhanced)' : ''}:
                     </p>
-                    {issue.agentsUsed?.length > 0 && (
+                    {issue.agentsUsed && issue.agentsUsed.length > 0 && (
                       <span className="text-xs bg-purple-100 text-purple-700 px-1 py-0.5 rounded">
                         🤖 {issue.agentsUsed.length}
                       </span>
                     )}
                   </div>
                   <p className="text-sm">"{issue.suggestedValue}"</p>
-                  {issue.mcpToolsUsed?.length > 0 && (
+                  {issue.mcpToolsUsed && issue.mcpToolsUsed.length > 0 && (
                     <p className="text-xs text-blue-600 mt-1">
                       🔌 MCP: {issue.mcpToolsUsed.join(', ')}
                     </p>

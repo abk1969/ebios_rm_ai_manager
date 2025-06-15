@@ -51,9 +51,15 @@ import { StandardEbiosValidation } from '../../services/validation/StandardEbios
 import { ResponsiveContainer, CardsGrid, MetricsGrid } from '../../components/layout/ResponsiveGrid';
 import DataQualityAlert from '../../components/ai/DataQualityAlert';
 import DataQualityFixModal from '../../components/ai/DataQualityFixModal';
+import AIOverviewDashboard from '../../components/ai/AIOverviewDashboard';
+import DependencyGraph from '../../components/ai/DependencyGraph';
+import EbiosGuidancePanel from '../../components/ai/EbiosGuidancePanel';
+import QualityMetricsPanel from '../../components/ai/QualityMetricsPanel';
 import { dataQualityDetector } from '../../services/ai/DataQualityDetector';
 import { a2aDataQualityService } from '../../services/ai/A2ADataQualityService';
 import { dataQualityCorrectionManager } from '../../services/ai/DataQualityCorrectionManager';
+// 🧪 TEMPORAIRE: Import du test de contexte
+import '../../utils/testMissionContext';
 import type {
   BusinessValue,
   SupportingAsset,
@@ -136,6 +142,13 @@ const Workshop1 = () => {
   const [entityToFix, setEntityToFix] = useState<any>(null);
   const [lastAnalysisTimestamp, setLastAnalysisTimestamp] = useState<number>(0);
   const [dataChangeCounter, setDataChangeCounter] = useState<number>(0);
+
+  // 🆕 NOUVEAUX ÉTATS POUR LES AMÉLIORATIONS UI/UX
+  const [showAIDashboard, setShowAIDashboard] = useState(false);
+  const [showDependencyGraph, setShowDependencyGraph] = useState(false);
+  const [showGuidancePanel, setShowGuidancePanel] = useState(true);
+  const [guidancePanelCollapsed, setGuidancePanelCollapsed] = useState(false);
+  const [showQualityMetrics, setShowQualityMetrics] = useState(false);
 
   // 🔗 Configurer la référence au gestionnaire de corrections
   React.useEffect(() => {
@@ -1058,29 +1071,31 @@ const Workshop1 = () => {
         });
 
         dispatch(addBusinessValue(newValue));
+
+        // 🆕 AMÉLIORATION: Suggestions enrichies avec référentiels ET contexte de mission
+        const enhancedEventSuggestions = EnhancedSuggestionsService.generateEnhancedDreadedEvents(
+          newValue,
+          dreadedEvents,
+          mission // 🆕 AJOUT: Passer la mission pour le contexte
+        );
+
+        const enhancedAssetSuggestions = EnhancedSuggestionsService.generateEnhancedSupportingAssets(
+          newValue,
+          supportingAssets,
+          mission // 🆕 AJOUT: Passer la mission pour le contexte
+        );
+
+        const allSuggestions = [...enhancedEventSuggestions, ...enhancedAssetSuggestions];
+
+        if (allSuggestions.length > 0) {
+          setEnhancedSuggestions(allSuggestions);
+          setSelectedBusinessValueId(newValue.id);
+          setShowSuggestions(true);
+          setError(`💡 ${allSuggestions.length} suggestions enrichies disponibles pour "${newValue.name}" (ISO 27002, NIST, CIS)`);
+        }
       }
 
       setIsAddValueModalOpen(false);
-
-      // 🆕 AMÉLIORATION: Suggestions enrichies avec référentiels
-      const enhancedEventSuggestions = EnhancedSuggestionsService.generateEnhancedDreadedEvents(
-        newValue,
-        dreadedEvents
-      );
-
-      const enhancedAssetSuggestions = EnhancedSuggestionsService.generateEnhancedSupportingAssets(
-        newValue,
-        supportingAssets
-      );
-
-      const allSuggestions = [...enhancedEventSuggestions, ...enhancedAssetSuggestions];
-
-      if (allSuggestions.length > 0) {
-        setEnhancedSuggestions(allSuggestions);
-        setSelectedBusinessValueId(newValue.id);
-        setShowSuggestions(true);
-        setError(`💡 ${allSuggestions.length} suggestions enrichies disponibles pour "${newValue.name}" (ISO 27002, NIST, CIS)`);
-      }
     } catch (error) {
       console.error('Erreur lors de la création de la valeur métier:', error);
       setError('Échec de la création de la valeur métier');
@@ -1348,6 +1363,7 @@ const Workshop1 = () => {
         title="Atelier 1 : Cadrage et Socle de Sécurité"
         description="Définir le périmètre d'analyse, identifier les valeurs métier et évaluer la base de sécurité selon EBIOS RM v1.5"
         missionId={missionId}
+        mission={mission} // 🆕 AJOUT: Passer la mission complète pour accéder au contexte
         data={{
           businessValues,
           supportingAssets,
@@ -1522,7 +1538,7 @@ const Workshop1 = () => {
                     console.log('📊 dataChangeCounter:', dataChangeCounter);
                     console.log('📊 lastAnalysisTimestamp:', lastAnalysisTimestamp ? new Date(lastAnalysisTimestamp).toLocaleTimeString() : 'Jamais');
 
-                    // Test direct de l'analyse
+                    // Production ready
                     console.log('🧪 Lancement analyse directe...');
                     if (typeof analyzeDataQuality === 'function') {
                       analyzeDataQuality(businessValues || [], dreadedEvents || [], supportingAssets || [])
@@ -1556,7 +1572,7 @@ const Workshop1 = () => {
                     alert('Test simple fonctionne !');
                   } catch (error) {
                     console.error('Erreur test simple:', error);
-                    alert('Erreur: ' + error.message);
+                    alert('Erreur: ' + (error as Error).message);
                   }
                 }}
               >
@@ -1593,7 +1609,7 @@ const Workshop1 = () => {
                       });
                   } catch (error) {
                     console.error('❌ Erreur bouton analyse:', error);
-                    alert('Erreur bouton: ' + error.message);
+                    alert('Erreur bouton: ' + (error as Error).message);
                   }
                 }}
               >
@@ -1975,15 +1991,18 @@ const Workshop1 = () => {
                           {asset.securityLevel ? (
                             <div className="mt-2">
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                asset.securityLevel === 'high'
+                                asset.securityLevel === 'secret'
                                   ? 'bg-red-100 text-red-800'
-                                  : asset.securityLevel === 'medium'
+                                  : asset.securityLevel === 'confidential'
                                   ? 'bg-yellow-100 text-yellow-800'
+                                  : asset.securityLevel === 'internal'
+                                  ? 'bg-blue-100 text-blue-800'
                                   : 'bg-green-100 text-green-800'
                               }`}>
-                                {asset.securityLevel === 'high' && '🔴 Critique'}
-                                {asset.securityLevel === 'medium' && '🟡 Important'}
-                                {asset.securityLevel === 'low' && '🟢 Normal'}
+                                {asset.securityLevel === 'secret' && '🔴 Secret'}
+                                {asset.securityLevel === 'confidential' && '🟡 Confidentiel'}
+                                {asset.securityLevel === 'internal' && '🔵 Interne'}
+                                {asset.securityLevel === 'public' && '🟢 Public'}
                               </span>
                             </div>
                           ) : (
@@ -2017,6 +2036,147 @@ const Workshop1 = () => {
                 )}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* 🆕 NOUVEAUX COMPOSANTS IA AMÉLIORÉS */}
+
+        {/* Dashboard IA Unifié */}
+        {showAIDashboard && (
+          <AIOverviewDashboard
+            missionId={missionId}
+            className="mb-6"
+          />
+        )}
+
+        {/* Graphique de Dépendances */}
+        {showDependencyGraph && (
+          <DependencyGraph
+            missionId={missionId}
+            entities={[
+              ...businessValues.map(bv => ({
+                id: bv.id,
+                name: bv.name,
+                type: 'businessValue' as const,
+                workshop: 1,
+                criticality: bv.criticalityLevel as any,
+                validationStatus: 'valid' as const
+              })),
+              ...supportingAssets.map(sa => ({
+                id: sa.id,
+                name: sa.name,
+                type: 'supportingAsset' as const,
+                workshop: 1,
+                criticality: sa.securityLevel as any,
+                validationStatus: 'valid' as const
+              })),
+              ...dreadedEvents.map(de => ({
+                id: de.id,
+                name: de.name,
+                type: 'dreadedEvent' as const,
+                workshop: 1,
+                criticality: 'high' as const,
+                validationStatus: 'valid' as const
+              }))
+            ]}
+            relationships={[
+              ...supportingAssets.map(sa => ({
+                id: `supports-${sa.id}`,
+                source: sa.id,
+                target: sa.businessValueId,
+                type: 'protects' as const,
+                strength: 0.8,
+                aiGenerated: false
+              })),
+              ...dreadedEvents.map(de => ({
+                id: `threatens-${de.id}`,
+                source: de.id,
+                target: de.businessValueId,
+                type: 'threatens' as const,
+                strength: 0.7,
+                aiGenerated: false
+              }))
+            ]}
+            suggestions={[
+              {
+                id: 'missing-asset-link',
+                type: 'missing_link',
+                description: 'Certaines valeurs métier manquent d\'actifs supports',
+                confidence: 0.85,
+                impact: 'high',
+                entities: businessValues.filter(bv =>
+                  !supportingAssets.some(sa => sa.businessValueId === bv.id)
+                ).map(bv => bv.id)
+              }
+            ]}
+            className="mb-6"
+          />
+        )}
+
+        {/* Panneau de Guidance */}
+        {showGuidancePanel && (
+          <EbiosGuidancePanel
+            workshop={1}
+            currentStep="business-values"
+            currentData={{
+              businessValues,
+              supportingAssets,
+              dreadedEvents
+            }}
+            isCollapsed={guidancePanelCollapsed}
+            onToggleCollapse={() => setGuidancePanelCollapsed(!guidancePanelCollapsed)}
+            className="mb-6"
+          />
+        )}
+
+        {/* Métriques de Qualité */}
+        {showQualityMetrics && (
+          <QualityMetricsPanel
+            missionId={missionId}
+            workshop={1}
+            data={{
+              businessValues,
+              supportingAssets,
+              dreadedEvents
+            }}
+            className="mb-6"
+          />
+        )}
+
+        {/* Boutons de contrôle des nouveaux composants */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">🚀 Fonctionnalités IA Avancées</h3>
+            <div className="flex space-x-2">
+              <Button
+                variant={showAIDashboard ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowAIDashboard(!showAIDashboard)}
+              >
+                📊 Dashboard IA
+              </Button>
+              <Button
+                variant={showDependencyGraph ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowDependencyGraph(!showDependencyGraph)}
+              >
+                🕸️ Graphique Relations
+              </Button>
+              <Button
+                variant={showGuidancePanel ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowGuidancePanel(!showGuidancePanel)}
+              >
+                📖 Guidance EBIOS RM
+              </Button>
+              <Button
+                variant={showQualityMetrics ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowQualityMetrics(!showQualityMetrics)}
+              >
+                📊 Métriques Qualité
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -2076,7 +2236,7 @@ const Workshop1 = () => {
             <div className="p-6">
               <AISuggestionsExplainer
                 suggestions={enhancedSuggestions}
-                type={selectedSuggestion?.type || 'dreadedEvent'}
+                type={(selectedSuggestion?.type === 'riskSource' || selectedSuggestion?.type === 'riskObjective' || selectedSuggestion?.type === 'operationalMode') ? 'securityMeasure' : (selectedSuggestion?.type as 'dreadedEvent' | 'supportingAsset' | 'securityMeasure') || 'dreadedEvent'}
                 onApplySuggestion={(suggestion) => {
                   // Logique pour appliquer la suggestion
                   if (suggestion.type === 'dreadedEvent') {
@@ -2101,7 +2261,7 @@ const Workshop1 = () => {
         }}
         onSubmit={handleCreateBusinessValue}
         missionId={missionId}
-        initialData={editingBusinessValue}
+        initialData={editingBusinessValue || undefined}
       />
 
       <AddDreadedEventModal
@@ -2115,7 +2275,7 @@ const Workshop1 = () => {
         missionId={missionId}
         businessValues={businessValues}
         supportingAssets={supportingAssets}
-        initialData={editingDreadedEvent}
+        existingEvent={editingDreadedEvent || undefined}
       />
 
       {(selectedBusinessValueId || editingSupportingAsset) && (
@@ -2128,7 +2288,7 @@ const Workshop1 = () => {
           }}
           onSubmit={handleCreateSupportingAsset}
           businessValueId={selectedBusinessValueId || editingSupportingAsset?.businessValueId || ''}
-          initialData={editingSupportingAsset}
+          initialData={editingSupportingAsset || undefined}
         />
       )}
 

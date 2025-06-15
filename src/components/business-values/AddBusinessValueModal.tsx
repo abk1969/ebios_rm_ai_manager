@@ -9,7 +9,7 @@ interface AddBusinessValueModalProps {
   onClose: () => void;
   onSubmit: (data: Partial<BusinessValue>) => void;
   missionId: string;
-  initialData?: BusinessValue | null;
+  initialData?: Partial<BusinessValue>;
 }
 
 const AddBusinessValueModal: React.FC<AddBusinessValueModalProps> = ({

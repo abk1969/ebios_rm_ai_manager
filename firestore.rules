@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 🔧 RÈGLES TEMPORAIRES POUR LES TESTS
+    // ATTENTION: Ces règles permettent l'accès libre - à utiliser uniquement pour les tests
+
+    // Collection de test - accès libre temporaire
+    match /_test/{document} {
+      allow read, write: if true;
+    }
+    
+    // Collections principales EBIOS RM - accès libre temporaire pour les tests
+    match /missions/{missionId} {
+      allow read, write: if true;
+
+      // Sous-collections de la mission
+      match /{subcollection}/{document} {
+        allow read, write: if true;
+      }
+    }
+
+    // Biens essentiels
+    match /businessValues/{document} {
+      allow read, write: if true;
+    }
+
+    // Biens supports
+    match /supportingAssets/{document} {
+      allow read, write: if true;
+    }
+
+    // Événements redoutés
+    match /dreadedEvents/{document} {
+      allow read, write: if true;
+    }
+
+    // Sources de risque
+    match /riskSources/{document} {
+      allow read, write: if true;
+    }
+
+    // Scénarios stratégiques
+    match /strategicScenarios/{document} {
+      allow read, write: if true;
+    }
+
+    // Scénarios opérationnels
+    match /operationalScenarios/{document} {
+      allow read, write: if true;
+    }
+
+    // Mesures de sécurité
+    match /securityMeasures/{document} {
+      allow read, write: if true;
+    }
+
+    // Métriques et rapports
+    match /metrics/{document} {
+      allow read, write: if true;
+    }
+
+    // Logs et audit
+    match /auditLogs/{document} {
+      allow read, write: if true;
+    }
+
+    // Configuration et paramètres
+    match /config/{document} {
+      allow read, write: if true;
+    }
+
+    // Utilisateurs et profils
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Règle par défaut - accès libre temporaire pour les tests
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

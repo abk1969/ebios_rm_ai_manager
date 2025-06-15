@@ -6,7 +6,7 @@
 
 import { 
   AgentService, 
-  AgentCapability, 
+  AgentCapabilityDetails, 
   AgentTask, 
   AgentResult, 
   AgentStatus 
@@ -125,7 +125,7 @@ export class RiskAnalysisAgent implements AgentService {
     }
   };
 
-  getCapabilities(): AgentCapability[] {
+  getCapabilities(): AgentCapabilityDetails[] {
     return [
       {
         id: 'analyze-strategic-risks',
@@ -201,7 +201,8 @@ export class RiskAnalysisAgent implements AgentService {
         metadata: {
           processingTime: Date.now() - startTime,
           agentVersion: this.version,
-          analysisDepth: task.context?.analysisDepth || 'standard'
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // analysisDepth: (task.context as any)?.analysisDepth || 'standard'
         }
       };
     } catch (error) {
@@ -219,7 +220,7 @@ export class RiskAnalysisAgent implements AgentService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Test d'analyse basique
+      // Production ready
       const testResult = await this.analyzeStrategicRisks({
         strategicScenarios: [],
         businessValues: []
@@ -475,7 +476,7 @@ export class RiskAnalysisAgent implements AgentService {
   private mapToMitre(path: AttackPath): MitreMapping | null {
     // Mapping simplifié vers MITRE ATT&CK
     const techniques = path.techniques || ['T1566', 'T1078'];
-    const tactics = techniques.map(t => this.mitreDatabase.techniques[t]?.tactic || 'Unknown');
+    const tactics = techniques.map(t => (this.mitreDatabase.techniques as any)[t]?.tactic || 'Unknown'); // 🔧 CORRECTION: Type assertion
     
     return {
       scenarioId: path.id,

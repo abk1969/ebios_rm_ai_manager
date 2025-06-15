@@ -3,7 +3,7 @@ import {
   Shield, Database, Target, Users, Lock, AlertTriangle,
   TrendingUp, CheckCircle, BarChart, Activity, Bot, Brain,
   Download, Upload, RefreshCw, Sparkles, TestTube,
-  Cpu, Zap, Network
+  Cpu, Zap, Network, Cloud
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
@@ -16,6 +16,9 @@ import AIStatusPanel from '@/components/ai/AIStatusPanel';
 import OrchestrationPanel from '@/components/orchestration/OrchestrationPanel';
 import FeatureTestPanel from '@/components/testing/FeatureTestPanel';
 import { Badge } from '@/components/ui/badge';
+import EbiosRMMetricsService, { type EbiosRMMetrics } from '@/services/metrics/EbiosRMMetricsService';
+import PerformanceMonitor from '@/components/performance/PerformanceMonitor';
+import DeploymentDashboard from '@/components/deployment/DeploymentDashboard';
 
 interface EbiosGlobalDashboardProps {
   missionId: string;
@@ -32,12 +35,24 @@ interface WorkshopStats {
   status: 'not_started' | 'in_progress' | 'completed' | 'validated';
   lastUpdate?: string;
   coherenceScore?: number;
+  conformityScore?: number;
+  criticalIssues?: number;
   aiRecommendations?: {
     priority: 'high' | 'medium' | 'low';
     category: string;
     text: string;
     workshop: number;
   }[];
+}
+
+interface GlobalStats {
+  totalProgress: number;
+  criticalIssues: number;
+  recommendations: number;
+  lastSync: string;
+  anssiComplianceScore: number;
+  riskMaturityLevel: number;
+  dataQualityScore: number;
 }
 
 const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
@@ -47,92 +62,255 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
 }) => {
   const [showAccessPanel, setShowAccessPanel] = useState(false);
   const [showTestPanel, setShowTestPanel] = useState(false);
-  const [activeTab, setActiveTab] = useState<'workshops' | 'ai-status' | 'orchestration' | 'agents' | 'recommendations'>('workshops');
-  const [workshopStats, setWorkshopStats] = useState<WorkshopStats[]>([
-    {
-      workshop: 1,
-      name: 'Cadrage et socle',
-      icon: Shield,
-      progress: 0,
-      itemsCount: 0,
-      status: 'not_started'
-    },
-    {
-      workshop: 2,
-      name: 'Sources de risque',
-      icon: Target,
-      progress: 0,
-      itemsCount: 0,
-      status: 'not_started'
-    },
-    {
-      workshop: 3,
-      name: 'Scénarios stratégiques',
-      icon: Users,
-      progress: 0,
-      itemsCount: 0,
-      status: 'not_started'
-    },
-    {
-      workshop: 4,
-      name: 'Scénarios opérationnels',
-      icon: Activity,
-      progress: 0,
-      itemsCount: 0,
-      status: 'not_started'
-    },
-    {
-      workshop: 5,
-      name: 'Traitement du risque',
-      icon: Lock,
-      progress: 0,
-      itemsCount: 0,
-      status: 'not_started'
-    }
-  ]);
-
-  const [globalStats, setGlobalStats] = useState({
+  const [activeTab, setActiveTab] = useState<'workshops' | 'ai-status' | 'orchestration' | 'agents' | 'recommendations' | 'performance' | 'deployment'>('workshops');
+  const [workshopStats, setWorkshopStats] = useState<WorkshopStats[]>([]);
+  const [globalStats, setGlobalStats] = useState<GlobalStats>({
     totalProgress: 0,
     criticalIssues: 0,
     recommendations: 0,
-    lastSync: new Date().toISOString()
+    lastSync: new Date().toISOString(),
+    anssiComplianceScore: 0,
+    riskMaturityLevel: 1,
+    dataQualityScore: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [metricsData, setMetricsData] = useState<EbiosRMMetrics | null>(null);
 
   useEffect(() => {
-    // TODO: Charger les statistiques réelles depuis Firebase
-    loadWorkshopStats();
+    if (missionId) {
+      loadRealWorkshopStats();
+    }
   }, [missionId]);
 
-  const loadWorkshopStats = async () => {
-    // Simulation pour l'instant
-    setWorkshopStats([
+  /**
+   * 📊 CHARGEMENT DES STATISTIQUES RÉELLES DEPUIS FIREBASE
+   * Conforme aux exigences ANSSI EBIOS RM
+   */
+  const loadRealWorkshopStats = async () => {
+    setIsLoading(true);
+
+    try {
+      console.log(`📊 Chargement des métriques EBIOS RM réelles pour mission: ${missionId}`);
+
+      // Calcul des métriques réelles via le service conforme ANSSI
+      const realMetrics = await EbiosRMMetricsService.calculateMetrics(missionId);
+      setMetricsData(realMetrics);
+
+      // Transformation des métriques en format WorkshopStats avec validation séquentialité ANSSI
+      const workshopStatsReal = await transformMetricsToWorkshopStats(realMetrics);
+      setWorkshopStats(workshopStatsReal);
+
+      // Calcul des statistiques globales réelles
+      const globalStatsReal = calculateGlobalStatsFromMetrics(realMetrics);
+      setGlobalStats(globalStatsReal);
+
+      console.log('✅ Métriques EBIOS RM réelles chargées avec succès');
+      console.log('📈 Conformité ANSSI:', realMetrics.global.anssiComplianceScore + '%');
+
+    } catch (error) {
+      console.error('❌ Erreur chargement métriques réelles:', error);
+
+      // Fallback vers état initial (données réelles vides)
+      setWorkshopStats(getInitialWorkshopStats());
+      setGlobalStats({
+        totalProgress: 0,
+        criticalIssues: 5, // Problème critique : aucune donnée chargée
+        recommendations: 5, // Recommandation : commencer l'analyse EBIOS RM
+        lastSync: new Date().toISOString(),
+        anssiComplianceScore: 0,
+        riskMaturityLevel: 1,
+        dataQualityScore: 0
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * 🔄 TRANSFORMATION DES MÉTRIQUES RÉELLES EN WORKSHOP STATS
+   * Avec validation de la séquentialité ANSSI EBIOS RM
+   */
+  const transformMetricsToWorkshopStats = async (metrics: EbiosRMMetrics): Promise<WorkshopStats[]> => {
+    const workshopConfigs = [
+      { workshop: 1, name: 'Cadrage et socle', icon: Shield, metrics: metrics.workshop1 },
+      { workshop: 2, name: 'Sources de risque', icon: Target, metrics: metrics.workshop2 },
+      { workshop: 3, name: 'Scénarios stratégiques', icon: Users, metrics: metrics.workshop3 },
+      { workshop: 4, name: 'Scénarios opérationnels', icon: Activity, metrics: metrics.workshop4 },
+      { workshop: 5, name: 'Traitement du risque', icon: Lock, metrics: metrics.workshop5 }
+    ];
+
+    return workshopConfigs.map((config, index) => {
+      // 🚨 VALIDATION SÉQUENTIALITÉ ANSSI : Un atelier ne peut progresser que si le précédent est à 100%
+      const previousWorkshopComplete = index === 0 || workshopConfigs[index - 1].metrics.completionRate === 100;
+      const actualProgress = previousWorkshopComplete ? config.metrics.completionRate : 0;
+
+      // Détermination du statut selon ANSSI
+      let status: WorkshopStats['status'] = 'not_started';
+      if (actualProgress === 100) {
+        status = 'completed';
+      } else if (actualProgress > 0 && previousWorkshopComplete) {
+        status = 'in_progress';
+      }
+
+      // Calcul des éléments selon le type d'atelier avec typage sécurisé
+      let itemsCount = 0;
+      switch (config.workshop) {
+        case 1:
+          const w1Metrics = config.metrics as typeof metrics.workshop1;
+          itemsCount = w1Metrics.businessValuesCount + w1Metrics.supportingAssetsCount + w1Metrics.dreadedEventsCount;
+          break;
+        case 2:
+          const w2Metrics = config.metrics as typeof metrics.workshop2;
+          itemsCount = w2Metrics.riskSourcesCount;
+          break;
+        case 3:
+          const w3Metrics = config.metrics as typeof metrics.workshop3;
+          itemsCount = w3Metrics.strategicScenariosCount;
+          break;
+        case 4:
+          const w4Metrics = config.metrics as typeof metrics.workshop4;
+          itemsCount = w4Metrics.operationalScenariosCount;
+          break;
+        case 5:
+          const w5Metrics = config.metrics as typeof metrics.workshop5;
+          itemsCount = w5Metrics.securityMeasuresCount;
+          break;
+      }
+
+      return {
+        workshop: config.workshop,
+        name: config.name,
+        icon: config.icon,
+        progress: actualProgress,
+        itemsCount,
+        status,
+        lastUpdate: metrics.global.lastCalculation,
+        coherenceScore: metrics.global.dataQualityScore / 100,
+        conformityScore: config.metrics.conformityScore || config.metrics.completionRate,
+        criticalIssues: actualProgress < 50 ? 1 : 0,
+        aiRecommendations: generateRealAIRecommendations(config.workshop, actualProgress, status)
+      };
+    });
+  };
+
+  /**
+   * 📊 CALCUL DES STATISTIQUES GLOBALES RÉELLES
+   */
+  const calculateGlobalStatsFromMetrics = (metrics: EbiosRMMetrics): GlobalStats => {
+    return {
+      totalProgress: metrics.global.overallCompletionRate,
+      criticalIssues: calculateCriticalIssuesCount(metrics),
+      recommendations: calculateRecommendationsCount(metrics),
+      lastSync: metrics.global.lastCalculation,
+      anssiComplianceScore: metrics.global.anssiComplianceScore,
+      riskMaturityLevel: metrics.global.riskMaturityLevel,
+      dataQualityScore: metrics.global.dataQualityScore
+    };
+  };
+
+  /**
+   * 🚨 CALCUL DU NOMBRE DE PROBLÈMES CRITIQUES RÉELS
+   */
+  const calculateCriticalIssuesCount = (metrics: EbiosRMMetrics): number => {
+    let criticalIssues = 0;
+
+    // Problème critique si un atelier a moins de 50% de complétude
+    if (metrics.workshop1.completionRate < 50) criticalIssues++;
+    if (metrics.workshop2.completionRate < 50) criticalIssues++;
+    if (metrics.workshop3.completionRate < 50) criticalIssues++;
+    if (metrics.workshop4.completionRate < 50) criticalIssues++;
+    if (metrics.workshop5.completionRate < 50) criticalIssues++;
+
+    // Problème critique si conformité ANSSI < 70%
+    if (metrics.global.anssiComplianceScore < 70) criticalIssues++;
+
+    // Problème critique si qualité des données < 60%
+    if (metrics.global.dataQualityScore < 60) criticalIssues++;
+
+    return criticalIssues;
+  };
+
+  /**
+   * 💡 CALCUL DU NOMBRE DE RECOMMANDATIONS RÉELLES
+   */
+  const calculateRecommendationsCount = (metrics: EbiosRMMetrics): number => {
+    let recommendations = 0;
+
+    // Une recommandation par atelier incomplet
+    if (metrics.workshop1.completionRate < 100) recommendations++;
+    if (metrics.workshop2.completionRate < 100) recommendations++;
+    if (metrics.workshop3.completionRate < 100) recommendations++;
+    if (metrics.workshop4.completionRate < 100) recommendations++;
+    if (metrics.workshop5.completionRate < 100) recommendations++;
+
+    // Recommandations supplémentaires selon la maturité
+    if (metrics.global.riskMaturityLevel < 3) recommendations += 2;
+    if (metrics.global.anssiComplianceScore < 80) recommendations += 1;
+
+    return recommendations;
+  };
+
+  /**
+   * 🤖 GÉNÉRATION DE RECOMMANDATIONS IA RÉELLES
+   */
+  const generateRealAIRecommendations = (
+    workshop: number,
+    progress: number,
+    status: WorkshopStats['status']
+  ): WorkshopStats['aiRecommendations'] => {
+    const recommendations: WorkshopStats['aiRecommendations'] = [];
+
+    if (progress < 100) {
+      const workshopNames = {
+        1: 'Cadrage et socle',
+        2: 'Sources de risque',
+        3: 'Scénarios stratégiques',
+        4: 'Scénarios opérationnels',
+        5: 'Traitement du risque'
+      };
+
+      recommendations.push({
+        priority: progress < 50 ? 'high' : 'medium',
+        category: 'Complétude',
+        text: `Compléter l'atelier ${workshop} - ${workshopNames[workshop as keyof typeof workshopNames]}`,
+        workshop
+      });
+    }
+
+    if (status === 'not_started' && workshop > 1) {
+      recommendations.push({
+        priority: 'high',
+        category: 'Séquentialité ANSSI',
+        text: `Terminer l'atelier précédent avant de commencer l'atelier ${workshop}`,
+        workshop: workshop - 1
+      });
+    }
+
+    return recommendations;
+  };
+
+  /**
+   * 📋 ÉTAT INITIAL DES ATELIERS (SANS DONNÉES FICTIVES)
+   */
+  const getInitialWorkshopStats = (): WorkshopStats[] => {
+    return [
       {
         workshop: 1,
         name: 'Cadrage et socle',
         icon: Shield,
-        progress: 85,
-        itemsCount: 12,
-        status: 'completed',
+        progress: 0,
+        itemsCount: 0,
+        status: 'not_started',
         lastUpdate: new Date().toISOString(),
-        coherenceScore: 0.92,
+        coherenceScore: 0,
+        conformityScore: 0,
+        criticalIssues: 1,
         aiRecommendations: [
           {
             priority: 'high',
-            category: 'Sécurité',
-            text: 'Prioriser les mesures de sécurité',
+            category: 'Démarrage',
+            text: 'Commencer par identifier les biens essentiels de votre organisation',
             workshop: 1
-          },
-          {
-            priority: 'medium',
-            category: 'Régulation',
-            text: 'Vérifier la cohérence inter-ateliers',
-            workshop: 2
-          },
-          {
-            priority: 'low',
-            category: 'Régulation',
-            text: 'Compléter l\'atelier 3 - Scénarios stratégiques',
-            workshop: 3
           }
         ]
       },
@@ -140,84 +318,55 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
         workshop: 2,
         name: 'Sources de risque',
         icon: Target,
-        progress: 70,
-        itemsCount: 8,
-        status: 'in_progress',
+        progress: 0,
+        itemsCount: 0,
+        status: 'not_started',
         lastUpdate: new Date().toISOString(),
-        coherenceScore: 0.78,
-        aiRecommendations: [
-          {
-            priority: 'medium',
-            category: 'Régulation',
-            text: 'Vérifier la cohérence inter-ateliers',
-            workshop: 2
-          }
-        ]
+        coherenceScore: 0,
+        conformityScore: 0,
+        criticalIssues: 0,
+        aiRecommendations: []
       },
       {
         workshop: 3,
         name: 'Scénarios stratégiques',
         icon: Users,
-        progress: 45,
-        itemsCount: 15,
-        status: 'in_progress',
+        progress: 0,
+        itemsCount: 0,
+        status: 'not_started',
         lastUpdate: new Date().toISOString(),
-        coherenceScore: 0.65,
-        aiRecommendations: [
-          {
-            priority: 'low',
-            category: 'Régulation',
-            text: 'Compléter l\'atelier 3 - Scénarios stratégiques',
-            workshop: 3
-          }
-        ]
+        coherenceScore: 0,
+        conformityScore: 0,
+        criticalIssues: 0,
+        aiRecommendations: []
       },
       {
         workshop: 4,
         name: 'Scénarios opérationnels',
         icon: Activity,
-        progress: 20,
-        itemsCount: 5,
-        status: 'in_progress',
+        progress: 0,
+        itemsCount: 0,
+        status: 'not_started',
         lastUpdate: new Date().toISOString(),
-        coherenceScore: 0.42,
-        aiRecommendations: [
-          {
-            priority: 'medium',
-            category: 'Régulation',
-            text: 'Vérifier la cohérence inter-ateliers',
-            workshop: 4
-          }
-        ]
+        coherenceScore: 0,
+        conformityScore: 0,
+        criticalIssues: 0,
+        aiRecommendations: []
       },
       {
         workshop: 5,
         name: 'Traitement du risque',
         icon: Lock,
-        progress: 10,
-        itemsCount: 3,
+        progress: 0,
+        itemsCount: 0,
         status: 'not_started',
         lastUpdate: new Date().toISOString(),
-        coherenceScore: 0.25,
-        aiRecommendations: [
-          {
-            priority: 'high',
-            category: 'Sécurité',
-            text: 'Prioriser les mesures de sécurité',
-            workshop: 5
-          }
-        ]
+        coherenceScore: 0,
+        conformityScore: 0,
+        criticalIssues: 0,
+        aiRecommendations: []
       }
-    ]);
-
-    // Calculer les stats globales
-    const avgProgress = 46; // Moyenne des progrès
-    setGlobalStats({
-      totalProgress: avgProgress,
-      criticalIssues: 3,
-      recommendations: 7,
-      lastSync: new Date().toISOString()
-    });
+    ];
   };
 
   const getStatusColor = (status: WorkshopStats['status']) => {
@@ -294,24 +443,30 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={loadWorkshopStats}
+              onClick={loadRealWorkshopStats}
+              disabled={isLoading}
               className="flex items-center gap-2"
             >
-              <RefreshCw className="h-4 w-4" />
-              Actualiser
+              <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+              {isLoading ? 'Chargement...' : 'Actualiser'}
             </Button>
           </div>
         </div>
 
-        {/* Statistiques globales */}
-        <div className="mt-6 grid grid-cols-4 gap-4">
+        {/* Statistiques globales réelles */}
+        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Progression globale</p>
                 <p className="mt-1 text-2xl font-semibold text-gray-900">
-                  {globalStats.totalProgress}%
+                  {isLoading ? '...' : `${globalStats.totalProgress}%`}
                 </p>
+                {!isLoading && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    Calculé selon ANSSI
+                  </p>
+                )}
               </div>
               <BarChart className="h-8 w-8 text-gray-400" />
             </div>
@@ -322,8 +477,13 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
               <div>
                 <p className="text-sm text-red-600">Problèmes critiques</p>
                 <p className="mt-1 text-2xl font-semibold text-red-900">
-                  {globalStats.criticalIssues}
+                  {isLoading ? '...' : globalStats.criticalIssues}
                 </p>
+                {!isLoading && globalStats.criticalIssues > 0 && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Action requise
+                  </p>
+                )}
               </div>
               <AlertTriangle className="h-8 w-8 text-red-400" />
             </div>
@@ -334,8 +494,13 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
               <div>
                 <p className="text-sm text-blue-600">Recommandations IA</p>
                 <p className="mt-1 text-2xl font-semibold text-blue-900">
-                  {globalStats.recommendations}
+                  {isLoading ? '...' : globalStats.recommendations}
                 </p>
+                {!isLoading && (
+                  <p className="text-xs text-blue-500 mt-1">
+                    Suggestions actives
+                  </p>
+                )}
               </div>
               <Bot className="h-8 w-8 text-blue-400" />
             </div>
@@ -344,15 +509,34 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
           <div className="bg-green-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600">Dernière synchro</p>
-                <p className="mt-1 text-sm font-medium text-green-900">
-                  {new Date(globalStats.lastSync).toLocaleTimeString('fr-FR')}
+                <p className="text-sm text-green-600">Conformité ANSSI</p>
+                <p className="mt-1 text-2xl font-semibold text-green-900">
+                  {isLoading ? '...' : `${globalStats.anssiComplianceScore}%`}
                 </p>
+                {!isLoading && (
+                  <p className="text-xs text-green-500 mt-1">
+                    Niveau {globalStats.riskMaturityLevel}/5
+                  </p>
+                )}
               </div>
               <CheckCircle className="h-8 w-8 text-green-400" />
             </div>
           </div>
         </div>
+
+        {/* Indicateur de dernière synchronisation */}
+        {!isLoading && (
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500">
+              Dernière synchronisation : {new Date(globalStats.lastSync).toLocaleString('fr-FR')}
+              {metricsData && (
+                <span className="ml-2 text-blue-600">
+                  • Qualité des données : {globalStats.dataQualityScore}%
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* 🆕 ONGLETS NAVIGATION */}
@@ -432,6 +616,35 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
               <Sparkles className="h-4 w-4 inline mr-2" />
               Recommandations IA
             </button>
+
+            <button
+              onClick={() => setActiveTab('performance')}
+              className={cn(
+                'py-4 px-1 border-b-2 font-medium text-sm',
+                activeTab === 'performance'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              )}
+            >
+              <Zap className="h-4 w-4 inline mr-2" />
+              Performance
+            </button>
+
+            <button
+              onClick={() => setActiveTab('deployment')}
+              className={cn(
+                'py-4 px-1 border-b-2 font-medium text-sm',
+                activeTab === 'deployment'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              )}
+            >
+              <Cloud className="h-4 w-4 inline mr-2" />
+              Déploiement GCP
+              <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                Production
+              </Badge>
+            </button>
           </nav>
         </div>
 
@@ -439,6 +652,16 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
         <div className="p-6">
           {activeTab === 'workshops' && (
             <div className="space-y-6">
+              {/* Message de chargement */}
+              {isLoading && (
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center gap-2 text-gray-600">
+                    <RefreshCw className="h-5 w-5 animate-spin" />
+                    <span>Chargement des métriques EBIOS RM réelles...</span>
+                  </div>
+                </div>
+              )}
+
               {/* Grille des ateliers */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {workshopStats.map((workshop) => {
@@ -446,8 +669,8 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
 
                   return (
                     <Card key={workshop.workshop} className="relative overflow-hidden">
-                      {/* Badge de statut */}
-                      <div className="absolute top-4 right-4">
+                      {/* Badge de statut avec conformité ANSSI */}
+                      <div className="absolute top-4 right-4 flex flex-col gap-1">
                         <span className={cn(
                           'px-2 py-1 text-xs font-medium rounded-full',
                           getStatusColor(workshop.status)
@@ -457,6 +680,20 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
                           {workshop.status === 'in_progress' && 'En cours'}
                           {workshop.status === 'not_started' && 'À faire'}
                         </span>
+
+                        {/* Indicateur de conformité ANSSI */}
+                        {workshop.conformityScore && workshop.conformityScore >= 80 && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                            ANSSI ✓
+                          </span>
+                        )}
+
+                        {/* Alerte séquentialité */}
+                        {workshop.status === 'not_started' && workshop.workshop > 1 && (
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+                            Bloqué
+                          </span>
+                        )}
                       </div>
 
                       <div className="p-6">
@@ -511,13 +748,44 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
                           </div>
                         </div>
 
-                        {/* Statistiques */}
-                        <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-                          <span>{workshop.itemsCount} éléments</span>
+                        {/* Statistiques détaillées */}
+                        <div className="mt-4 space-y-2">
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <span>{workshop.itemsCount} éléments</span>
+                            {workshop.conformityScore && (
+                              <span className="text-blue-600 font-medium">
+                                Conformité: {workshop.conformityScore}%
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Indicateurs de qualité */}
+                          {workshop.coherenceScore && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">Cohérence:</span>
+                              <span className={cn(
+                                "font-medium",
+                                workshop.coherenceScore >= 0.8 ? "text-green-600" :
+                                workshop.coherenceScore >= 0.6 ? "text-yellow-600" : "text-red-600"
+                              )}>
+                                {Math.round(workshop.coherenceScore * 100)}%
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Problèmes critiques */}
+                          {workshop.criticalIssues && workshop.criticalIssues > 0 && (
+                            <div className="flex items-center gap-1 text-sm text-red-600">
+                              <AlertTriangle className="h-3 w-3" />
+                              <span>{workshop.criticalIssues} problème(s) critique(s)</span>
+                            </div>
+                          )}
+
+                          {/* Date de mise à jour */}
                           {workshop.lastUpdate && (
-                            <span>
-                              Mis à jour {new Date(workshop.lastUpdate).toLocaleDateString('fr-FR')}
-                            </span>
+                            <div className="text-xs text-gray-500">
+                              Calculé le {new Date(workshop.lastUpdate).toLocaleString('fr-FR')}
+                            </div>
                           )}
                         </div>
 
@@ -642,6 +910,22 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
               </div>
             </div>
           )}
+
+          {activeTab === 'performance' && (
+            <div>
+              <PerformanceMonitor
+                autoRefresh={true}
+                refreshInterval={30000}
+                className="w-full"
+              />
+            </div>
+          )}
+
+          {activeTab === 'deployment' && (
+            <div>
+              <DeploymentDashboard className="w-full" />
+            </div>
+          )}
         </div>
       </div>
 
@@ -651,12 +935,16 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
           <AccessImportExport
             missionId={missionId}
             onImportComplete={(result) => {
-              console.log('Import terminé:', result);
-              loadWorkshopStats();
+              if (import.meta.env.DEV) {
+                console.log('Import terminé:', result);
+              }
+              loadRealWorkshopStats();
               setShowAccessPanel(false);
             }}
             onExportComplete={(result) => {
-              console.log('Export terminé:', result);
+              if (import.meta.env.DEV) {
+                console.log('Export terminé:', result);
+              }
             }}
           />
         </div>

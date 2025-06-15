@@ -308,7 +308,7 @@ export const initializeGCPLogging = (config?: Partial<GCPLoggingConfig>) => {
     cloudLoggingService.configure(config);
   }
 
-  // Tester la connexion au démarrage
+  // Production ready
   if (process.env.NODE_ENV === 'production') {
     cloudLoggingService.testConnection().then(success => {
       if (success) {

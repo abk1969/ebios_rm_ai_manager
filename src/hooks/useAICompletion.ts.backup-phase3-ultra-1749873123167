@@ -1,0 +1,305 @@
+import { useState, useEffect, useMemo } from 'react';
+import { aiAssistant, AISuggestion } from '@/services/aiAssistant';
+import type { BusinessValue, SupportingAsset, RiskSource, DreadedEvent } from '@/types/ebios';
+
+interface AutoCompletionSuggestion {
+  id: string;
+  text: string;
+  description?: string;
+  type: 'name' | 'description' | 'category' | 'template';
+  confidence: number; // 0-1 (dynamique)
+  source: 'ai' | 'template' | 'similar';
+}
+
+interface UseAICompletionProps {
+  type: 'business-value' | 'supporting-asset' | 'risk-source' | 'dreaded-event' | 'scenario';
+  existingData: any[];
+  currentInput: string;
+  field: 'name' | 'description' | 'category';
+  context?: any;
+}
+
+export const useAICompletion = ({
+  type,
+  existingData,
+  currentInput,
+  field,
+  context
+}: UseAICompletionProps) => {
+  const [suggestions, setSuggestions] = useState<AutoCompletionSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Debounce l'input pour éviter trop d'appels
+  const [debouncedInput, setDebouncedInput] = useState(currentInput);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedInput(currentInput);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [currentInput]);
+
+  // Générer les suggestions
+  useEffect(() => {
+    if (debouncedInput.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsLoading(true);
+    generateSuggestions();
+  }, [debouncedInput, type, field, existingData, context]);
+
+  const generateSuggestions = async () => {
+    try {
+      const newSuggestions: AutoCompletionSuggestion[] = [];
+
+      // 1. Suggestions basées sur des templates
+      const templates = getTemplatesForType(type, field);
+      templates.forEach((template, index) => {
+        if (template.text.toLowerCase().includes(debouncedInput.toLowerCase())) {
+          newSuggestions.push({
+            id: `template-${index}`,
+            text: template.text,
+            description: template.description,
+            type: 'template',
+            confidence: 0.9,
+            source: 'template'
+          });
+        }
+      });
+
+      // 2. Suggestions basées sur des données similaires existantes
+      const similarSuggestions = findSimilarExistingData();
+      newSuggestions.push(...similarSuggestions);
+
+      // 3. Suggestions IA basées sur le contexte
+      const aiSuggestions = await generateAISuggestions();
+      newSuggestions.push(...aiSuggestions);
+
+      // Trier par confiance et limiter
+      const sortedSuggestions = newSuggestions
+        .sort((a, b) => b.confidence - a.confidence)
+        .slice(0, 8);
+
+      setSuggestions(sortedSuggestions);
+    } catch (error) {
+      console.error('Erreur lors de la génération des suggestions:', error);
+      setSuggestions([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getTemplatesForType = (type: string, field: string) => {
+    const templates: Record<string, Record<string, Array<{text: string, description?: string}>>> = {
+      'business-value': {
+        name: [
+          { text: 'Chiffre d\'affaires', description: 'Revenus de l\'organisation' },
+          { text: 'Image de marque', description: 'Réputation et confiance' },
+          { text: 'Continuité de service', description: 'Maintien des activités' },
+          { text: 'Conformité réglementaire', description: 'Respect des obligations' },
+          { text: 'Données clients', description: 'Informations personnelles' },
+          { text: 'Propriété intellectuelle', description: 'Savoir-faire et brevets' },
+          { text: 'Sécurité du personnel', description: 'Protection des employés' }
+        ],
+        description: [
+          { text: 'Impact direct sur la rentabilité de l\'organisation' },
+          { text: 'Élément essentiel pour la confiance des parties prenantes' },
+          { text: 'Capacité à maintenir les services en toutes circonstances' },
+          { text: 'Respect des exigences légales et réglementaires' }
+        ]
+      },
+      'supporting-asset': {
+        name: [
+          { text: 'Base de données clients', description: 'Stockage des informations clients' },
+          { text: 'Système d\'information', description: 'Infrastructure IT principale' },
+          { text: 'Serveur web', description: 'Hébergement des applications' },
+          { text: 'Réseau informatique', description: 'Infrastructure de communication' },
+          { text: 'Personnel IT', description: 'Équipe technique' },
+          { text: 'Locaux techniques', description: 'Espaces dédiés aux équipements' }
+        ]
+      },
+      'risk-source': {
+        name: [
+          { text: 'Cybercriminels organisés', description: 'Groupes criminels spécialisés' },
+          { text: 'Personnel interne malveillant', description: 'Employés ou prestataires' },
+          { text: 'Hacktivistes', description: 'Groupes de protestation numérique' },
+          { text: 'Concurrents', description: 'Espionnage industriel' },
+          { text: 'Services étatiques', description: 'Cyberespionnage d\'État' },
+          { text: 'Script kiddies', description: 'Hackers débutants opportunistes' },
+          { text: 'Catastrophes naturelles', description: 'Événements climatiques' }
+        ]
+      },
+      'dreaded-event': {
+        name: [
+          { text: 'Atteinte à la confidentialité des données', description: 'Divulgation non autorisée' },
+          { text: 'Perte de disponibilité des services', description: 'Interruption d\'activité' },
+          { text: 'Altération de l\'intégrité des données', description: 'Modification non autorisée' },
+          { text: 'Usurpation d\'identité', description: 'Compromission d\'authentification' },
+          { text: 'Vol de propriété intellectuelle', description: 'Espionnage industriel' },
+          { text: 'Atteinte à l\'image de marque', description: 'Dégradation de réputation' }
+        ]
+      }
+    };
+
+    return templates[type]?.[field] || [];
+  };
+
+  const findSimilarExistingData = (): AutoCompletionSuggestion[] => {
+    const suggestions: AutoCompletionSuggestion[] = [];
+    
+    existingData.forEach((item, index) => {
+      const fieldValue = item[field];
+      if (fieldValue && fieldValue.toLowerCase().includes(debouncedInput.toLowerCase())) {
+        suggestions.push({
+          id: `similar-${index}`,
+          text: fieldValue,
+          description: item.description,
+          type: field as any,
+          confidence: 0.7,
+          source: 'similar'
+        });
+      }
+    });
+
+    return suggestions;
+  };
+
+  const generateAISuggestions = async (): Promise<AutoCompletionSuggestion[]> => {
+    // Simulation d'suggestions IA basées sur le contexte
+    const suggestions: AutoCompletionSuggestion[] = [];
+
+    try {
+      // Logique d'IA simplifiée - dans un vrai système, ceci appellerait une API d'IA
+      if (type === 'business-value' && context?.organizationType) {
+        const orgSpecificSuggestions = getOrganizationSpecificSuggestions(context.organizationType);
+        suggestions.push(...orgSpecificSuggestions);
+      }
+
+      if (type === 'risk-source' && context?.assetTypes) {
+        const assetBasedSuggestions = getAssetBasedRiskSources(context.assetTypes);
+        suggestions.push(...assetBasedSuggestions);
+      }
+
+      if (type === 'dreaded-event' && context?.businessValues) {
+        const bvBasedEvents = getBusinessValueBasedEvents(context.businessValues);
+        suggestions.push(...bvBasedEvents);
+      }
+
+    } catch (error) {
+      console.error('Erreur IA:', error);
+    }
+
+    return suggestions;
+  };
+
+  const getOrganizationSpecificSuggestions = (orgType: string): AutoCompletionSuggestion[] => {
+    const orgSuggestions: Record<string, Array<{text: string, description: string}>> = {
+      'healthcare': [
+        { text: 'Sécurité des patients', description: 'Protection et sécurité des soins' },
+        { text: 'Secret médical', description: 'Confidentialité des données de santé' },
+        { text: 'Continuité des soins', description: 'Maintien des soins essentiels' }
+      ],
+      'financial': [
+        { text: 'Conformité bancaire', description: 'Respect des réglementations financières' },
+        { text: 'Sécurité des transactions', description: 'Protection des opérations financières' },
+        { text: 'Confiance des clients', description: 'Réputation dans le secteur financier' }
+      ],
+      'industrial': [
+        { text: 'Sécurité industrielle', description: 'Protection des installations' },
+        { text: 'Secrets de fabrication', description: 'Savoir-faire et procédés' },
+        { text: 'Chaîne d\'approvisionnement', description: 'Continuité de production' }
+      ]
+    };
+
+    const suggestions = orgSuggestions[orgType] || [];
+    return suggestions
+      .filter(s => s.text.toLowerCase().includes(debouncedInput.toLowerCase()))
+      .map((s, index) => ({
+        id: `org-${index}`,
+        text: s.text,
+        description: s.description,
+        type: 'template' as const,
+        confidence: 0.8,
+        source: 'ai' as const
+      }));
+  };
+
+  const getAssetBasedRiskSources = (assetTypes: string[]): AutoCompletionSuggestion[] => {
+    const assetRiskMapping: Record<string, string[]> = {
+      'data': ['Cybercriminels spécialisés en vol de données', 'Employés indélicats'],
+      'software': ['Hackers exploitant des vulnérabilités', 'Développeurs malveillants'],
+      'hardware': ['Voleurs d\'équipements', 'Saboteurs physiques'],
+      'network': ['Attaquants réseaux', 'Espions numériques']
+    };
+
+    const suggestions: AutoCompletionSuggestion[] = [];
+    assetTypes.forEach(assetType => {
+      const risks = assetRiskMapping[assetType] || [];
+      risks.forEach((risk, index) => {
+        if (risk.toLowerCase().includes(debouncedInput.toLowerCase())) {
+          suggestions.push({
+            id: `asset-risk-${assetType}-${index}`,
+            text: risk,
+            description: `Source de risque typique pour les actifs de type ${assetType}`,
+            type: 'template',
+            confidence: 0.75,
+            source: 'ai'
+          });
+        }
+      });
+    });
+
+    return suggestions;
+  };
+
+  const getBusinessValueBasedEvents = (businessValues: BusinessValue[]): AutoCompletionSuggestion[] => {
+    const suggestions: AutoCompletionSuggestion[] = [];
+    
+    businessValues.forEach((bv, index) => {
+      const events = [
+        `Atteinte à ${bv.name.toLowerCase()}`,
+        `Perte de ${bv.name.toLowerCase()}`,
+        `Compromission de ${bv.name.toLowerCase()}`,
+        `Dégradation de ${bv.name.toLowerCase()}`
+      ];
+
+      events.forEach((event, eventIndex) => {
+        if (event.toLowerCase().includes(debouncedInput.toLowerCase())) {
+          suggestions.push({
+            id: `bv-event-${index}-${eventIndex}`,
+            text: event,
+            description: `Impact négatif sur la valeur métier "${bv.name}"`,
+            type: 'template',
+            confidence: 0.8,
+            source: 'ai'
+          });
+        }
+      });
+    });
+
+    return suggestions;
+  };
+
+  // Méthodes utilitaires
+  const acceptSuggestion = (suggestion: AutoCompletionSuggestion) => {
+    setSuggestions([]);
+    return suggestion.text;
+  };
+
+  const clearSuggestions = () => {
+    setSuggestions([]);
+  };
+
+  return {
+    suggestions,
+    isLoading,
+    acceptSuggestion,
+    clearSuggestions,
+    hasSuggestions: suggestions.length > 0
+  };
+};
+
+export default useAICompletion; 

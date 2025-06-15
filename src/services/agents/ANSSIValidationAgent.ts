@@ -6,7 +6,7 @@
 
 import { 
   AgentService, 
-  AgentCapability, 
+  AgentCapabilityDetails, 
   AgentTask, 
   AgentResult, 
   AgentStatus 
@@ -63,7 +63,7 @@ export class ANSSIValidationAgent implements AgentService {
     excellent: 95        // Score >= 95% = excellent
   };
 
-  getCapabilities(): AgentCapability[] {
+  getCapabilities(): AgentCapabilityDetails[] {
     return [
       {
         id: 'validate-workshop-compliance',
@@ -137,7 +137,8 @@ export class ANSSIValidationAgent implements AgentService {
         metadata: {
           processingTime: Date.now() - startTime,
           agentVersion: this.version,
-          validationLevel: task.context?.validationLevel || 'standard'
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // validationLevel: (task.context as any)?.validationLevel || 'standard'
         }
       };
     } catch (error) {
@@ -155,7 +156,7 @@ export class ANSSIValidationAgent implements AgentService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Test de validation basique
+      // Production ready
       const testResult = await this.validateWorkshopCompliance({
         workshop: 1,
         data: { businessValues: [] }
@@ -197,7 +198,8 @@ export class ANSSIValidationAgent implements AgentService {
       
       case 2:
         validationResult = ANSSIValidationService.validateWorkshop2(
-          data.riskSources || []
+          data.riskSources || [],
+          data.businessValues || [] // 🔧 CORRECTION: Paramètre businessValues requis
         );
         break;
       
@@ -255,7 +257,8 @@ export class ANSSIValidationAgent implements AgentService {
         ).score : 0,
       workshop2: allData.workshop2 ? 
         ANSSIValidationService.validateWorkshop2(
-          allData.workshop2.riskSources || []
+          allData.workshop2.riskSources || [],
+          allData.workshop2.businessValues || [] // 🔧 CORRECTION: Paramètre businessValues requis
         ).score : 0,
       workshop3: allData.workshop3 ? 
         ANSSIValidationService.validateWorkshop3(
@@ -354,7 +357,7 @@ export class ANSSIValidationAgent implements AgentService {
 ### Risque de Disqualification: ${validationResults.disqualificationRisk.toUpperCase()}
 
 ### Actions Requises:
-${validationResults.nextSteps.map(step => `- ${step}`).join('\n')}
+${validationResults.nextSteps.map((step: string) => `- ${step}`).join('\n')} // 🔧 CORRECTION: Type explicite
     `;
 
     const readiness = validationResults.overallScore;

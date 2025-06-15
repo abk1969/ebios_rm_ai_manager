@@ -192,8 +192,9 @@ const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
     const enrichedData = SupportingAssetAIService.enrichSupportingAsset(
       {
         ...formData,
+        type: formData.type as 'data' | 'software' | 'hardware' | 'network' | 'personnel' | 'site' | 'organization',
         vulnerabilities,
-        dependencies
+        dependsOn: dependencies
       },
       businessValue
     );

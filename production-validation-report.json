@@ -1,0 +1,149 @@
+{
+  "timestamp": "2025-06-13T18:53:25.398Z",
+  "environment": "production",
+  "overallStatus": "fail",
+  "overallScore": 71.42857142857143,
+  "results": [
+    {
+      "category": "Environnement",
+      "checks": [
+        {
+          "name": "Fichier .env.production",
+          "status": "pass",
+          "message": "Fichier .env.production présent"
+        },
+        {
+          "name": "Variables d'environnement",
+          "status": "pass",
+          "message": "Toutes les variables requises sont configurées"
+        },
+        {
+          "name": "Version Node.js",
+          "status": "pass",
+          "message": "Node.js v22.12.0 (compatible)"
+        }
+      ],
+      "passed": true,
+      "score": 100
+    },
+    {
+      "category": "Sécurité",
+      "checks": [
+        {
+          "name": "Audit de sécurité npm",
+          "status": "pass",
+          "message": "Aucune vulnérabilité critique détectée"
+        },
+        {
+          "name": "Console.log en production",
+          "status": "warning",
+          "message": "56 fichiers contiennent des console.log",
+          "details": "src\\components\\ai\\AICoherenceIndicator.tsx, src\\components\\ai\\AIStatusPanel.tsx, src\\components\\ai\\DataQualityAlert.tsx, src\\components\\examples\\StandardComponentsDemo.tsx, src\\components\\orchestration\\OrchestrationPanel.tsx",
+          "recommendation": "Supprimer ou conditionner les console.log"
+        },
+        {
+          "name": "Secrets hardcodés",
+          "status": "fail",
+          "message": "2 potentiels secrets hardcodés détectés",
+          "recommendation": "Déplacer tous les secrets vers les variables d'environnement"
+        }
+      ],
+      "passed": false,
+      "score": 33.33333333333333
+    },
+    {
+      "category": "Tests",
+      "checks": [
+        {
+          "name": "Tests",
+          "status": "fail",
+          "message": "Échec des tests unitaires et des tests avec données réelles",
+          "recommendation": "Corriger les erreurs de tests avant le déploiement"
+        },
+        {
+          "name": "Couverture de tests",
+          "status": "fail",
+          "message": "Couverture: 2.8% (insuffisante)",
+          "recommendation": "Ajouter des tests pour atteindre au moins 50% de couverture"
+        }
+      ],
+      "passed": false,
+      "score": 0
+    },
+    {
+      "category": "Performance",
+      "checks": [
+        {
+          "name": "Optimisation console.log",
+          "status": "pass",
+          "message": "Console.log supprimés en production"
+        },
+        {
+          "name": "Code splitting",
+          "status": "pass",
+          "message": "Code splitting configuré"
+        }
+      ],
+      "passed": true,
+      "score": 100
+    },
+    {
+      "category": "Conformité",
+      "checks": [
+        {
+          "name": "Conformité ANSSI",
+          "status": "pass",
+          "message": "Services de validation ANSSI présents"
+        }
+      ],
+      "passed": true,
+      "score": 100
+    },
+    {
+      "category": "Intégrations",
+      "checks": [
+        {
+          "name": "Configuration Firebase",
+          "status": "pass",
+          "message": "Configuration Firebase présente"
+        }
+      ],
+      "passed": true,
+      "score": 100
+    },
+    {
+      "category": "Build",
+      "checks": [
+        {
+          "name": "Build de production",
+          "status": "pass",
+          "message": "Build réussi"
+        },
+        {
+          "name": "Taille du bundle",
+          "status": "pass",
+          "message": "Taille: 2.57MB"
+        }
+      ],
+      "passed": true,
+      "score": 100
+    }
+  ],
+  "summary": {
+    "totalChecks": 14,
+    "passed": 10,
+    "failed": 3,
+    "warnings": 1
+  },
+  "recommendations": [
+    "Sécurité: Supprimer ou conditionner les console.log",
+    "Sécurité: Déplacer tous les secrets vers les variables d'environnement",
+    "Tests: Corriger les erreurs de tests avant le déploiement",
+    "Tests: Ajouter des tests pour atteindre au moins 50% de couverture"
+  ],
+  "blockers": [
+    "Sécurité: 2 potentiels secrets hardcodés détectés",
+    "Tests: Échec des tests unitaires et des tests avec données réelles",
+    "Tests: Couverture: 2.8% (insuffisante)"
+  ]
+}

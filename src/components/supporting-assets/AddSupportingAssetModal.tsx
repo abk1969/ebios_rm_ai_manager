@@ -11,7 +11,7 @@ interface AddSupportingAssetModalProps {
   onClose: () => void;
   onSubmit: (data: Partial<SupportingAsset>) => void;
   businessValueId: string;
-  initialData?: SupportingAsset | null;
+  initialData?: Partial<SupportingAsset>;
 }
 
 const AddSupportingAssetModal: React.FC<AddSupportingAssetModalProps> = ({

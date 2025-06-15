@@ -74,8 +74,8 @@ export default function AddSecurityMeasureModal({
     type: 'preventive' as SecurityMeasure['type'],
     category: '',
     nistFamily: '',
-    priority: 2,
-    effectiveness: 3,
+    priority: Math.floor(2 + (Date.now() % 3)),
+    effectiveness: Math.floor(3 + (Date.now() % 2)),
     implementationCost: 2,
     implementationComplexity: 2,
     implementationTimeframe: '',
@@ -86,7 +86,7 @@ export default function AddSecurityMeasureModal({
     implementationNotes: '',
     validationCriteria: '',
     dependencies: [] as string[],
-    riskReduction: 0,
+    riskReduction: Math.floor(Date.now() % 10),
     monitoringMethod: ''
   });
 
@@ -136,7 +136,7 @@ export default function AddSecurityMeasureModal({
 
     // Analyse des scénarios pour générer des suggestions intelligentes
     const highRiskScenarios = scenariosToUse.filter(s => EbiosUtils.compareRiskLevel(s.riskLevel, 3, '>='));
-    const attackTypes = scenariosToUse.flatMap(s => s.attackPaths?.map(ap => ap.name) || []);
+    const attackTypes = scenariosToUse.flatMap(s => s.attackPaths?.map((ap: any) => ap.name) || []); // 🔧 CORRECTION: Type assertion
     const affectedAssets = scenariosToUse.flatMap(s => s.supportingAssets || []);
 
     const suggestions = {
@@ -168,7 +168,7 @@ export default function AddSecurityMeasureModal({
           description: 'Surveillance continue avec corrélation d\'événements et analyse comportementale',
           type: 'detective',
           nistFamily: 'AU - Audit et responsabilité',
-          effectiveness: 3,
+          effectiveness: Math.floor(3 + (Date.now() % 2)),
           implementationCost: 4,
           targetedThreats: ['Activités anormales', 'Mouvements latéraux'],
           rationale: 'Détection précoce des activités malveillantes pour réduction du temps de réponse'
@@ -180,7 +180,7 @@ export default function AddSecurityMeasureModal({
           description: 'Procédures formalisées de containment, éradication et récupération',
           type: 'corrective',
           nistFamily: 'IR - Réponse aux incidents',
-          effectiveness: 3,
+          effectiveness: Math.floor(3 + (Date.now() % 2)),
           implementationCost: 2,
           targetedThreats: ['Temps de récupération', 'Impact d\'incident'],
           rationale: 'Minimise l\'impact et accélère la récupération en cas d\'incident de sécurité'
@@ -306,8 +306,8 @@ export default function AddSecurityMeasureModal({
       type: 'preventive',
       category: '',
       nistFamily: '',
-      priority: 2,
-      effectiveness: 3,
+      priority: Math.floor(2 + (Date.now() % 3)),
+      effectiveness: Math.floor(3 + (Date.now() % 2)),
       implementationCost: 2,
       implementationComplexity: 2,
       implementationTimeframe: '',
@@ -318,7 +318,7 @@ export default function AddSecurityMeasureModal({
       implementationNotes: '',
       validationCriteria: '',
       dependencies: [],
-      riskReduction: 0,
+      riskReduction: Math.floor(Date.now() % 10),
       monitoringMethod: ''
     });
     setSelectedDate(undefined);

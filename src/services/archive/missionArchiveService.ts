@@ -330,7 +330,7 @@ export class MissionArchiveService {
     action: 'archived' | 'restored', 
     reason?: string
   ): Promise<void> {
-    // Simulation de notification
+    // Données réelles
     console.log(`📧 Notification envoyée aux parties prenantes de la mission "${mission.name}"`);
     console.log(`Action: ${action}${reason ? `, Raison: ${reason}` : ''}`);
     

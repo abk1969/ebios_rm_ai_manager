@@ -218,8 +218,18 @@ const Workshop3Actions: React.FC<Workshop3ActionsProps> = ({
                     <div className="flex items-center space-x-2 mb-1">
                       <Target className="h-4 w-4 text-red-500" />
                       <h5 className="font-medium text-gray-900">{scenario.name}</h5>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getRiskLevelColor(scenario.riskLevel)}`}>
-                        Risque {scenario.riskLevel}/4
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${getRiskLevelColor(
+                        typeof scenario.riskLevel === 'number' ? scenario.riskLevel :
+                        scenario.riskLevel === 'low' ? 1 :
+                        scenario.riskLevel === 'medium' ? 2 :
+                        scenario.riskLevel === 'high' ? 3 :
+                        scenario.riskLevel === 'critical' ? 4 : 1
+                      )}`}>
+                        Risque {typeof scenario.riskLevel === 'number' ? scenario.riskLevel :
+                          scenario.riskLevel === 'low' ? 1 :
+                          scenario.riskLevel === 'medium' ? 2 :
+                          scenario.riskLevel === 'high' ? 3 :
+                          scenario.riskLevel === 'critical' ? 4 : scenario.riskLevel}/4
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">

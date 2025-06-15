@@ -200,10 +200,10 @@ export const StrategicScenarioUtils = {
         const relevantEvents = dreadedEvents.filter(de => de.businessValueId === bv.id);
         
         relevantEvents.forEach(de => {
-          // 🆕 AMÉLIORATION: Vraisemblance enrichie selon ISO 27005
+          // Nouveau
           let likelihood: LikelihoodScale = this.calculateEnhancedLikelihood(rs, bv, de) as LikelihoodScale;
 
-          // 🆕 AMÉLIORATION: Description enrichie avec MITRE ATT&CK et ISO 27005
+          // Nouveau
           const mitreContext = this.getMitreContext(rs, de);
           const isoContext = this.getISO27005Context(bv, de);
 

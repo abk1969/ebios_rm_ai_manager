@@ -31,6 +31,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import WorkshopNavigation from '@/components/workshops/WorkshopNavigation';
 import AddAttackPathModal from '@/components/attack-paths/AddAttackPathModal';
 import AddStepModal from '@/components/attack-paths/AddStepModal';
+import MissionContextIcon from '@/components/missions/MissionContextIcon';
 import type {
   StrategicScenario,
   SupportingAsset,
@@ -392,6 +393,14 @@ const Workshop4 = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            {/* 🆕 ICÔNE CONTEXTE MISSION */}
+            {mission && (
+              <MissionContextIcon
+                mission={mission}
+                className="mr-2"
+              />
+            )}
+
             <AICoherenceIndicator
               missionId={missionId}
               workshop={4}

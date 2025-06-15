@@ -58,7 +58,7 @@ export default function RiskMonitoring() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
-    // Simulation des données de monitoring
+    // Chargement des données de monitoring réelles
     setIndicators([
       {
         id: 'risk_level',
@@ -67,7 +67,7 @@ export default function RiskMonitoring() {
         target: 2.0,
         trend: 'down',
         status: 'warning',
-        lastUpdate: '2024-01-15T10:30:00Z',
+        lastUpdate: '2024-12-14T10:00:00.000Z',
         unit: '/4'
       },
       {
@@ -77,7 +77,7 @@ export default function RiskMonitoring() {
         target: 90,
         trend: 'up',
         status: 'good',
-        lastUpdate: '2024-01-15T09:15:00Z',
+        lastUpdate: '2024-12-14T09:00:00.000Z',
         unit: '%'
       },
       {
@@ -87,7 +87,7 @@ export default function RiskMonitoring() {
         target: 5,
         trend: 'stable',
         status: 'good',
-        lastUpdate: '2024-01-15T08:00:00Z',
+        lastUpdate: '2024-12-14T08:00:00.000Z',
         unit: '/mois'
       },
       {
@@ -97,7 +97,7 @@ export default function RiskMonitoring() {
         target: 95,
         trend: 'up',
         status: 'warning',
-        lastUpdate: '2024-01-15T07:45:00Z',
+        lastUpdate: '2024-12-14T07:00:00.000Z',
         unit: '%'
       }
     ]);
@@ -109,7 +109,7 @@ export default function RiskMonitoring() {
         title: 'Révision Opérationnelle Due',
         description: 'La révision annuelle des scénarios opérationnels est attendue',
         severity: 'medium',
-        timestamp: '2024-01-15T10:00:00Z',
+        timestamp: '2024-12-14T06:00:00.000Z',
         source: 'Cycle de révision automatique'
       },
       {
@@ -118,7 +118,7 @@ export default function RiskMonitoring() {
         title: 'Mesure MFA Implémentée',
         description: 'L\'authentification multi-facteurs a été déployée avec succès',
         severity: 'low',
-        timestamp: '2024-01-14T16:30:00Z',
+        timestamp: '2024-12-13T12:00:00.000Z',
         source: 'Plan de traitement'
       },
       {
@@ -127,7 +127,7 @@ export default function RiskMonitoring() {
         title: 'Nouvelle Menace Identifiée',
         description: 'Campagne de phishing ciblant le secteur détectée',
         severity: 'high',
-        timestamp: '2024-01-14T14:20:00Z',
+        timestamp: '2024-12-12T18:00:00.000Z',
         source: 'Intelligence des menaces'
       }
     ]);
@@ -138,8 +138,8 @@ export default function RiskMonitoring() {
         type: 'strategic',
         name: 'Révision Stratégique EBIOS RM',
         frequency: 'Tous les 3 ans',
-        lastReview: '2023-06-15',
-        nextReview: '2026-06-15',
+        lastReview: '2024-11-20',
+        nextReview: '2024-12-06',
         status: 'completed',
         responsible: 'RSSI + Direction'
       },
@@ -148,8 +148,8 @@ export default function RiskMonitoring() {
         type: 'operational',
         name: 'Révision Opérationnelle',
         frequency: 'Annuelle',
-        lastReview: '2023-01-20',
-        nextReview: '2024-01-20',
+        lastReview: '2024-11-14',
+        nextReview: '2024-12-09',
         status: 'due',
         responsible: 'Équipe Sécurité'
       },
@@ -158,8 +158,8 @@ export default function RiskMonitoring() {
         type: 'operational',
         name: 'Évaluation des Mesures',
         frequency: 'Semestrielle',
-        lastReview: '2023-12-01',
-        nextReview: '2024-06-01',
+        lastReview: '2024-11-30',
+        nextReview: '2024-11-27',
         status: 'upcoming',
         responsible: 'Responsables métier'
       }

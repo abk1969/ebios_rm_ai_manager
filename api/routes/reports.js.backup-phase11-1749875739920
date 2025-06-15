@@ -1,0 +1,374 @@
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const router = express.Router();
+
+// Mock reports data
+let reports = [
+  {
+    id: 1,
+    name: 'Rapport EBIOS RM - Mission Test',
+    type: 'full_report',
+    missionId: 1,
+    status: 'completed',
+    format: 'pdf',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000).toISOString(),
+    size: '2.4 MB',
+    downloadCount: 5
+  },
+  {
+    id: 2,
+    name: 'Synthèse des risques - Q4 2024',
+    type: 'risk_summary',
+    missionId: 1,
+    status: 'generating',
+    format: 'pdf',
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 1800000).toISOString(),
+    progress: 75
+  }
+];
+
+const reportTemplates = {
+  full_report: {
+    name: 'Rapport EBIOS RM Complet',
+    description: 'Rapport complet incluant tous les ateliers et analyses',
+    sections: [
+      'executive_summary',
+      'context_study',
+      'feared_events',
+      'strategic_scenarios',
+      'operational_scenarios',
+      'risk_treatment',
+      'action_plan',
+      'annexes'
+    ]
+  },
+  risk_summary: {
+    name: 'Synthèse des Risques',
+    description: 'Synthèse des principaux risques identifiés',
+    sections: [
+      'risk_overview',
+      'critical_risks',
+      'recommendations',
+      'priority_actions'
+    ]
+  },
+  workshop_report: {
+    name: 'Rapport d\'Atelier',
+    description: 'Rapport détaillé d\'un atelier spécifique',
+    sections: [
+      'workshop_objectives',
+      'methodology',
+      'results',
+      'next_steps'
+    ]
+  },
+  compliance_report: {
+    name: 'Rapport de Conformité',
+    description: 'Rapport de conformité aux référentiels (ANSSI, ISO 27001, etc.)',
+    sections: [
+      'compliance_overview',
+      'gap_analysis',
+      'recommendations',
+      'action_plan'
+    ]
+  }
+};
+
+// Get all reports
+router.get('/', (req, res) => {
+  try {
+    const { missionId, type, status } = req.query;
+    
+    let filteredReports = [...reports];
+    
+    if (missionId) {
+      filteredReports = filteredReports.filter(report => 
+        report.missionId === parseInt(missionId)
+      );
+    }
+    
+    if (type) {
+      filteredReports = filteredReports.filter(report => report.type === type);
+    }
+    
+    if (status) {
+      filteredReports = filteredReports.filter(report => report.status === status);
+    }
+    
+    // Sort by creation date (newest first)
+    filteredReports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    res.json({
+      success: true,
+      reports: filteredReports,
+      total: filteredReports.length
+    });
+  } catch (error) {
+    console.error('Get reports error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get report by ID
+router.get('/:reportId', (req, res) => {
+  try {
+    const reportId = parseInt(req.params.reportId);
+    const report = reports.find(r => r.id === reportId);
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    res.json({
+      success: true,
+      report
+    });
+  } catch (error) {
+    console.error('Get report error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get report templates
+router.get('/templates/list', (req, res) => {
+  try {
+    const templates = Object.entries(reportTemplates).map(([id, template]) => ({
+      id,
+      ...template
+    }));
+    
+    res.json({
+      success: true,
+      templates
+    });
+  } catch (error) {
+    console.error('Get report templates error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Generate new report
+router.post('/generate', [
+  body('name').isLength({ min: 3 }).trim(),
+  body('type').isIn(Object.keys(reportTemplates)),
+  body('missionId').isInt({ min: 1 }),
+  body('format').optional().isIn(['pdf', 'docx', 'html'])
+], (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+    
+    const { name, type, missionId, format = 'pdf', options = {} } = req.body;
+    
+    const newReport = {
+      id: reports.length + 1,
+      name,
+      type,
+      missionId: parseInt(missionId),
+      status: 'generating',
+      format,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      progress: 0,
+      options
+    };
+    
+    reports.push(newReport);
+    
+    // Simulate report generation
+    simulateReportGeneration(newReport.id);
+    
+    res.status(201).json({
+      success: true,
+      report: newReport,
+      message: 'Report generation started'
+    });
+  } catch (error) {
+    console.error('Generate report error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get report generation status
+router.get('/:reportId/status', (req, res) => {
+  try {
+    const reportId = parseInt(req.params.reportId);
+    const report = reports.find(r => r.id === reportId);
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    res.json({
+      success: true,
+      status: {
+        id: report.id,
+        status: report.status,
+        progress: report.progress || 0,
+        message: getStatusMessage(report.status, report.progress),
+        estimatedCompletion: report.estimatedCompletion
+      }
+    });
+  } catch (error) {
+    console.error('Get report status error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Download report
+router.get('/:reportId/download', (req, res) => {
+  try {
+    const reportId = parseInt(req.params.reportId);
+    const report = reports.find(r => r.id === reportId);
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    if (report.status !== 'completed') {
+      return res.status(400).json({ 
+        error: 'Report not ready for download',
+        status: report.status
+      });
+    }
+    
+    // Increment download count
+    report.downloadCount = (report.downloadCount || 0) + 1;
+    
+    // In a real implementation, this would stream the actual file
+    res.json({
+      success: true,
+      download: {
+        url: `/api/reports/${reportId}/file`,
+        filename: `${report.name.replace(/[^a-zA-Z0-9]/g, '_')}.${report.format}`,
+        size: report.size,
+        contentType: getContentType(report.format)
+      },
+      message: 'Download URL generated'
+    });
+  } catch (error) {
+    console.error('Download report error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete report
+router.delete('/:reportId', (req, res) => {
+  try {
+    const reportId = parseInt(req.params.reportId);
+    const reportIndex = reports.findIndex(r => r.id === reportId);
+    
+    if (reportIndex === -1) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    const deletedReport = reports.splice(reportIndex, 1)[0];
+    
+    res.json({
+      success: true,
+      message: 'Report deleted successfully',
+      deletedReport: {
+        id: deletedReport.id,
+        name: deletedReport.name
+      }
+    });
+  } catch (error) {
+    console.error('Delete report error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get report analytics
+router.get('/analytics/summary', (req, res) => {
+  try {
+    const analytics = {
+      totalReports: reports.length,
+      reportsByStatus: {
+        completed: reports.filter(r => r.status === 'completed').length,
+        generating: reports.filter(r => r.status === 'generating').length,
+        failed: reports.filter(r => r.status === 'failed').length
+      },
+      reportsByType: {},
+      totalDownloads: reports.reduce((sum, r) => sum + (r.downloadCount || 0), 0),
+      averageGenerationTime: '2.5 minutes', // Mock data
+      mostPopularFormat: 'pdf'
+    };
+    
+    // Calculate reports by type
+    Object.keys(reportTemplates).forEach(type => {
+      analytics.reportsByType[type] = reports.filter(r => r.type === type).length;
+    });
+    
+    res.json({
+      success: true,
+      analytics
+    });
+  } catch (error) {
+    console.error('Get report analytics error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Helper functions
+function simulateReportGeneration(reportId) {
+  const report = reports.find(r => r.id === reportId);
+  if (!report) return;
+  
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 20;
+    
+    if (progress >= 100) {
+      progress = 100;
+      report.status = 'completed';
+      report.size = `${(Math.random() * 5 + 1).toFixed(1)} MB`;
+      clearInterval(interval);
+    }
+    
+    report.progress = Math.min(progress, 100);
+    report.updatedAt = new Date().toISOString();
+    
+    if (progress < 100) {
+      const remainingTime = ((100 - progress) / 20) * 2000; // Estimate
+      report.estimatedCompletion = new Date(Date.now() + remainingTime).toISOString();
+    }
+  }, 2000);
+}
+
+function getStatusMessage(status, progress) {
+  switch (status) {
+    case 'generating':
+      if (progress < 25) return 'Collecte des données...';
+      if (progress < 50) return 'Analyse en cours...';
+      if (progress < 75) return 'Génération du document...';
+      return 'Finalisation...';
+    case 'completed':
+      return 'Rapport généré avec succès';
+    case 'failed':
+      return 'Erreur lors de la génération';
+    default:
+      return 'Statut inconnu';
+  }
+}
+
+function getContentType(format) {
+  switch (format) {
+    case 'pdf':
+      return 'application/pdf';
+    case 'docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    case 'html':
+      return 'text/html';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+module.exports = router;

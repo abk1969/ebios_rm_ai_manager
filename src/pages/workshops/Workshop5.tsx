@@ -33,6 +33,7 @@ import Workshop5Unified from '../../components/workshops/Workshop5Unified';
 import Workshop5Actions from '../../components/workshops/Workshop5Actions';
 import AddSecurityMeasureModal from '../../components/security-measures/AddSecurityMeasureModal';
 import AIValidationModal from '../../components/security-measures/AIValidationModal';
+import MissionContextIcon from '../../components/missions/MissionContextIcon';
 import type {
   StrategicScenario,
   SupportingAsset,
@@ -56,9 +57,15 @@ const Workshop5 = () => {
       description: 'Accès non autorisé aux données personnelles des clients',
       riskLevel: 4,
       likelihood: 3,
+      gravity: 4,
       impact: 4,
-      riskSources: ['Cybercriminel', 'Employé malveillant'],
-      targetedAssets: ['Base de données clients'],
+      riskSourceId: 'cybercriminel_1',
+      targetBusinessValueId: 'business_value_1',
+      dreadedEventId: 'dreaded_event_1',
+      pathways: [],
+      attackPaths: [], // 🔧 CORRECTION: Propriété manquante
+      missionId: missionId || '',
+
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -68,9 +75,15 @@ const Workshop5 = () => {
       description: 'Indisponibilité prolongée des systèmes métier essentiels',
       riskLevel: 3,
       likelihood: 2,
+      gravity: 4,
       impact: 4,
-      riskSources: ['Défaillance technique', 'Attaque DDoS'],
-      targetedAssets: ['Infrastructure IT'],
+      riskSourceId: 'defaillance_technique_1',
+      targetBusinessValueId: 'business_value_2',
+      dreadedEventId: 'dreaded_event_2',
+      pathways: [],
+      attackPaths: [], // 🔧 CORRECTION: Propriété manquante
+      missionId: missionId || '',
+
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -83,11 +96,40 @@ const Workshop5 = () => {
       id: 'demo_measure_1',
       name: 'Authentification multi-facteurs',
       description: 'Mise en place d\'une authentification à deux facteurs pour tous les accès critiques',
+      missionId: missionId || '',
+      controlType: 'preventive',
+      status: 'planned',
+      priority: 4,
+      responsibleParty: 'Équipe Sécurité',
+      dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      effectiveness: 4,
+      implementationCost: 'medium',
+      maintenanceCost: 'medium',
+      targetScenarios: [],
+      targetVulnerabilities: [],
+      implementation: {
+        id: crypto.randomUUID(),
+        measureId: 'demo_measure_1',
+        verificationMethod: 'Tests et audits',
+        residualRisk: 1,
+        comments: '',
+        evidences: []
+      },
+      isoCategory: 'Security Controls',
+      isoControl: 'IA-2',
       type: 'preventive',
-      priority: 'high',
       cost: 'medium',
-      implementationTime: '3 mois',
+      complexity: 2,
       targetedScenarios: [],
+      riskReduction: 40,
+      nistReference: 'IA-2',
+      nistFamily: 'IA',
+      implementationComplexity: 2,
+      implementationNotes: '',
+      validationCriteria: '',
+      dependencies: [],
+      monitoringMethod: '',
+      aiSuggestions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -95,11 +137,40 @@ const Workshop5 = () => {
       id: 'demo_measure_2',
       name: 'Monitoring de sécurité',
       description: 'Surveillance continue des activités suspectes et alertes en temps réel',
+      missionId: missionId || '',
+      controlType: 'detective',
+      status: 'planned',
+      priority: 4,
+      responsibleParty: 'Équipe Sécurité',
+      dueDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+      effectiveness: 4,
+      implementationCost: 'high',
+      maintenanceCost: 'high',
+      targetScenarios: [],
+      targetVulnerabilities: [],
+      implementation: {
+        id: crypto.randomUUID(),
+        measureId: 'demo_measure_2',
+        verificationMethod: 'Tests et audits',
+        residualRisk: 1,
+        comments: '',
+        evidences: []
+      },
+      isoCategory: 'Security Controls',
+      isoControl: 'DE.CM-1',
       type: 'detective',
-      priority: 'high',
       cost: 'high',
-      implementationTime: '6 mois',
+      complexity: 4,
       targetedScenarios: [],
+      riskReduction: 45,
+      nistReference: 'DE.CM-1',
+      nistFamily: 'DE',
+      implementationComplexity: 4,
+      implementationNotes: '',
+      validationCriteria: '',
+      dependencies: [],
+      monitoringMethod: '',
+      aiSuggestions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -107,11 +178,40 @@ const Workshop5 = () => {
       id: 'demo_measure_3',
       name: 'Plan de continuité d\'activité',
       description: 'Procédures de récupération et de continuité en cas d\'incident majeur',
+      missionId: missionId || '',
+      controlType: 'corrective',
+      status: 'planned',
+      priority: 3,
+      responsibleParty: 'Équipe Sécurité',
+      dueDate: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
+      effectiveness: 3,
+      implementationCost: 'medium',
+      maintenanceCost: 'medium',
+      targetScenarios: [],
+      targetVulnerabilities: [],
+      implementation: {
+        id: crypto.randomUUID(),
+        measureId: 'demo_measure_3',
+        verificationMethod: 'Tests et audits',
+        residualRisk: 2,
+        comments: '',
+        evidences: []
+      },
+      isoCategory: 'Security Controls',
+      isoControl: 'RS.RP-1',
       type: 'corrective',
-      priority: 'medium',
       cost: 'medium',
-      implementationTime: '4 mois',
+      complexity: 3,
       targetedScenarios: [],
+      riskReduction: 25,
+      nistReference: 'RS.RP-1',
+      nistFamily: 'RS',
+      implementationComplexity: 3,
+      implementationNotes: '',
+      validationCriteria: '',
+      dependencies: [],
+      monitoringMethod: '',
+      aiSuggestions: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -674,6 +774,14 @@ ${riskAnalysis.map(r => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            {/* 🆕 ICÔNE CONTEXTE MISSION */}
+            {mission && (
+              <MissionContextIcon
+                mission={mission}
+                className="mr-2"
+              />
+            )}
+
             {/* 🆕 AMÉLIORATION: Indicateur de cohérence IA */}
             <AICoherenceIndicator
               missionId={missionId}
@@ -1121,7 +1229,7 @@ ${riskAnalysis.map(r => {
           }}
           strategicScenarios={strategicScenarios}
           supportingAssets={supportingAssets}
-          initialData={editingMeasure}
+          existingMeasure={editingMeasure}
         />
       )}
 

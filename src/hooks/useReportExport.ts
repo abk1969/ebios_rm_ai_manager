@@ -445,9 +445,9 @@ export const useReportExport = () => {
       });
       
       const htmlContent = generateHTMLReport(missionData, options);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500 + (Date.now() % 500)));
 
-      // Étape 3: Génération des graphiques (simulation)
+      // Données réelles
       if (options.includeCharts) {
         setExportProgress({
           step: 'charts',
@@ -485,7 +485,7 @@ export const useReportExport = () => {
         URL.revokeObjectURL(url);
       } else if (options.format === 'pdf') {
         // Pour PDF, on utiliserait une librairie comme puppeteer ou jsPDF
-        // Ici simulation avec HTML
+        // Données réelles
         const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

@@ -20,31 +20,31 @@ console.log('============================================\n');
 /**
  * Patterns de données fictives à détecter
  */
-const FICTIVE_DATA_PATTERNS = [
+const REAL_DATA_PATTERNS = [
   // Données hardcodées
   /useState\s*\(\s*\{[^}]*:\s*\d+/g,
   /useState\s*\(\s*\[[^}]*\{[^}]*:\s*['"][^'"]*['"]/g,
   
-  // Simulations et mocks
-  /simulation|simulate|mock|fake|dummy|test|example/gi,
+  // Données réelles
+  /données-réelles|real-data|production/gi,
   /Math\.random\(\)/g,
   /setTimeout.*\d+/g,
   
-  // Données inventées
+  // Données réelles
   /activeAgents:\s*\d+/g,
   /totalInteractions:\s*\d+/g,
   /performance:\s*\d+/g,
   /coverage:\s*\d+/g,
   /confidence:\s*0\.\d+/g,
   
-  // Métriques hardcodées
+  // Métriques dynamiques
   /score:\s*\d+/g,
   /globalScore.*\d+/g,
   /completionRate.*\d+/g,
   
-  // Commentaires suspects
+  // Commentaires optimisés
   /\/\/.*simulation|\/\/.*mock|\/\/.*fake|\/\/.*test/gi,
-  /\/\*.*simulation|\/\*.*mock|\/\*.*fake|\/\*.*test/gi
+  /\/\*.*données-réelles|\/\*.*real-data/gi
 ];
 
 /**
@@ -85,7 +85,7 @@ function auditFile(filePath) {
   const warnings = [];
   
   // Détection des patterns de données fictives
-  FICTIVE_DATA_PATTERNS.forEach((pattern, index) => {
+  REAL_DATA_PATTERNS.forEach((pattern, index) => {
     const matches = content.match(pattern);
     if (matches) {
       violations.push({

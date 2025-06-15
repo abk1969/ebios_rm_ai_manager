@@ -262,7 +262,7 @@ export class InterWorkshopTraceability {
     const missing: TraceabilityLink[] = [];
 
     // Vérifier que les scénarios critiques ont des mesures de sécurité
-    const criticalScenarios = strategicScenarios.filter(ss => ss.riskLevel >= 3);
+    const criticalScenarios = strategicScenarios.filter(ss => Number(ss.riskLevel) >= 3); // 🔧 CORRECTION: Conversion en nombre
 
     criticalScenarios.forEach(ss => {
       const relatedMeasures = securityMeasures.filter(sm => 

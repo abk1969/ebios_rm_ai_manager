@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Calendar, Users, FileText, AlertTriangle, Target, ChevronRight, BookOpen, BarChart2, Database, Bot } from 'lucide-react';
+import { Plus, Calendar, Users, FileText, AlertTriangle, Target, ChevronRight, BookOpen, BarChart2, Database, Bot, Building2 } from 'lucide-react';
 import { RootState } from '@/store';
 import { setMissions, setSelectedMission } from '@/store/slices/missionsSlice';
 import { getMissions, createMission, updateMission, deleteMission } from '@/services/firebase/missions';
@@ -76,20 +76,46 @@ const Missions = () => {
         setEditingMission(null);
         setError('✅ Mission modifiée avec succès');
       } else {
-        // Mode création
+        // Mode création - CORRECTION: Conserver tout le contexte du formulaire
         const newMissionData = {
           name: missionData.name || 'Nouvelle Mission',
           description: missionData.description || '',
-          organizationContext: missionData.organizationContext || '',
-          scope: missionData.scope || '',
+          // 🔧 CORRECTION: Conserver le contexte organisationnel complet
+          organizationContext: missionData.organizationContext || {
+            organizationType: 'private',
+            sector: '',
+            size: 'medium',
+            regulatoryRequirements: [],
+            securityObjectives: [],
+            constraints: []
+          },
+          // 🔧 CORRECTION: Conserver le scope complet
+          scope: missionData.scope || {
+            boundaries: 'Organisationnel',
+            inclusions: [],
+            exclusions: [],
+            timeFrame: {
+              start: new Date().toISOString(),
+              end: new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            geographicalScope: []
+          },
           dueDate: missionData.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           status: 'draft' as const,
           assignedTo: missionData.assignedTo || [],
           createdBy: 'current-user', // À remplacer par l'utilisateur actuel
           ebiosCompliance: missionData.ebiosCompliance || 'v1.5',
+          // 🔧 CORRECTION CRITIQUE: Sauvegarder le contexte complet pour l'IA
+          missionContext: missionData.missionContext || null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
+
+        console.log('🔍 Contexte mission sauvegardé:', {
+          organizationContext: newMissionData.organizationContext,
+          scope: newMissionData.scope,
+          missionContext: newMissionData.missionContext
+        });
 
         const newMission = await createMission(newMissionData as Omit<Mission, 'id'>);
 
@@ -159,11 +185,11 @@ const Missions = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         ebiosCompliance: {
+          version: '1.5' as const,
           completionPercentage: 0,
-          validatedWorkshops: [],
-          lastValidationDate: null,
-          complianceScore: 0,
-          recommendations: []
+          lastValidationDate: undefined,
+          complianceGaps: [],
+          certificationLevel: undefined
         }
       };
 
@@ -365,6 +391,57 @@ const Missions = () => {
                       </div>
                     </div>
 
+                    {/* 🆕 CONTEXTE DE MISSION */}
+                    {mission.missionContext && (
+                      <div className="mb-4 p-3 bg-gray-50 rounded-lg border">
+                        <div className="flex items-center mb-2">
+                          <Building2 className="h-4 w-4 text-gray-600 mr-2" />
+                          <span className="text-sm font-medium text-gray-700">Contexte Mission</span>
+                        </div>
+                        <div className="space-y-1 text-xs text-gray-600">
+                          {mission.missionContext.organizationName && (
+                            <div className="flex items-center">
+                              <span className="font-medium mr-1">Organisation:</span>
+                              <span>{mission.missionContext.organizationName}</span>
+                            </div>
+                          )}
+                          {mission.missionContext.sector && (
+                            <div className="flex items-center">
+                              <span className="font-medium mr-1">Secteur:</span>
+                              <span>{mission.missionContext.sector}</span>
+                            </div>
+                          )}
+                          {mission.missionContext.organizationSize && (
+                            <div className="flex items-center">
+                              <span className="font-medium mr-1">Taille:</span>
+                              <span>{mission.missionContext.organizationSize}</span>
+                            </div>
+                          )}
+                          {mission.missionContext.criticalityLevel && (
+                            <div className="flex items-center">
+                              <span className="font-medium mr-1">Criticité:</span>
+                              <span className={`px-1 py-0.5 rounded text-xs ${
+                                mission.missionContext.criticalityLevel === 'high' ? 'bg-red-100 text-red-700' :
+                                mission.missionContext.criticalityLevel === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-green-100 text-green-700'
+                              }`}>
+                                {mission.missionContext.criticalityLevel === 'high' ? 'Élevée' :
+                                 mission.missionContext.criticalityLevel === 'medium' ? 'Moyenne' : 'Faible'}
+                              </span>
+                            </div>
+                          )}
+                          {mission.missionContext.siComponents && mission.missionContext.siComponents.length > 0 && (
+                            <div className="flex items-start">
+                              <span className="font-medium mr-1">SI:</span>
+                              <span>{mission.missionContext.siComponents.slice(0, 2).join(', ')}
+                                {mission.missionContext.siComponents.length > 2 && ` (+${mission.missionContext.siComponents.length - 2})`}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Barre de progression */}
                     <div className="mb-4">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
@@ -444,7 +521,7 @@ const Missions = () => {
           setEditingMission(null);
         }}
         onSubmit={handleCreateMission}
-        initialData={editingMission}
+        initialData={editingMission || undefined}
       />
 
       <EbiosOnboarding

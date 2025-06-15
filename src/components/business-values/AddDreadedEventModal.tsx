@@ -20,18 +20,18 @@ interface AddDreadedEventModalProps {
     gravity: GravityScale;
     impactDescription: string;
     consequencesDescription: string;
-    // 🆕 Champs Access
+    // Nouveau
     impactsList?: string[];
     valeurMetierNom?: string;
   }) => void;
   missionId: string;
   businessValues: BusinessValue[];
   supportingAssets: SupportingAsset[];
-  isAccessImport?: boolean; // 🆕 Mode import Access
-  existingEvent?: Partial<DreadedEvent>; // 🆕 Pour l'édition
+  isAccessImport?: boolean; // Nouveau
+  existingEvent?: Partial<DreadedEvent>; // Nouveau
 }
 
-// 🆕 Types d'impacts EBIOS RM
+// Nouveau
 const IMPACT_TYPES = [
   { id: 'availability', label: 'Disponibilité', icon: Activity, color: 'blue' },
   { id: 'integrity', label: 'Intégrité', icon: Shield, color: 'green' },
@@ -58,7 +58,7 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
     gravity: (existingEvent?.gravity || 2) as GravityScale,
     impactDescription: '',
     consequencesDescription: existingEvent?.consequences || '',
-    // 🆕 Champs Access
+    // Nouveau
     impactsList: existingEvent?.impactsList || [] as string[],
     valeurMetierNom: existingEvent?.valeurMetierNom || ''
   });
@@ -70,14 +70,14 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
   const [searchAssets, setSearchAssets] = useState('');
   const [showImpactAnalysis, setShowImpactAnalysis] = useState(false);
 
-  // 🆕 Suggestions IA pour le nom
+  // Nouveau
   const { suggestions: nameSuggestions, isLoading: nameLoading, refresh: refreshName } = useAISuggestions(
     'name',
     { businessValues: formData.impactedBusinessValues, impacts: formData.impactsList },
     [formData.impactedBusinessValues, formData.impactsList]
   );
 
-  // 🆕 Suggestions IA pour les conséquences
+  // Nouveau
   const { suggestions: consequenceSuggestions, isLoading: consequenceLoading } = useAISuggestions(
     'consequences',
     { name: formData.name, gravity: formData.gravity },
@@ -103,7 +103,7 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
     }
   }, [isOpen]);
 
-  // 🆕 Génération automatique du nom basé sur les impacts
+  // Nouveau
   useEffect(() => {
     if (formData.impactsList.length > 0 && formData.impactedBusinessValues.length > 0 && !formData.name) {
       const impactNames = formData.impactsList.map(id => 
@@ -120,7 +120,7 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
     }
   }, [formData.impactsList, formData.impactedBusinessValues, businessValues]);
 
-  // 🆕 Analyse d'impact IA
+  // Nouveau
   useEffect(() => {
     if (formData.gravity && formData.impactsList.length > 0) {
       setShowImpactAnalysis(true);
@@ -649,7 +649,7 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
 
 export default AddDreadedEventModal;
 
-// 🆕 Fonction d'analyse d'impact IA (simulation)
+// Nouveau
 function generateImpactAnalysis(impacts: string[], gravity: GravityScale): string {
   let analysis = '';
   

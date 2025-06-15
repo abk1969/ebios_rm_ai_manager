@@ -15,7 +15,7 @@ const firebaseConfig = {
 };
 
 // 🔧 CORRECTION: Logs seulement en développement
-if (import.meta.env.DEV) {
+if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
   console.log('🔥 Initialisation Firebase avec la configuration réelle');
   console.log('📊 Projet :', firebaseConfig.projectId);
 }
@@ -33,7 +33,7 @@ try {
   storage = getStorage(app);
 
   // 🔧 CORRECTION: Logs seulement en développement
-  if (import.meta.env.DEV) {
+  if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
     console.log('✅ Firebase initialisé avec succès');
     console.log('🔑 Mode : Production (Firebase réel)');
   }

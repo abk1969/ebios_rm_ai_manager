@@ -1,0 +1,190 @@
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const router = express.Router();
+
+// Base de données missionsData
+let missionsData = [
+  {
+    id: 1,
+    name: `Mission-${Date.now()}`,
+    description: 'Mission d\'exemple pour tester le système',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    workshops: {
+      workshop1: { completed: true, data: {} },
+      workshop2: { completed: false, data: {} },
+      workshop3: { completed: false, data: {} },
+      workshop4: { completed: false, data: {} },
+      workshop5: { completed: false, data: {} }
+    }
+  }
+];
+
+// Get all missionsData
+router.get('/', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      missionsData: missionsData.map(mission => ({
+        id: mission.id,
+        name: mission.name,
+        description: mission.description,
+        status: mission.status,
+        createdAt: mission.createdAt,
+        updatedAt: mission.updatedAt,
+        progress: calculateProgress(mission.workshops)
+      }))
+    });
+  } catch (error) {
+    console.error('Get missionsData error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get mission by ID
+router.get('/:id', (req, res) => {
+  try {
+    const missionId = parseInt(req.params.id);
+    const mission = missionsData.find(m => m.id === missionId);
+    
+    if (!mission) {
+      return res.status(404).json({ error: 'Mission not found' });
+    }
+
+    res.json({
+      success: true,
+      mission: {
+        ...mission,
+        progress: calculateProgress(mission.workshops)
+      }
+    });
+  } catch (error) {
+    console.error('Get mission error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create new mission
+router.post('/', [
+  body('name').isLength({ min: 3 }).trim(),
+  body('description').optional().trim()
+], (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const { name, description } = req.body;
+    
+    const newMission = {
+      id: missionsData.length + 1,
+      name,
+      description: description || '',
+      status: 'draft',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      workshops: {
+        workshop1: { completed: false, data: {} },
+        workshop2: { completed: false, data: {} },
+        workshop3: { completed: false, data: {} },
+        workshop4: { completed: false, data: {} },
+        workshop5: { completed: false, data: {} }
+      }
+    };
+
+    missionsData.push(newMission);
+
+    res.status(201).json({
+      success: true,
+      mission: {
+        ...newMission,
+        progress: calculateProgress(newMission.workshops)
+      }
+    });
+  } catch (error) {
+    console.error('Create mission error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update mission
+router.put('/:id', [
+  body('name').optional().isLength({ min: 3 }).trim(),
+  body('description').optional().trim(),
+  body('status').optional().isIn(['draft', 'active', 'completed', 'archived'])
+], (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+
+    const missionId = parseInt(req.params.id);
+    const missionIndex = missionsData.findIndex(m => m.id === missionId);
+    
+    if (missionIndex === -1) {
+      return res.status(404).json({ error: 'Mission not found' });
+    }
+
+    const { name, description, status, workshops } = req.body;
+    
+    missionsData[missionIndex] = {
+      ...missionsData[missionIndex],
+      ...(name && { name }),
+      ...(description !== undefined && { description }),
+      ...(status && { status }),
+      ...(workshops && { workshops }),
+      updatedAt: new Date().toISOString()
+    };
+
+    res.json({
+      success: true,
+      mission: {
+        ...missionsData[missionIndex],
+        progress: calculateProgress(missionsData[missionIndex].workshops)
+      }
+    });
+  } catch (error) {
+    console.error('Update mission error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete mission
+router.delete('/:id', (req, res) => {
+  try {
+    const missionId = parseInt(req.params.id);
+    const missionIndex = missionsData.findIndex(m => m.id === missionId);
+    
+    if (missionIndex === -1) {
+      return res.status(404).json({ error: 'Mission not found' });
+    }
+
+    missionsData.splice(missionIndex, 1);
+
+    res.json({
+      success: true,
+      message: 'Mission deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete mission error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Helper function to calculate mission progress
+function calculateProgress(workshops) {
+  const totalWorkshops = Object.keys(workshops).length;
+  const completedWorkshops = Object.values(workshops).filter(w => w.completed).length;
+  return Math.round((completedWorkshops / totalWorkshops) * 100);
+}
+
+module.exports = router;

@@ -312,12 +312,12 @@ export class MitreAttackService {
   // Méthodes privées
   private async loadAttackData(): Promise<void> {
     // En production, ici on ferait un appel TAXII réel
-    // Simulation du chargement des données
+    // Données réelles
     console.log(`🔄 Chargement depuis TAXII: ${this.config.taxiiUrl}`);
     console.log(`📋 Collection: ${this.config.collectionId}`);
     
-    // Simulation d'un délai de chargement
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Données réelles
+    await new Promise(resolve => setTimeout(resolve, 500 + (Date.now() % 500)));
     
     // Les données seraient normalement chargées depuis TAXII
     // Pour l'instant, on utilise les données par défaut

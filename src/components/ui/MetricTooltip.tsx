@@ -1,5 +1,5 @@
 /**
- * 💡 COMPOSANT BULLE D'AIDE MÉTRIQUES
+ * COMPOSANT BULLE D'AIDE MÉTRIQUES
  * Explique le calcul et la signification de chaque métrique EBIOS RM
  * CONFORMITÉ ANSSI: Transparence totale des calculs
  */

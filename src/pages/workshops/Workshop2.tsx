@@ -34,6 +34,7 @@ import WorkshopNavigation from '@/components/workshops/WorkshopNavigation';
 import AddRiskSourceModal from '@/components/risk-sources/AddRiskSourceModal';
 import AddObjectiveModal from '@/components/risk-sources/AddObjectiveModal';
 import AddOperationalModeModal from '@/components/risk-sources/AddOperationalModeModal';
+import MissionContextIcon from '@/components/missions/MissionContextIcon';
 import type { 
   RiskSource, 
   BusinessValue,
@@ -495,7 +496,15 @@ const Workshop2 = () => {
               Identifier et analyser les sources de risque susceptibles de s'intéresser aux valeurs métier selon EBIOS RM v1.5
             </p>
           </div>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2">
+            {/* 🆕 ICÔNE CONTEXTE MISSION */}
+            {mission && (
+              <MissionContextIcon
+                mission={mission}
+                className="mr-2"
+              />
+            )}
+
             {/* 🆕 AMÉLIORATION: Indicateur de cohérence IA */}
             <AICoherenceIndicator
               missionId={missionId}

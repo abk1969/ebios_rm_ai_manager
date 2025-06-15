@@ -1,14 +1,17 @@
-import React from 'react';
-import { Info } from 'lucide-react';
+import React, { useState } from 'react';
+import { Info, FileText } from 'lucide-react';
 import Button from '@/components/ui/button';
 import AICoherenceIndicator from '@/components/ai/AICoherenceIndicator';
 import WorkshopMetricsDisplay from '@/components/workshops/WorkshopMetricsDisplay';
+import MissionContextIcon from '@/components/missions/MissionContextIcon';
+import type { Mission } from '@/types/ebios';
 
 interface StandardWorkshopHeaderProps {
   workshopNumber: 1 | 2 | 3 | 4 | 5;
   title: string;
   description: string;
   missionId: string;
+  mission?: Mission; // 🆕 AJOUT: Mission complète pour accéder au contexte
   data?: any;
   showHelp: boolean;
   onToggleHelp: () => void;
@@ -49,12 +52,15 @@ const StandardWorkshopHeader: React.FC<StandardWorkshopHeaderProps> = ({
   title,
   description,
   missionId,
+  mission, // 🆕 AJOUT: Mission complète
   data,
   showHelp,
   onToggleHelp,
   helpContent
 }) => {
   const theme = WORKSHOP_THEMES[workshopNumber];
+
+  // 🆕 SUPPRIMÉ: État modal (géré par MissionContextIcon)
 
   return (
     <div className={`${theme.bgColor} ${theme.borderColor} border rounded-lg p-6`}>
@@ -79,6 +85,14 @@ const StandardWorkshopHeader: React.FC<StandardWorkshopHeaderProps> = ({
             refreshInterval={60000}
           />
 
+          {/* 🆕 ICÔNE CONTEXTE MISSION */}
+          {mission && (
+            <MissionContextIcon
+              mission={mission}
+              className="ml-2"
+            />
+          )}
+
           {/* 📚 BOUTON AIDE ANSSI */}
           <Button
             variant="outline"
@@ -97,6 +111,8 @@ const StandardWorkshopHeader: React.FC<StandardWorkshopHeaderProps> = ({
           {helpContent}
         </div>
       )}
+
+      {/* 🆕 SUPPRIMÉ: Modal gérée par MissionContextIcon */}
     </div>
   );
 };

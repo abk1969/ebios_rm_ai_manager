@@ -25,6 +25,8 @@ import DashboardRedirect from './components/dashboard/DashboardRedirect';
 import RiskMonitoring from './pages/RiskMonitoring';
 import CommunicationHub from './pages/CommunicationHub';
 import Settings from './pages/Settings';
+import AutoMissionGeneratorPage from './pages/AutoMissionGeneratorPage';
+import TestGeneratorPage from './pages/test-generator';
 import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -58,6 +60,11 @@ function App() {
                   <Route path="/ebios-dashboard" element={<PrivateRoute><AppLayout><DashboardRedirect /></AppLayout></PrivateRoute>} />
                   <Route path="/ebios-dashboard/:missionId" element={<PrivateRoute><AppLayout><Layout><EbiosDashboard /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/missions" element={<PrivateRoute><AppLayout><Layout><Missions /></Layout></AppLayout></PrivateRoute>} />
+                  <Route path="/missions/:missionId" element={<PrivateRoute><AppLayout><Layout><EbiosDashboard /></Layout></AppLayout></PrivateRoute>} />
+
+                  {/* 🤖 GÉNÉRATEUR AUTOMATIQUE DE MISSIONS */}
+                  <Route path="/auto-generator" element={<PrivateRoute><AppLayout><AutoMissionGeneratorPage /></AppLayout></PrivateRoute>} />
+                  <Route path="/test-generator" element={<TestGeneratorPage />} />
 
                   {/* 🔧 CORRECTION: Page d'index des workshops */}
                   <Route path="/workshops" element={<PrivateRoute><AppLayout><Layout><WorkshopsIndex /></Layout></AppLayout></PrivateRoute>} />

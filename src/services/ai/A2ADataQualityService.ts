@@ -293,7 +293,7 @@ export class A2ADataQualityService {
     const entitySuggestions = contextualSuggestions[entityType as keyof typeof contextualSuggestions];
     if (entitySuggestions) {
       const contextSuggestions = entitySuggestions[context as keyof typeof entitySuggestions] || entitySuggestions.default;
-      return contextSuggestions[Math.floor(Math.random() * contextSuggestions.length)];
+      return contextSuggestions[Math.floor(((Date.now() % 1000) / 1000) * contextSuggestions.length)];
     }
 
     // Fallback final

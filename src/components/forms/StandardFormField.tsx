@@ -22,7 +22,7 @@ export interface StandardFormFieldProps {
 }
 
 /**
- * 🎨 COMPOSANT DE CHAMP DE FORMULAIRE STANDARDISÉ
+ * COMPOSANT DE CHAMP DE FORMULAIRE STANDARDISÉ
  * Harmonise l'apparence et le comportement des formulaires EBIOS RM
  */
 const StandardFormField: React.FC<StandardFormFieldProps> = ({
@@ -47,7 +47,7 @@ const StandardFormField: React.FC<StandardFormFieldProps> = ({
   const fieldId = `field-${name}`;
   const hasError = !!error;
 
-  // 🎨 Classes CSS standardisées
+  // Classes CSS standardisées
   const baseInputClasses = cn(
     'block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset',
     'placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6',

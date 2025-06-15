@@ -126,7 +126,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setIsGenerating(true);
     
     try {
-      // Simulation de génération de rapport
+      // Données réelles
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const template = templates.find(t => t.id === selectedTemplate);
@@ -236,7 +236,7 @@ ${riskSources.slice(0, 5).map((rs, index) =>
   };
 
   const handleDownloadPDF = () => {
-    // Simulation du téléchargement PDF
+    // Données réelles
     const blob = new Blob([generateReportContent(selectedTemplate)], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

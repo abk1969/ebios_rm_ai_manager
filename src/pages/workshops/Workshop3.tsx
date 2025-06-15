@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import WorkshopNavigation from '@/components/workshops/WorkshopNavigation';
+import MissionContextIcon from '@/components/missions/MissionContextIcon';
 import type { 
   StrategicScenario,
   RiskSource,
@@ -255,6 +256,7 @@ const Workshop3 = () => {
           ...data,
           missionId,
           pathways: [], // Sera rempli dans atelier 4
+          attackPaths: [], // 🔧 CORRECTION: Propriété manquante
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -394,6 +396,14 @@ const Workshop3 = () => {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            {/* 🆕 ICÔNE CONTEXTE MISSION */}
+            {mission && (
+              <MissionContextIcon
+                mission={mission}
+                className="mr-2"
+              />
+            )}
+
             {/* 🆕 AMÉLIORATION: Indicateur de cohérence IA */}
             <AICoherenceIndicator
               missionId={missionId}

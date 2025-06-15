@@ -2,6 +2,8 @@ import React from 'react';
 
 interface DialogProps {
   children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 interface DialogContentProps {
@@ -25,14 +27,26 @@ interface DialogFooterProps {
   children: React.ReactNode;
 }
 
-export const Dialog: React.FC<DialogProps> = ({ children }) => {
-  return <>{children}</>;
+export const Dialog: React.FC<DialogProps> = ({ children, open = false, onOpenChange }) => {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] bg-black bg-opacity-50"
+      onClick={() => onOpenChange?.(false)}
+    >
+      {children}
+    </div>
+  );
 };
 
 export const DialogContent: React.FC<DialogContentProps> = ({ children, className = '' }) => {
   return (
-    <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black bg-opacity-50 ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div
+      className="flex items-center justify-center p-4 min-h-full"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className={`bg-white rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto ${className}`}>
         {children}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, LayoutDashboard, Briefcase, Database, Target, Users, Route, ShieldCheck, Settings, Bot, BarChart2, Upload } from 'lucide-react';
+import { Shield, LayoutDashboard, Briefcase, Database, Target, Users, Route, ShieldCheck, Settings, Bot, BarChart2, Upload, Zap } from 'lucide-react';
 import NavigationButtons from './NavigationButtons';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -11,58 +11,31 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const navigation = [
     { name: 'Missions', href: '/missions', icon: Briefcase },
-    { name: 'Ateliers EBIOS RM', href: '/workshops', icon: Target },
+    { name: 'Générateur IA', href: '/auto-generator', icon: Zap },
     ...(selectedMission ? [
       {
-        name: 'Tableau de bord IA',
+        name: 'Tableau de bord',
         href: `/ebios-dashboard/${selectedMission.id}`,
         icon: BarChart2,
-        badge: 'IA',
-        badgeColor: 'bg-blue-100 text-blue-800'
+        badge: 'Mission Active',
+        badgeColor: 'bg-green-100 text-green-800'
+      },
+      {
+        name: 'Ateliers EBIOS RM',
+        href: `/workshops`,
+        icon: Target,
+        description: 'Accès aux 5 ateliers de la méthode EBIOS RM'
       }
-    ] : []),
-    {
-      name: 'Workshops',
-      icon: Shield,
-      children: [
-        {
-          name: 'Workshop 1',
-          href: selectedMission ? `/workshops/${selectedMission.id}/1` : '/missions',
-          icon: Database,
-          description: 'Scope & Security Baseline',
-          steps: ['Business Values', 'Supporting Assets', 'Security Controls']
-        },
-        {
-          name: 'Workshop 2',
-          href: selectedMission ? `/workshops/${selectedMission.id}/2` : '/missions',
-          icon: Target,
-          description: 'Risk Sources',
-          steps: ['Source Identification', 'Objectives', 'Pertinence Analysis']
-        },
-        {
-          name: 'Workshop 3',
-          href: selectedMission ? `/workshops/${selectedMission.id}/3` : '/missions',
-          icon: Users,
-          description: 'Strategic Scenarios',
-          steps: ['Stakeholder Analysis', 'Strategic Context', 'Attack Paths']
-        },
-        {
-          name: 'Workshop 4',
-          href: selectedMission ? `/workshops/${selectedMission.id}/4` : '/missions',
-          icon: Route,
-          description: 'Operational Scenarios',
-          steps: ['Attack Actions', 'Technical Analysis', 'Success Probability']
-        },
-        {
-          name: 'Workshop 5',
-          href: selectedMission ? `/workshops/${selectedMission.id}/5` : '/missions',
-          icon: ShieldCheck,
-          description: 'Treatment Strategy',
-          steps: ['Security Measures', 'Risk Evaluation', 'Action Plan']
-        }
-      ]
-    },
-    { name: 'Settings', href: '/settings', icon: Settings }
+    ] : [
+      {
+        name: 'Ateliers EBIOS RM',
+        href: '/workshops',
+        icon: Target,
+        description: 'Sélectionnez une mission pour accéder aux ateliers',
+        disabled: true
+      }
+    ]),
+    { name: 'Paramètres', href: '/settings', icon: Settings }
   ];
 
   return (
@@ -74,54 +47,28 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
               <nav className="flex-1 px-2 space-y-1">
                 {navigation.map((item) => {
                   const Icon = item.icon;
-                  const isActive = item.href ? location.pathname === item.href : 
-                    item.children?.some(child => child.href === location.pathname);
+                  const isActive = item.href ? location.pathname === item.href : false;
+                  const isDisabled = (item as any).disabled;
 
-                  if (item.children) {
+                  if (isDisabled) {
                     return (
-                      <div key={item.name} className="space-y-1">
-                        <div className={`flex items-center px-3 py-2 text-sm font-medium ${
-                          isActive ? 'text-blue-600' : 'text-gray-600'
-                        }`}>
+                      <div
+                        key={item.name}
+                        className="group flex flex-col px-3 py-2 text-sm font-medium rounded-md text-gray-400 cursor-not-allowed"
+                        title={(item as any).description}
+                      >
+                        <div className="flex items-center">
                           <Icon className="mr-3 h-5 w-5" />
                           {item.name}
+                          <span className="ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                            Mission requise
+                          </span>
                         </div>
-                        <div className="space-y-1 pl-11">
-                          {item.children.map((child) => {
-                            const ChildIcon = child.icon;
-                            const isChildActive = location.pathname === child.href;
-                            
-                            return (
-                              <Link
-                                key={child.name}
-                                to={child.href}
-                                className={`group flex flex-col rounded-md px-3 py-2 ${
-                                  isChildActive
-                                    ? 'bg-blue-50 text-blue-600'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
-                              >
-                                <div className="flex items-center">
-                                  <ChildIcon className={`mr-3 h-4 w-4 ${
-                                    isChildActive ? 'text-blue-600' : 'text-gray-400'
-                                  }`} />
-                                  <span className="font-medium">{child.name}</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-500">{child.description}</p>
-                                {isChildActive && child.steps && (
-                                  <div className="mt-2 space-y-1">
-                                    {child.steps.map((step, index) => (
-                                      <div key={index} className="flex items-center text-xs text-gray-500">
-                                        <span className="mr-2 h-1 w-1 rounded-full bg-gray-400"></span>
-                                        {step}
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </Link>
-                            );
-                          })}
-                        </div>
+                        {(item as any).description && (
+                          <span className="text-xs text-gray-400 mt-1 ml-8">
+                            {(item as any).description}
+                          </span>
+                        )}
                       </div>
                     );
                   }
@@ -130,21 +77,26 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`group flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium ${
+                      className={`group flex flex-col px-3 py-2 text-sm font-medium rounded-md ${
                         isActive
                           ? 'bg-blue-50 text-blue-600'
                           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                     >
                       <div className="flex items-center">
-                        <Icon className={`mr-3 h-5 w-5 ${
-                          isActive ? 'text-blue-600' : 'text-gray-400'
-                        }`} />
+                        <Icon className="mr-3 h-5 w-5" />
                         {item.name}
+                        {(item as any).badge && (
+                          <span className={`ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            (item as any).badgeColor || 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {(item as any).badge}
+                          </span>
+                        )}
                       </div>
-                      {(item as any).badge && (
-                        <span className={`ml-2 px-2 py-0.5 text-xs font-medium rounded-full ${(item as any).badgeColor || 'bg-gray-100 text-gray-800'}`}>
-                          {(item as any).badge}
+                      {(item as any).description && (
+                        <span className="text-xs text-gray-500 mt-1 ml-8">
+                          {(item as any).description}
                         </span>
                       )}
                     </Link>

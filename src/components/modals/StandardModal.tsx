@@ -18,7 +18,7 @@ export interface StandardModalProps {
 }
 
 /**
- * 🎨 COMPOSANT DE MODAL STANDARDISÉ
+ * COMPOSANT DE MODAL STANDARDISÉ
  * Harmonise l'apparence et le comportement des modales EBIOS RM
  */
 const StandardModal: React.FC<StandardModalProps> = ({
@@ -35,7 +35,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
   className = ''
 }) => {
 
-  // 🎨 Tailles de modal
+  // Interface
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-lg',
@@ -44,7 +44,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
     full: 'max-w-7xl'
   };
 
-  // 🎨 Couleurs par type
+  // Interface
   const typeConfig = {
     default: {
       icon: null,
@@ -124,7 +124,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
             className
           )}
         >
-          {/* 📋 EN-TÊTE */}
+          {/* EN-TÊTE */}
           <div className={cn(
             'flex items-start justify-between p-6 border-b border-gray-200 rounded-t-lg',
             config.headerBg
@@ -166,7 +166,7 @@ const StandardModal: React.FC<StandardModalProps> = ({
             )}
           </div>
 
-          {/* 📝 CONTENU */}
+          {/* CONTENU */}
           <div className="p-6 max-h-[70vh] overflow-y-auto">
             {children}
           </div>
@@ -226,7 +226,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {cancelText}
           </Button>
           <Button
-            variant={type === 'error' ? 'destructive' : 'default'}
+            variant={type === 'error' ? 'danger' : 'default'}
             onClick={onConfirm}
             disabled={isLoading}
           >
@@ -241,7 +241,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 };
 
 /**
- * 📋 MODAL DE FORMULAIRE STANDARDISÉE
+ * MODAL DE FORMULAIRE STANDARDISÉE
  */
 export interface FormModalProps {
   isOpen: boolean;

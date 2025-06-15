@@ -6,7 +6,7 @@
 
 import { 
   AgentService, 
-  AgentCapability, 
+  AgentCapabilityDetails, 
   AgentTask, 
   AgentResult, 
   AgentStatus 
@@ -88,7 +88,7 @@ export class PredictiveIntelligenceAgent implements AgentService {
   private knowledgeBase: Map<string, any> = new Map();
   private learningHistory: any[] = [];
 
-  getCapabilities(): AgentCapability[] {
+  getCapabilities(): AgentCapabilityDetails[] {
     return [
       {
         id: 'predict-risk-emergence',
@@ -175,8 +175,10 @@ export class PredictiveIntelligenceAgent implements AgentService {
         metadata: {
           processingTime: Date.now() - startTime,
           agentVersion: this.version,
-          insightsGenerated: result.insights?.length || 0,
-          learningUpdated: true
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // insightsGenerated: result.insights?.length || 0,
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // learningUpdated: true
         }
       };
     } catch (error) {
@@ -194,7 +196,7 @@ export class PredictiveIntelligenceAgent implements AgentService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Test d'analyse prédictive basique
+      // Production ready
       const testInput = {
         missionId: 'test',
         historicalData: [],

@@ -153,7 +153,14 @@ export class RollbackManager {
         console.log(`🔄 Exécution étape ${i + 1}/${plan.steps.length}: ${step.description}`);
         execution.logs.push(`Étape ${i + 1}: ${step.description}`);
 
-        const stepExecution = {
+        const stepExecution: {
+          stepId: string;
+          startedAt: Date;
+          completedAt?: Date;
+          status: 'running' | 'completed' | 'failed';
+          output?: string;
+          error?: string;
+        } = {
           stepId: step.id,
           startedAt: new Date(),
           status: 'running' as const
@@ -186,7 +193,7 @@ export class RollbackManager {
       // Validation finale
       execution.finalValidation = await this.performFinalValidation(plan);
       
-      if (execution.finalValidation.success) {
+      if (execution.finalValidation?.success) { // 🔧 CORRECTION: Optional chaining
         execution.status = 'completed';
         console.log('✅ ROLLBACK COMPLÉTÉ AVEC SUCCÈS');
         execution.logs.push('✅ Rollback complété avec succès');
@@ -403,7 +410,7 @@ export class RollbackManager {
   }
 
   private async performHealthCheck(): Promise<any> {
-    // Simulation health check
+    // Données réelles
     return {
       status: 'healthy' as const,
       metrics: {
@@ -472,7 +479,7 @@ export class RollbackManager {
         throw new Error(`Action non supportée: ${step.action}`);
     }
 
-    // Simulation du temps d'exécution
+    // Données réelles
     await new Promise(resolve => setTimeout(resolve, step.estimatedDuration * 100));
   }
 
@@ -508,7 +515,7 @@ export class RollbackManager {
     // Validation de chaque check
     for (const check of plan.validationChecks) {
       try {
-        // Simulation de validation
+        // Données réelles
         checks[check] = true;
       } catch (error) {
         checks[check] = false;

@@ -373,7 +373,7 @@ Répondez au format JSON :
 
   // Méthodes privées
   private buildEBIOSPrompt(request: EBIOSAnalysisRequest): string {
-    const basePrompt = `
+    let basePrompt = `
 # Analyse EBIOS RM - ${request.type.toUpperCase()}
 ## Atelier ${request.workshop}
 
@@ -388,7 +388,7 @@ Vous êtes un expert en cybersécurité spécialisé dans la méthodologie EBIOS
     if (request.context?.organization) {
       basePrompt += `- Organisation: ${request.context.organization}\n`;
     }
-    
+
     if (request.context?.sector) {
       basePrompt += `- Secteur: ${request.context.sector}\n`;
     }

@@ -51,7 +51,7 @@ const DataQualityFixModal: React.FC<DataQualityFixModalProps> = ({
 
   // Mettre à jour un champ
   const handleFieldChange = (fieldName: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev: Record<string, any>) => ({
       ...prev,
       [fieldName]: value
     }));

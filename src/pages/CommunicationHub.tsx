@@ -55,26 +55,26 @@ export default function CommunicationHub() {
       name: 'Direction Générale',
       type: 'direction',
       members: 5,
-      lastCommunication: '2024-01-10',
-      nextScheduled: '2024-02-15',
-      status: 'active'
+      lastCommunication: '2024-12-10',
+      nextScheduled: '2025-01-15',
+      status: 'active' as 'active' | 'pending' | 'inactive'
     },
     {
       id: 'rssi',
       name: 'Équipe Sécurité',
       type: 'technique',
       members: 8,
-      lastCommunication: '2024-01-14',
-      nextScheduled: '2024-01-21',
-      status: 'active'
+      lastCommunication: '2024-12-13',
+      nextScheduled: '2024-12-20',
+      status: 'active' as 'active' | 'pending' | 'inactive'
     },
     {
       id: 'metier',
       name: 'Responsables Métier',
       type: 'metier',
       members: 12,
-      lastCommunication: '2024-01-08',
-      nextScheduled: '2024-01-25',
+      lastCommunication: '2024-12-07',
+      nextScheduled: '2024-12-28',
       status: 'pending'
     },
     {
@@ -82,8 +82,8 @@ export default function CommunicationHub() {
       name: 'Auditeurs Externes',
       type: 'externe',
       members: 3,
-      lastCommunication: '2023-12-20',
-      nextScheduled: '2024-03-15',
+      lastCommunication: '2024-11-14',
+      nextScheduled: '2025-02-14',
       status: 'inactive'
     }
   ]);
@@ -95,8 +95,8 @@ export default function CommunicationHub() {
       type: 'executive',
       targetAudience: ['Direction Générale', 'CODIR'],
       status: 'approved',
-      createdAt: '2024-01-10',
-      lastModified: '2024-01-12',
+      createdAt: '2024-12-08',
+      lastModified: '2024-12-11',
       frequency: 'quarterly'
     },
     {
@@ -105,8 +105,8 @@ export default function CommunicationHub() {
       type: 'technical',
       targetAudience: ['Équipe Sécurité', 'DSI'],
       status: 'review',
-      createdAt: '2024-01-08',
-      lastModified: '2024-01-14',
+      createdAt: '2024-12-07',
+      lastModified: '2024-12-12',
       frequency: 'monthly'
     },
     {
@@ -115,8 +115,8 @@ export default function CommunicationHub() {
       type: 'regulatory',
       targetAudience: ['Compliance', 'Auditeurs'],
       status: 'draft',
-      createdAt: '2024-01-05',
-      lastModified: '2024-01-15',
+      createdAt: '2024-12-04',
+      lastModified: '2024-12-14',
       frequency: 'annual'
     }
   ]);
@@ -127,7 +127,7 @@ export default function CommunicationHub() {
       title: 'Présentation CODIR - Résultats EBIOS RM',
       type: 'presentation',
       stakeholders: ['Direction Générale'],
-      scheduledDate: '2024-02-15',
+      scheduledDate: '2024-12-20',
       status: 'scheduled',
       description: 'Présentation des résultats de l\'analyse de risques et du plan de traitement'
     },
@@ -136,7 +136,7 @@ export default function CommunicationHub() {
       title: 'Briefing Équipe Sécurité',
       type: 'meeting',
       stakeholders: ['Équipe Sécurité'],
-      scheduledDate: '2024-01-21',
+      scheduledDate: '2024-12-18',
       status: 'scheduled',
       description: 'Point sur l\'avancement des mesures de sécurité'
     },
@@ -145,7 +145,7 @@ export default function CommunicationHub() {
       title: 'Formation Sensibilisation Métier',
       type: 'training',
       stakeholders: ['Responsables Métier'],
-      scheduledDate: '2024-01-25',
+      scheduledDate: '2024-12-22',
       status: 'scheduled',
       description: 'Formation sur les nouveaux scénarios de risques identifiés'
     }
@@ -182,7 +182,7 @@ export default function CommunicationHub() {
   };
 
   const schedulePresentation = (stakeholderGroup: string) => {
-    console.log(`Planification présentation pour: ${stakeholderGroup}`);
+    // console.log supprimé;
     // Logique de planification
   };
 

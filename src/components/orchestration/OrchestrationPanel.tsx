@@ -87,24 +87,24 @@ export const OrchestrationPanel: React.FC<OrchestrationPanelProps> = ({ missionI
       const realStatus: OrchestrationStatus = {
         a2aOrchestrator: {
           status: metrics.global.overallCompletionRate > 50 ? 'active' : 'inactive',
-          activeAgents: this.calculateActiveAgents(metrics),
-          totalInteractions: this.calculateRealInteractions(metrics),
+          activeAgents: calculateActiveAgents(metrics),
+          totalInteractions: calculateRealInteractions(metrics),
           lastActivity: new Date().toISOString(),
           performance: metrics.global.anssiComplianceScore
         },
         mcpServer: {
           status: metrics.global.dataQualityScore > 70 ? 'running' : 'stopped',
-          connectedClients: this.calculateConnectedClients(metrics),
-          availableTools: this.calculateAvailableTools(metrics),
-          requestsPerMinute: this.calculateRequestsPerMinute(metrics),
-          uptime: this.calculateUptime()
+          connectedClients: calculateConnectedClients(metrics),
+          availableTools: calculateAvailableTools(metrics),
+          requestsPerMinute: calculateRequestsPerMinute(metrics),
+          uptime: calculateUptime()
         },
         mcpClient: {
           status: metrics.global.anssiComplianceScore > 60 ? 'connected' : 'disconnected',
           serverConnection: metrics.global.dataQualityScore > 70,
-          toolsAccessed: this.calculateToolsAccessed(metrics),
+          toolsAccessed: calculateToolsAccessed(metrics),
           lastRequest: new Date().toISOString(),
-          responseTime: this.calculateResponseTime(metrics)
+          responseTime: calculateResponseTime(metrics)
         }
       };
 
@@ -178,7 +178,7 @@ export const OrchestrationPanel: React.FC<OrchestrationPanelProps> = ({ missionI
    */
   const calculateRequestsPerMinute = (metrics: any): number => {
     // Basé sur l'activité réelle de l'analyse
-    const totalElements = this.calculateRealInteractions(metrics);
+    const totalElements = calculateRealInteractions(metrics);
     return Math.max(1, Math.min(100, totalElements / 10));
   };
 

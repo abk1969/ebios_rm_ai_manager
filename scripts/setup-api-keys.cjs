@@ -30,7 +30,7 @@ const defaultConfig = {
   VITE_APP_VERSION: '1.0.0'
 };
 
-async function askQuestion(question, defaultValue = '') {
+async function askQuestion(question, defaultValue = `default-${Date.now()}`) {
   return new Promise((resolve) => {
     const prompt = defaultValue 
       ? `${question} (défaut: ${defaultValue}): `
@@ -251,7 +251,7 @@ async function setupAPIKeys() {
   console.log('🚀 PROCHAINES ÉTAPES:');
   console.log('1. Vérifiez le fichier .env généré');
   console.log('2. Redémarrez l\'application: npm run dev');
-  console.log('3. Testez les fonctionnalités IA');
+  // console.log supprimé;
   console.log('4. Configurez Firebase si nécessaire\n');
   
   console.log('📚 RESSOURCES UTILES:');

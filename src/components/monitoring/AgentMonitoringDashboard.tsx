@@ -23,12 +23,14 @@ import { Card } from '@/components/ui/card';
 import Button from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { AlertingService } from '@/services/monitoring/AlertingService';
+import { AgentMonitoringService } from '@/services/monitoring/AgentMonitoringService';
 
 // Types pour le monitoring
 interface AgentStatus {
   id: string;
   name: string;
-  status: 'active' | 'busy' | 'error' | 'maintenance';
+  status: 'active' | 'inactive' | 'busy' | 'error' | 'maintenance';
   lastHeartbeat: Date;
   responseTime: number;
   successRate: number;
@@ -63,89 +65,46 @@ const AgentMonitoringDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
 
-  // Simulation des données (à remplacer par de vraies API)
+  // Chargement des données réelles depuis les services
   useEffect(() => {
-    const loadData = () => {
-      // Simulation d'agents
-      const mockAgents: AgentStatus[] = [
-        {
-          id: 'documentation-agent',
-          name: 'Agent Documentation',
-          status: 'active',
-          lastHeartbeat: new Date(),
-          responseTime: 150,
-          successRate: 0.98,
-          tasksCompleted: 1247,
-          currentLoad: 0.15
-        },
-        {
-          id: 'validation-agent',
-          name: 'Agent Validation ANSSI',
-          status: 'active',
-          lastHeartbeat: new Date(),
-          responseTime: 320,
-          successRate: 0.95,
-          tasksCompleted: 856,
-          currentLoad: 0.45
-        },
-        {
-          id: 'risk-analysis-agent',
-          name: 'Agent Analyse Risques',
-          status: 'busy',
-          lastHeartbeat: new Date(),
-          responseTime: 1200,
-          successRate: 0.92,
-          tasksCompleted: 423,
-          currentLoad: 0.78
-        },
-        {
-          id: 'orchestrator-agent',
-          name: 'Orchestrateur A2A',
-          status: 'active',
-          lastHeartbeat: new Date(),
-          responseTime: 89,
-          successRate: 0.99,
-          tasksCompleted: 2341,
-          currentLoad: 0.23
-        }
-      ];
+    const loadData = async () => {
+      setIsLoading(true);
 
-      // Simulation des métriques système
-      const mockMetrics: SystemMetrics = {
-        totalAgents: 4,
-        activeAgents: 4,
-        totalRequests: 15847,
-        successRate: 0.96,
-        averageResponseTime: 440,
-        fallbackUsage: 0.08,
-        circuitBreakerActivations: 3,
-        anssiComplianceScore: 0.94
-      };
+      try {
+        // Récupération des agents réels depuis le service de monitoring
+        const agentService = AgentMonitoringService.getInstance();
+        const realAgents = await agentService.getActiveAgents();
 
-      // Simulation d'alertes
-      const mockAlerts: Alert[] = [
-        {
-          id: 'alert-1',
-          severity: 'warning',
-          title: 'Temps de réponse élevé',
-          message: 'Agent Analyse Risques: temps de réponse > 1s',
-          timestamp: new Date(Date.now() - 300000),
-          resolved: false
-        },
-        {
-          id: 'alert-2',
-          severity: 'info',
-          title: 'Circuit breaker activé',
-          message: 'Fallback automatique vers service legacy',
-          timestamp: new Date(Date.now() - 600000),
-          resolved: true
-        }
-      ];
+        // Récupération des métriques système réelles
+        const realMetrics = await agentService.getSystemMetrics();
 
-      setAgents(mockAgents);
-      setMetrics(mockMetrics);
-      setAlerts(mockAlerts);
-      setIsLoading(false);
+        // Récupération des alertes réelles
+        const alertingService = AlertingService.getInstance();
+        const realAlerts = await alertingService.getActiveAlerts();
+
+        // Conversion au format attendu par l'interface
+        const formattedAlerts: Alert[] = realAlerts.map(alert => ({
+          id: alert.id,
+          severity: alert.severity === 'emergency' ? 'critical' : alert.severity as 'critical' | 'info' | 'warning' | 'error',
+          title: alert.title || 'Alerte système',
+          message: alert.description || 'Description non disponible',
+          timestamp: new Date(alert.timestamp),
+          resolved: alert.resolvedAt ? true : false,
+          resolvedAt: alert.resolvedAt ? new Date(alert.resolvedAt) : undefined
+        }));
+
+        setAgents(realAgents);
+        setMetrics(realMetrics);
+        setAlerts(formattedAlerts);
+      } catch (error) {
+        console.error('Erreur chargement données monitoring:', error);
+        // En cas d'erreur, afficher un état d'erreur
+        setAgents([]);
+        setMetrics(null);
+        setAlerts([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();

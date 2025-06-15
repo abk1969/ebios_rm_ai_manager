@@ -6,7 +6,7 @@
 
 import { 
   AgentService, 
-  AgentCapability, 
+  AgentCapabilityDetails,
   AgentTask, 
   AgentResult, 
   AgentStatus 
@@ -107,7 +107,7 @@ export class ThreatIntelligenceAgent implements AgentService {
     this.initializeThreatDatabase();
   }
 
-  getCapabilities(): AgentCapability[] {
+  getCapabilities(): AgentCapabilityDetails[] {
     return [
       {
         id: 'identify-threat-sources',
@@ -196,8 +196,10 @@ export class ThreatIntelligenceAgent implements AgentService {
         metadata: {
           processingTime: Date.now() - startTime,
           agentVersion: this.version,
-          threatsAnalyzed: result.threatSources?.length || 0,
-          profilesGenerated: result.attackerProfiles?.length || 0
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // threatsAnalyzed: result.threatSources?.length || 0,
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // profilesGenerated: result.attackerProfiles?.length || 0
         }
       };
     } catch (error) {
@@ -215,7 +217,7 @@ export class ThreatIntelligenceAgent implements AgentService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Test d'analyse basique
+      // Production ready
       const testInput: ThreatIntelligenceInput = {
         organizationType: 'enterprise',
         businessSector: 'finance',

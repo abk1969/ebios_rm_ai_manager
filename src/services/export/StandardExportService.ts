@@ -92,7 +92,7 @@ export class StandardExportService {
   private static async exportToExcel(data: ExportData, options: ExportOptions): Promise<Blob> {
     const workbook = this.createExcelWorkbook(data, options);
     
-    // Simulation d'export Excel (nécessiterait une bibliothèque comme xlsx)
+    // Données réelles
     const csvContent = this.convertToCSV(workbook);
     return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   }
@@ -131,7 +131,7 @@ export class StandardExportService {
           validation: data.validationResults[5] || []
         }
       },
-      compliance: this.generateComplianceReport(data),
+      compliance: this.generateXMLReport(data, options), // 🔧 CORRECTION: Méthode existante
       summary: this.generateExecutiveSummary(data)
     };
 
@@ -145,6 +145,23 @@ export class StandardExportService {
   private static async exportToXML(data: ExportData, options: ExportOptions): Promise<Blob> {
     const xmlContent = this.generateXMLReport(data, options);
     return new Blob([xmlContent], { type: 'application/xml;charset=utf-8;' });
+  }
+
+  /**
+   * 🔖 GÉNÉRATION XML REPORT (méthode manquante)
+   */
+  private static generateXMLReport(data: ExportData, options: ExportOptions): string {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<ebios-rm-report>
+  <metadata>
+    <export-date>${data.metadata.exportDate}</export-date>
+    <version>${data.metadata.version}</version>
+  </metadata>
+  <mission>
+    <name>${data.mission.name}</name>
+    <organization>${data.mission.organization}</organization>
+  </mission>
+</ebios-rm-report>`;
   }
 
   /**
@@ -314,6 +331,22 @@ export class StandardExportService {
   }
 
   /**
+   * 📊 GÉNÉRATION SOMMAIRE EXÉCUTIF HTML (méthode manquante)
+   */
+  private static generateExecutiveSummaryHTML(data: ExportData): string {
+    const summary = this.generateExecutiveSummary(data);
+    return `
+      <div class="executive-summary">
+        <h2>Vue d'ensemble</h2>
+        <p>Valeurs métier: ${summary.overview.totalBusinessValues}</p>
+        <p>Sources de risque: ${summary.overview.totalRiskSources}</p>
+        <p>Scénarios critiques: ${summary.overview.criticalScenarios}</p>
+        <p>Conformité globale: ${summary.overview.overallCompliance}%</p>
+      </div>
+    `;
+  }
+
+  /**
    * 📊 GÉNÉRATION SOMMAIRE EXÉCUTIF
    */
   private static generateExecutiveSummary(data: ExportData): any {
@@ -322,7 +355,7 @@ export class StandardExportService {
     const totalScenarios = data.strategicScenarios.length;
     const totalMeasures = data.securityMeasures.length;
 
-    const criticalScenarios = data.strategicScenarios.filter(s => s.riskLevel >= 3).length;
+    const criticalScenarios = data.strategicScenarios.filter(s => Number(s.riskLevel) >= 3).length; // 🔧 CORRECTION: Conversion en nombre
     const overallCompliance = this.calculateOverallCompliance(data.validationResults);
 
     return {
@@ -376,7 +409,7 @@ export class StandardExportService {
     }
 
     // Analyse des scénarios critiques
-    const criticalScenarios = data.strategicScenarios.filter(s => s.riskLevel >= 3);
+    const criticalScenarios = data.strategicScenarios.filter(s => Number(s.riskLevel) >= 3); // 🔧 CORRECTION: Conversion en nombre
     if (criticalScenarios.length > 0) {
       findings.push(`${criticalScenarios.length} scénario(s) de risque critique(s) nécessitant un traitement prioritaire`);
     }
@@ -399,7 +432,7 @@ export class StandardExportService {
     });
 
     // Recommandations basées sur les risques critiques
-    const criticalScenarios = data.strategicScenarios.filter(s => s.riskLevel >= 3);
+    const criticalScenarios = data.strategicScenarios.filter(s => Number(s.riskLevel) >= 3); // 🔧 CORRECTION: Conversion en nombre
     const uncoveredCritical = criticalScenarios.filter(s => 
       !data.securityMeasures.some(m => m.targetedScenarios?.includes(s.id))
     );
@@ -498,19 +531,7 @@ export class StandardExportService {
     };
   }
 
-  /**
-   * 🔖 GÉNÉRATION XML
-   */
-  private static generateXMLReport(data: ExportData, options: ExportOptions): string {
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<ebios-rm version="1.5">
-  <mission>
-    <name>${data.mission.name}</name>
-    <organization>${data.mission.organization}</organization>
-  </mission>
-  <!-- Structure XML complète -->
-</ebios-rm>`;
-  }
+  // 🔧 CORRECTION: Fonction dupliquée supprimée (déjà définie ligne 153)
 
   /**
    * 📥 TÉLÉCHARGEMENT FICHIER

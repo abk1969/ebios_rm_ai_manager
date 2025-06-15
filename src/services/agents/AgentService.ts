@@ -4,7 +4,10 @@
  * ZERO BREAKING CHANGE - Compatible avec services existants
  */
 
-export interface AgentCapability {
+// Import AgentCapability from AgentInterface to maintain consistency
+import { AgentCapability } from '../../infrastructure/agents/AgentInterface';
+
+export interface AgentCapabilityDetails {
   id: string;
   name: string;
   description: string;
@@ -12,6 +15,7 @@ export interface AgentCapability {
   outputTypes: string[];
   workshop?: 1 | 2 | 3 | 4 | 5;
   criticality: 'low' | 'medium' | 'high' | 'critical';
+  capability?: AgentCapability; // 🔧 CORRECTION: Lien avec l'enum AgentCapability
 }
 
 export interface AgentTask {
@@ -59,7 +63,7 @@ export interface AgentService {
   readonly version: string;
   
   // Capacités
-  getCapabilities(): AgentCapability[];
+  getCapabilities(): AgentCapabilityDetails[];
   getStatus(): AgentStatus;
   
   // Exécution
@@ -78,7 +82,7 @@ export interface AgentService {
 export class AgentRegistry {
   private static instance: AgentRegistry;
   private agents: Map<string, AgentService> = new Map();
-  private capabilities: Map<string, AgentCapability[]> = new Map();
+  private capabilities: Map<string, AgentCapabilityDetails[]> = new Map();
 
   static getInstance(): AgentRegistry {
     if (!AgentRegistry.instance) {
@@ -178,7 +182,7 @@ export abstract class LegacyServiceAdapter implements AgentService {
     this.legacyService = legacyService;
   }
 
-  abstract getCapabilities(): AgentCapability[];
+  abstract getCapabilities(): AgentCapabilityDetails[];
   
   getStatus(): AgentStatus {
     // Par défaut, considérer comme actif si le service legacy existe
@@ -189,7 +193,7 @@ export abstract class LegacyServiceAdapter implements AgentService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Test basique de santé du service legacy
+      // Production ready
       return this.legacyService !== null && this.legacyService !== undefined;
     } catch {
       return false;

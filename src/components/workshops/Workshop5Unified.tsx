@@ -267,7 +267,13 @@ const Workshop5Unified: React.FC<Workshop5UnifiedProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-900">Niveau de risque max</span>
                   <span className="text-2xl font-bold text-orange-600">
-                    {strategicScenarios.length > 0 ? Math.max(...strategicScenarios.map(s => s.riskLevel)) : 0}
+                    {strategicScenarios.length > 0 ? Math.max(...strategicScenarios.map(s =>
+                      typeof s.riskLevel === 'number' ? s.riskLevel :
+                      s.riskLevel === 'low' ? 1 :
+                      s.riskLevel === 'medium' ? 2 :
+                      s.riskLevel === 'high' ? 3 :
+                      s.riskLevel === 'critical' ? 4 : 1
+                    )) : 0}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">

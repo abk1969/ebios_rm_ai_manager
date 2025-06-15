@@ -21,7 +21,7 @@ export interface SecurityMeasure {
 
   // 🔧 CORRECTION: Propriétés manquantes utilisées dans le code
   type?: 'preventive' | 'detective' | 'corrective' | 'compensatory';
-  cost?: 'low' | 'medium' | 'high' | 'very_high';
+  cost?: 'low' | 'medium' | 'high' | 'very_high' | number; // Support des deux types
   implementationTime?: string;
   implementationComplexity?: number; // 1-5
   complexity?: number; // 1-5
@@ -31,6 +31,9 @@ export interface SecurityMeasure {
   category?: string;
   implementationTimeframe?: 'immediate' | 'short' | 'medium' | 'long';
   targetedScenarios?: string[]; // Alias pour targetScenarios
+  domain?: string; // 🔧 CORRECTION: Propriété manquante
+  function?: string; // 🔧 CORRECTION: Propriété manquante
+  securityControls?: string[]; // 🔧 CORRECTION: Propriété manquante
 
   // 🆕 PROPRIÉTÉS WORKSHOP 5 (Mesures de sécurité)
   implementationNotes?: string; // Notes d'implémentation
@@ -122,6 +125,25 @@ export interface Mission {
     userSatisfactionScore: number; // 0-5
     anssiComplianceScore: number; // 0-1
   };
+
+  // 🆕 CONTEXTE DE MISSION POUR AGENTS IA
+  missionContext?: {
+    organizationName: string;
+    sector: string;
+    organizationSize: string;
+    geographicScope: string;
+    criticalityLevel: string;
+    siComponents: string[];
+    criticalProcesses: string[];
+    stakeholders: string[];
+    regulations: string[];
+    financialStakes: string;
+    securityMaturity: string;
+    missionObjectives: string[];
+    timeframe: string;
+    specificRequirements: string;
+    pastIncidents?: string;
+  };
 }
 
 export interface DreadedEvent {
@@ -204,7 +226,7 @@ export interface SupportingAsset {
   businessValueId: string;
   missionId: string;
   securityLevel: 'public' | 'internal' | 'confidential' | 'secret';
-  vulnerabilities: Vulnerability[];
+  vulnerabilities: Vulnerability[] | string[]; // Support des deux formats pour compatibilité
   dependsOn: string[];
   createdAt: string;
   updatedAt: string;
@@ -212,6 +234,7 @@ export interface SupportingAsset {
   // 🔧 CORRECTION: Propriétés manquantes utilisées dans le code
   criticality?: 'low' | 'medium' | 'high' | 'critical';
   relatedBusinessValues?: string[]; // IDs des valeurs métier liées
+  securityControls?: string[]; // 🔧 CORRECTION: Propriété manquante
 
   // 🆕 COMPATIBILITÉ ACCESS
   responsableEntite?: string;          // Responsable textuel Access
@@ -276,6 +299,7 @@ export interface RiskObjective {
   targetType: 'business_value' | 'supporting_asset' | 'stakeholder';
   targetId: string;
   priority: GravityScale;
+  targetBusinessValueId?: string; // 🔧 CORRECTION: Propriété manquante
 }
 
 export interface Stakeholder {
@@ -310,15 +334,14 @@ export interface AttackPath {
   // 🔧 CORRECTION: Propriétés manquantes utilisées dans le code
   feasibility?: number; // 1-4
   detectability?: number; // 1-4
-  steps?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    technique: string;
-    difficulty: number;
-    detectability: number;
-  }>;
+  probability?: number; // Probabilité d'attaque
+  steps?: AttackStep[]; // Utilisation du type AttackStep défini
   techniques?: string[];
+  phases?: Array<{
+    type: string;
+    finalProbability: number;
+    techniques: string[];
+  }>;
 
   // 🆕 COMPATIBILITÉ ACCESS
   sourceRisqueNom?: string;     // Référence textuelle Access
@@ -499,8 +522,20 @@ export interface StrategicScenario {
 
   // 🔧 CORRECTION: Propriétés manquantes utilisées dans le code
   impact?: number; // Impact numérique (1-4)
-  attackPaths?: AttackPath[]; // Chemins d'attaque
+  attackPaths: string[]; // IDs des chemins d'attaque (pas les objets complets)
   supportingAssets?: string[]; // IDs des actifs supports
+
+  // 🔧 CORRECTION: Propriétés utilisées dans Workshop3Agent
+  feasibility?: number;
+  priority?: number;
+  category?: string;
+  riskRating?: {
+    likelihood: number;
+    impact: number;
+    overall: number;
+  };
+  mitigations?: string[];
+  assumptions?: string[];
 }
 
 export interface AttackPathway {
@@ -560,7 +595,7 @@ export interface OperationalScenario {
   mitigationMeasures: string[];
   missionId: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string; // 🔧 CORRECTION: Rendu optionnel pour éviter les erreurs
 }
 
 export interface SecurityMeasureImplementation {
@@ -617,6 +652,7 @@ export interface EbiosCompliance {
   lastValidationDate?: string;
   complianceGaps: ComplianceGap[];
   certificationLevel?: 'basic' | 'advanced' | 'expert';
+  validatedWorkshops?: number[];
 }
 
 export interface ComplianceGap {
@@ -754,3 +790,185 @@ export interface Timestamp {
   seconds: number;
   nanoseconds: number;
 }
+
+// 🔧 TYPES MANQUANTS POUR LES AGENTS
+
+// Interface pour les étapes d'attaque avec techniques MITRE
+export interface AttackStep {
+  id: string;
+  name: string;
+  description: string;
+  technique: string;
+  difficulty: number;
+  detectability: number;
+  mitreTechniques?: MitreTechniqueDetails[];
+  mitreTactics?: MitreTacticDetails[];
+  killChainPhase?: string;
+  duration?: string;
+  prerequisites?: string[];
+  indicators?: string[];
+}
+
+// Interface détaillée pour les techniques MITRE
+export interface MitreTechniqueDetails {
+  id: string;
+  name: string;
+  tactic: string;
+  description: string;
+  platforms: string[];
+  dataSource: string;
+  detection: string;
+  mitigation: string;
+}
+
+// Interface pour les tactiques MITRE
+export interface MitreTacticDetails {
+  id: string;
+  name: string;
+  description: string;
+  techniques: string[];
+}
+
+// Interface pour les capacités d'attaque
+export interface AttackCapability {
+  id: string;
+  name: string;
+  description: string;
+  category: 'technical' | 'social' | 'physical' | 'hybrid';
+  sophistication: 'low' | 'medium' | 'high' | 'expert';
+  resources: 'minimal' | 'moderate' | 'significant' | 'extensive';
+  techniques: string[];
+  platforms: string[];
+  detectability: number;
+  effectiveness: number;
+}
+
+// Interface pour l'analyse des phases de kill chain
+export interface KillChainPhaseAnalysis {
+  phase: string;
+  techniques: string[];
+  difficulty: number;
+  detectability: number;
+  duration: string;
+  indicators: string[];
+  countermeasures: string[];
+  probability?: number; // 🔧 CORRECTION: Propriété manquante
+}
+
+// 🔧 CORRECTION: Mise à jour de StrategicScenario avec toutes les propriétés manquantes
+export interface StrategicScenarioExtended extends StrategicScenario {
+  feasibility?: number;
+  priority?: number;
+  category?: string;
+  riskRating?: {
+    likelihood: number;
+    impact: number;
+    overall: number;
+  };
+  mitigations?: string[];
+}
+
+// 🔧 CORRECTION: Mise à jour d'AttackPath avec toutes les propriétés manquantes
+export interface AttackPathExtended extends AttackPath {
+  probability?: number;
+  steps?: AttackStep[];
+}
+
+// 🔧 CORRECTION: Mise à jour d'OperationalScenario avec propriété manquante
+export interface OperationalScenarioExtended extends OperationalScenario {
+  updatedAt?: string; // Propriété manquante
+}
+
+// 🔧 TYPES DE CONTEXTE POUR LES AGENTS
+
+// Contexte pour la génération de scénarios
+export interface ScenarioGenerationContext {
+  businessAssets: BusinessValue[];
+  supportingAssets: SupportingAsset[];
+  identifiedThreats: RiskSource[];
+  organizationalContext: OrganizationContext;
+  threatLandscape: {
+    sector: string;
+    geographicalZone: string[];
+    regulatoryFramework: string[];
+    currentThreats: string[];
+  };
+}
+
+// Contexte pour la modélisation des menaces
+export interface ThreatModelingContext {
+  organizationProfile: {
+    sector: string;
+    size: 'small' | 'medium' | 'large' | 'enterprise';
+    criticalAssets: string[];
+    regulatoryRequirements: string[];
+  };
+  threatLandscape: {
+    knownActors: RiskSource[];
+    emergingThreats: string[];
+    sectorSpecificThreats: string[];
+  };
+  businessContext: {
+    businessValues: BusinessValue[];
+    supportingAssets: SupportingAsset[];
+    stakeholders: Stakeholder[];
+  };
+}
+
+// Contexte pour l'optimisation de sécurité
+export interface SecurityOptimizationContext {
+  organizationProfile: {
+    sector: string;
+    size: string;
+    budget: number;
+    riskTolerance: 'low' | 'medium' | 'high';
+  };
+  currentControls: SecurityMeasure[];
+  riskProfile: {
+    criticalAssets: string[];
+    majorThreats: string[];
+    riskAppetite: number;
+  };
+  performanceMetrics: {
+    currentEffectiveness: number;
+    costEfficiency: number;
+    implementationCapacity: number;
+  };
+  businessContext: {
+    strategicObjectives: string[];
+    operationalConstraints: string[];
+    complianceRequirements: string[];
+  };
+}
+
+// 🔧 CORRECTION: Mise à jour de SecurityMeasure avec propriétés manquantes
+export interface SecurityMeasureExtended extends Omit<SecurityMeasure, 'cost'> {
+  cost?: string | number; // Support des deux types
+  domain?: string;
+  function?: string;
+}
+
+// 🔧 CORRECTION: Interface pour les problèmes de qualité des données
+export interface DataQualityIssue {
+  id: string;
+  type: 'missing' | 'invalid' | 'inconsistent' | 'duplicate' | 'incoherent';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  field: string;
+  value: string;
+  message: string;
+  suggestion: string;
+  confidence: number;
+  autoFixAvailable: boolean;
+  suggestedValue?: string;
+  stableKey: string; // 🔧 CORRECTION: Propriété manquante
+  originalValue: string; // 🔧 CORRECTION: Propriété manquante
+}
+
+// 🔧 ALIAS DE TYPES POUR COMPATIBILITÉ
+export type ThreatSource = RiskSource;
+export type BusinessAsset = BusinessValue;
+export type RiskEvent = DreadedEvent;
+export type SecurityControl = SecurityMeasure;
+export type RiskScenario = StrategicScenario;
+export type MitreTechnique = MitreTechniqueDetails;
+export type KillChainPhase = KillChainPhaseAnalysis;

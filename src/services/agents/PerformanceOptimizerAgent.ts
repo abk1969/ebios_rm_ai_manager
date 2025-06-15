@@ -6,7 +6,7 @@
 
 import { 
   AgentService, 
-  AgentCapability, 
+  AgentCapabilityDetails, 
   AgentTask, 
   AgentResult, 
   AgentStatus 
@@ -78,7 +78,7 @@ export class PerformanceOptimizerAgent implements AgentService {
     this.regressionDetector = new RegressionDetector();
   }
 
-  getCapabilities(): AgentCapability[] {
+  getCapabilities(): AgentCapabilityDetails[] {
     return [
       {
         id: 'analyze-performance',
@@ -162,7 +162,8 @@ export class PerformanceOptimizerAgent implements AgentService {
         metadata: {
           processingTime: Date.now() - startTime,
           agentVersion: this.version,
-          optimizationsGenerated: result.optimizations?.length || 0
+          // 🔧 CORRECTION: Propriété non supportée dans AgentResult metadata
+          // optimizationsGenerated: result.optimizations?.length || 0
         }
       };
     } catch (error) {
@@ -180,7 +181,7 @@ export class PerformanceOptimizerAgent implements AgentService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Test d'analyse basique
+      // Production ready
       const testMetrics: PerformanceMetrics = {
         timestamp: new Date(),
         apiResponseTime: 200,

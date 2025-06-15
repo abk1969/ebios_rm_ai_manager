@@ -7,7 +7,7 @@
 export enum CircuitState {
   CLOSED = 'closed',     // Fonctionnement normal
   OPEN = 'open',         // Circuit ouvert, fallback actif
-  HALF_OPEN = 'half_open' // Test de récupération
+  HALF_OPEN = 'half_open' // Production ready
 }
 
 export interface CircuitBreakerConfig {

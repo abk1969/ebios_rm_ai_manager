@@ -216,11 +216,11 @@ const Workshop2Actions: React.FC<Workshop2ActionsProps> = ({
                 <div key={source.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      {getTypeIcon(source.type)}
+                      {getTypeIcon(source.category)}
                       <h5 className="font-medium text-gray-900">{source.name}</h5>
                     </div>
                     <p className="text-sm text-gray-600">
-                      {source.type} - Capacité {source.capability} - Motivation {source.motivation}
+                      {source.category} - Expertise {source.expertise} - Motivation {source.motivation}
                     </p>
                   </div>
                   <div className="flex space-x-2">

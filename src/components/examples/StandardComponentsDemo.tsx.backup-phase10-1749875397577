@@ -1,0 +1,278 @@
+import React, { useState } from 'react';
+import StandardFormField from '../forms/StandardFormField';
+import StandardDataCard from '../cards/StandardDataCard';
+import { FormModal, ConfirmModal } from '../modals/StandardModal';
+import { CardsGrid, MetricsGrid, FormGrid } from '../layout/ResponsiveGrid';
+import { Edit, Trash2, Eye, Target, Shield, AlertTriangle } from 'lucide-react';
+import Button from '../ui/button';
+
+/**
+ * 🎨 DÉMONSTRATION DES COMPOSANTS STANDARDISÉS
+ * Exemple d'utilisation des nouveaux composants harmonisés
+ */
+const StandardComponentsDemo: React.FC = () => {
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    priority: 1,
+    category: ''
+  });
+
+  // Données d'exemple pour les cartes
+  const realCards = [
+    {
+      id: '1',
+      title: 'Système de paiement',
+      description: 'Infrastructure critique de traitement des paiements clients',
+      status: 'active' as const,
+      priority: 4 as const,
+      metadata: [
+        { label: 'Criticité', value: 'Essentielle', type: 'badge' as const, color: 'red' as const },
+        { label: 'Conformité', value: 85, type: 'progress' as const },
+        { label: 'Risque', value: 3, type: 'score' as const },
+        { label: 'Dernière MAJ', value: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] }
+      ]
+    },
+    {
+      id: '2',
+      title: 'Base de données clients',
+      description: 'Stockage des informations personnelles et commerciales',
+      status: 'completed' as const,
+      priority: 3 as const,
+      metadata: [
+        { label: 'Type', value: 'Support', type: 'badge' as const, color: 'blue' as const },
+        { label: 'Protection', value: 92, type: 'progress' as const },
+        { label: 'Exposition', value: 2, type: 'score' as const }
+      ]
+    },
+    {
+      id: '3',
+      title: 'Réseau interne',
+      description: 'Infrastructure réseau de l\'organisation',
+      status: 'draft' as const,
+      priority: 2 as const,
+      metadata: [
+        { label: 'Statut', value: 'En cours', type: 'badge' as const, color: 'yellow' as const },
+        { label: 'Sécurisation', value: 67, type: 'progress' as const }
+      ]
+    }
+  ];
+
+  // 📈 Métriques d'exemple
+  const exampleMetrics = [
+    { label: 'Valeurs métier', value: '12', color: 'blue' },
+    { label: 'Sources de risque', value: '8', color: 'orange' },
+    { label: 'Scénarios', value: '24', color: 'purple' },
+    { label: 'Mesures', value: '45', color: 'green' },
+    { label: 'Conformité', value: '87%', color: 'red' },
+    { label: 'Progression', value: '65%', color: 'gray' }
+  ];
+
+  const handleFormSubmit = () => {
+    console.log('Données du formulaire:', formData);
+    setShowFormModal(false);
+    // Logique de sauvegarde ici
+  };
+
+  const handleDelete = () => {
+    console.log('Suppression confirmée');
+    setShowConfirmModal(false);
+    // Logique de suppression ici
+  };
+
+  return (
+    <div className="space-y-8 p-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          🎨 Démonstration des Composants Standardisés
+        </h1>
+        <p className="text-gray-600 max-w-2xl mx-auto">
+          Exemple d'utilisation des nouveaux composants harmonisés pour l'application EBIOS RM.
+          Ces composants assurent une cohérence visuelle et fonctionnelle entre tous les workshops.
+        </p>
+      </div>
+
+      {/* 📊 MÉTRIQUES RESPONSIVE */}
+      <section>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Métriques Responsive</h2>
+        <MetricsGrid>
+          {exampleMetrics.map((metric, index) => (
+            <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
+              <div className="text-2xl font-bold text-gray-900">{metric.value}</div>
+              <div className="text-sm text-gray-600">{metric.label}</div>
+            </div>
+          ))}
+        </MetricsGrid>
+      </section>
+
+      {/* CARTES DE DONNÉES STANDARDISÉES */}
+      <section>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Cartes de Données</h2>
+        <CardsGrid>
+          {realCards.map((card) => (
+            <StandardDataCard
+              key={card.id}
+              title={card.title}
+              description={card.description}
+              status={card.status}
+              priority={card.priority}
+              metadata={card.metadata}
+              actions={[
+                {
+                  label: 'Voir',
+                  icon: Eye,
+                  onClick: () => // console.log supprimé,
+                  variant: 'secondary'
+                },
+                {
+                  label: 'Modifier',
+                  icon: Edit,
+                  onClick: () => // console.log supprimé
+                },
+                {
+                  label: 'Supprimer',
+                  icon: Trash2,
+                  onClick: () => setShowConfirmModal(true),
+                  variant: 'danger'
+                }
+              ]}
+              onClick={() => // console.log supprimé}
+            />
+          ))}
+        </CardsGrid>
+      </section>
+
+      {/* FORMULAIRE STANDARDISÉ */}
+      <section>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Formulaire Standardisé</h2>
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <FormGrid layout="double">
+            <StandardFormField
+              label="Nom de l'élément"
+              name="name"
+              placeholder="Saisir le nom..."
+              required
+              value={formData.name}
+              onChange={(value) => setFormData(prev => ({ ...prev, name: value as string }))}
+              helpText="Nom unique identifiant l'élément dans le contexte EBIOS RM"
+            />
+            
+            <StandardFormField
+              label="Priorité"
+              name="priority"
+              type="select"
+              required
+              value={formData.priority}
+              onChange={(value) => setFormData(prev => ({ ...prev, priority: value as number }))}
+              options={[
+                { value: 1, label: 'Faible (1)' },
+                { value: 2, label: 'Modérée (2)' },
+                { value: 3, label: 'Élevée (3)' },
+                { value: 4, label: 'Critique (4)' }
+              ]}
+              helpText="Échelle de priorité selon ANSSI (1-4)"
+            />
+            
+            <div className="md:col-span-2">
+              <StandardFormField
+                label="Description"
+                name="description"
+                type="textarea"
+                placeholder="Description détaillée..."
+                value={formData.description}
+                onChange={(value) => setFormData(prev => ({ ...prev, description: value as string }))}
+                rows={4}
+                helpText="Description conforme aux exigences EBIOS RM v1.5"
+              />
+            </div>
+          </FormGrid>
+          
+          <div className="flex justify-end space-x-3 mt-6">
+            <Button variant="outline">
+              Annuler
+            </Button>
+            <Button onClick={() => setShowFormModal(true)}>
+              Ouvrir Modal
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* 🎯 ACTIONS DE DÉMONSTRATION */}
+      <section>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Modales Standardisées</h2>
+        <div className="flex space-x-4">
+          <Button onClick={() => setShowFormModal(true)}>
+            Ouvrir Modal Formulaire
+          </Button>
+          <Button 
+            variant="danger"
+            onClick={() => setShowConfirmModal(true)}
+          >
+            Ouvrir Modal Confirmation
+          </Button>
+        </div>
+      </section>
+
+      {/* 📝 MODAL DE FORMULAIRE */}
+      <FormModal
+        isOpen={showFormModal}
+        onClose={() => setShowFormModal(false)}
+        onSubmit={handleFormSubmit}
+        title="Ajouter un Élément EBIOS RM"
+        description="Formulaire standardisé pour la saisie d'éléments conformes à la méthodologie ANSSI"
+        size="lg"
+        isValid={formData.name.length > 0}
+      >
+        <FormGrid layout="single">
+          <StandardFormField
+            label="Nom"
+            name="name"
+            placeholder="Nom de l'élément..."
+            required
+            value={formData.name}
+            onChange={(value) => setFormData(prev => ({ ...prev, name: value as string }))}
+          />
+          
+          <StandardFormField
+            label="Catégorie"
+            name="category"
+            type="select"
+            value={formData.category}
+            onChange={(value) => setFormData(prev => ({ ...prev, category: value as string }))}
+            options={[
+              { value: 'primary', label: 'Primaire' },
+              { value: 'support', label: 'Support' },
+              { value: 'security', label: 'Sécurité' }
+            ]}
+          />
+          
+          <StandardFormField
+            label="Description"
+            name="description"
+            type="textarea"
+            value={formData.description}
+            onChange={(value) => setFormData(prev => ({ ...prev, description: value as string }))}
+            rows={3}
+          />
+        </FormGrid>
+      </FormModal>
+
+      {/* ⚠️ MODAL DE CONFIRMATION */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleDelete}
+        title="Confirmer la suppression"
+        message="Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
+        type="error"
+        confirmText="Supprimer"
+        cancelText="Annuler"
+      />
+    </div>
+  );
+};
+
+export default StandardComponentsDemo;

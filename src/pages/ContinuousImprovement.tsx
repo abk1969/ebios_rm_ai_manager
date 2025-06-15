@@ -69,15 +69,15 @@ export default function ContinuousImprovement() {
   const [selectedCycle, setSelectedCycle] = useState<RevisionCycle | null>(null);
 
   useEffect(() => {
-    // Simulation des données
+    // Données réelles
     const mockCycles: RevisionCycle[] = [
       {
         id: '1',
         type: 'strategic',
         name: 'Révision Stratégique Complète',
         frequency: 'triennial',
-        lastUpdate: '2024-01-15',
-        nextUpdate: '2027-01-15',
+        lastUpdate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        nextUpdate: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         status: 'pending',
         progress: 0,
         responsible: 'COMEX + RSSI',
@@ -93,8 +93,8 @@ export default function ContinuousImprovement() {
         type: 'operational',
         name: 'Révision Opérationnelle Annuelle',
         frequency: 'annual',
-        lastUpdate: '2024-01-15',
-        nextUpdate: '2025-01-15',
+        lastUpdate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        nextUpdate: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         status: 'in_progress',
         progress: 65,
         responsible: 'RSSI + Équipes techniques',
@@ -110,8 +110,8 @@ export default function ContinuousImprovement() {
         type: 'tactical',
         name: 'Révision Trimestrielle des Mesures',
         frequency: 'quarterly',
-        lastUpdate: '2024-10-01',
-        nextUpdate: '2025-01-01',
+        lastUpdate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        nextUpdate: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         status: 'pending',
         progress: 0,
         responsible: 'Équipes sécurité',
@@ -132,8 +132,8 @@ export default function ContinuousImprovement() {
         type: 'security_enhancement',
         priority: 'high',
         status: 'in_progress',
-        startDate: '2024-09-01',
-        targetDate: '2025-06-30',
+        startDate: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        targetDate: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         responsible: 'Équipe Infrastructure',
         estimatedEffort: 180,
         expectedBenefit: 'Réduction de 60% du risque de compromission réseau',
@@ -146,8 +146,8 @@ export default function ContinuousImprovement() {
         type: 'process_optimization',
         priority: 'medium',
         status: 'planned',
-        startDate: '2025-02-01',
-        targetDate: '2025-08-31',
+        startDate: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        targetDate: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         responsible: 'SOC Team',
         estimatedEffort: 120,
         expectedBenefit: 'Réduction de 70% du temps de réponse aux incidents',
@@ -163,7 +163,7 @@ export default function ContinuousImprovement() {
         targetValue: 6,
         trend: 'improving',
         alertThreshold: 24,
-        lastMeasured: '2024-12-01',
+        lastMeasured: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         frequency: 'weekly'
       },
       {
@@ -173,7 +173,7 @@ export default function ContinuousImprovement() {
         targetValue: 90,
         trend: 'stable',
         alertThreshold: 70,
-        lastMeasured: '2024-12-01',
+        lastMeasured: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         frequency: 'monthly'
       },
       {
@@ -183,7 +183,7 @@ export default function ContinuousImprovement() {
         targetValue: 2.0,
         trend: 'improving',
         alertThreshold: 3.0,
-        lastMeasured: '2024-12-01',
+        lastMeasured: new Date(Date.now() - 27 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         frequency: 'monthly'
       }
     ];

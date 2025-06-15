@@ -301,7 +301,7 @@ class GCPDeploymentPreparator {
     this.createPerformanceTestScript();
     
     this.report.checklist.performanceTesting = false;
-    console.log('⚠️  Tests de performance à exécuter avant déploiement');
+    // console.log supprimé;
     console.log('');
   }
 
@@ -327,7 +327,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 async function testPerformance() {
-  console.log('🚀 Tests de performance Firestore');
+  // console.log supprimé;
   
   // Test 1: Requête simple sur les missions
   console.time('Missions query');
@@ -356,7 +356,7 @@ async function testPerformance() {
   await getDocs(compositeQuery);
   console.timeEnd('Composite query');
   
-  console.log('✅ Tests de performance terminés');
+  // console.log supprimé;
 }
 
 testPerformance().catch(console.error);
@@ -364,7 +364,7 @@ testPerformance().catch(console.error);
 
     const testPath = path.join(process.cwd(), 'scripts/performance-test.ts');
     fs.writeFileSync(testPath, testScript);
-    console.log(`📋 Script de test de performance créé: ${testPath}`);
+    // console.log supprimé;
   }
 
   /**

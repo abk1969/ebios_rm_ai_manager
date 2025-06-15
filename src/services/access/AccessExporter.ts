@@ -15,7 +15,7 @@ import {
   Mission
 } from '@/types/ebios';
 
-// 🆕 Format d'export Access
+// Nouveau
 export interface AccessExportData {
   tables: {
     missions: any[];
@@ -251,7 +251,7 @@ export class AccessExporter {
         gravite: de.gravity,
         valeur_metier_nom: de.valeurMetierNom || businessValue?.name || 'Non liée',
         consequences: de.consequences,
-        // 🆕 Gestion des impacts multiples Access
+        // Nouveau
         impact_disponibilite: de.impactsList?.includes('availability') || de.impactType === 'availability',
         impact_integrite: de.impactsList?.includes('integrity') || de.impactType === 'integrity',
         impact_confidentialite: de.impactsList?.includes('confidentiality') || de.impactType === 'confidentiality',
@@ -334,7 +334,7 @@ export class AccessExporter {
         description: ap.description,
         difficulte: ap.difficulty,
         probabilite_succes: ap.successProbability,
-        // 🆕 Gestion des attaques directes
+        // Nouveau
         partie_prenante_nom: ap.isDirect ? 'DIRECT' : (stakeholder?.name || 'Non définie'),
         type_attaque: ap.isDirect ? 'DIRECTE' : 'VIA_ECOSYSTEME',
         source_risque_nom: ap.sourceRisqueNom || 'Non définie',
@@ -355,7 +355,7 @@ export class AccessExporter {
       id: index + 1,
       nom: sm.name,
       description: sm.description,
-      // 🆕 Type de mesure Access
+      // Nouveau
       type_mesure: sm.typeMesureAccess || this.convertControlTypeToAccess(sm.controlType),
       statut: this.convertMeasureStatusToAccess(sm.status),
       priorite: sm.priority,
