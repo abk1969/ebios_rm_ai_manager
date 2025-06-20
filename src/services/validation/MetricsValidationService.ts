@@ -265,27 +265,77 @@ export class MetricsValidationService {
    * Valide la séquentialité ANSSI
    */
   private static validateSequentiality(metrics: EbiosRMMetrics, errors: ValidationError[], warnings: ValidationWarning[]) {
-    const workshops = [
-      { num: 1, completion: metrics.workshop1.completionRate },
-      { num: 2, completion: metrics.workshop2.completionRate },
-      { num: 3, completion: metrics.workshop3.completionRate },
-      { num: 4, completion: metrics.workshop4.completionRate },
-      { num: 5, completion: metrics.workshop5.completionRate }
-    ];
-    
-    for (let i = 1; i < workshops.length; i++) {
-      const current = workshops[i];
-      const previous = workshops[i - 1];
-      
-      if (current.completion > 0 && previous.completion < 100) {
-        errors.push({
-          code: 'SEQUENTIALITY_VIOLATION',
-          message: `L'atelier ${current.num} ne peut progresser tant que l'atelier ${previous.num} n'est pas terminé à 100%`,
-          severity: 'critical',
-          workshop: current.num
-        });
-      }
+    // VALIDATION CRITIQUE: A1 doit être complété avant A2
+    if (metrics.workshop2.riskSourcesCount > 0 && metrics.workshop1.businessValuesCount < 3) {
+      errors.push({
+        code: 'SEQ_A1_INCOMPLETE_BEFORE_A2',
+        message: 'Atelier 2 commencé avec Atelier 1 incomplet (minimum 3 valeurs métier)',
+        severity: 'critical',
+        workshop: 2
+      });
     }
+
+    // VALIDATION CRITIQUE: A2 doit être complété avant A3
+    if (metrics.workshop3.strategicScenariosCount > 0 && metrics.workshop2.riskSourcesCount < 5) {
+      errors.push({
+        code: 'SEQ_A2_INCOMPLETE_BEFORE_A3',
+        message: 'Atelier 3 commencé avec Atelier 2 incomplet (minimum 5 sources de risque)',
+        severity: 'critical',
+        workshop: 3
+      });
+    }
+
+    // VALIDATION CRITIQUE: A3 doit être complété avant A4
+    if (metrics.workshop4.operationalScenariosCount > 0 && metrics.workshop3.strategicScenariosCount < 3) {
+      errors.push({
+        code: 'SEQ_A3_INCOMPLETE_BEFORE_A4',
+        message: 'Atelier 4 commencé avec Atelier 3 incomplet (minimum 3 scénarios stratégiques)',
+        severity: 'critical',
+        workshop: 4
+      });
+    }
+
+    // VALIDATION CRITIQUE: A4 doit être complété avant A5
+    if (metrics.workshop5.securityMeasuresCount > 0 && metrics.workshop4.operationalScenariosCount < 2) {
+      errors.push({
+        code: 'SEQ_A4_INCOMPLETE_BEFORE_A5',
+        message: 'Atelier 5 commencé avec Atelier 4 incomplet (minimum 2 scénarios opérationnels)',
+        severity: 'critical',
+        workshop: 5
+      });
+    }
+
+    // VALIDATION COHÉRENCE: Vérifier la progression logique des métriques
+    const progressionScore = this.calculateProgressionScore(metrics);
+    if (progressionScore < 70) {
+      warnings.push({
+        code: 'SEQ_INCONSISTENT_PROGRESSION',
+        message: `Progression incohérente entre ateliers (score: ${progressionScore}%)`,
+        recommendation: 'Vérifier la cohérence des données entre ateliers successifs'
+      });
+    }
+  }
+
+  /**
+   * Calcule un score de progression cohérente entre ateliers
+   */
+  private static calculateProgressionScore(metrics: EbiosRMMetrics): number {
+    let score = 100;
+
+    // Vérifier la cohérence des volumes de données
+    const w1Count = metrics.workshop1.businessValuesCount + metrics.workshop1.supportingAssetsCount;
+    const w2Count = metrics.workshop2.riskSourcesCount + metrics.workshop2.dreadedEventsCount;
+    const w3Count = metrics.workshop3.strategicScenariosCount;
+    const w4Count = metrics.workshop4.operationalScenariosCount;
+    const w5Count = metrics.workshop5.securityMeasuresCount;
+
+    // Les ateliers suivants devraient avoir des volumes cohérents
+    if (w2Count > w1Count * 2) score -= 15; // Trop de sources par rapport aux valeurs métier
+    if (w3Count > w2Count) score -= 10; // Plus de scénarios que de sources
+    if (w4Count > w3Count * 2) score -= 15; // Trop de modes opératoires
+    if (w5Count < w4Count) score -= 20; // Pas assez de mesures pour couvrir les modes
+
+    return Math.max(0, score);
   }
   
   /**

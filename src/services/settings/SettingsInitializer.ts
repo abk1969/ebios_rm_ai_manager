@@ -73,7 +73,12 @@ export class SettingsInitializer {
       // 9. Valider la configuration
       const validation = await this.validateConfiguration();
       if (!validation.valid) {
-        console.warn('⚠️ Problèmes de configuration détectés:', validation.errors);
+        if (import.meta.env.DEV) {
+          console.warn('⚠️ Problèmes de configuration détectés (mode développement):', validation.errors);
+          console.info('💡 Ces avertissements sont normaux en mode développement');
+        } else {
+          console.warn('⚠️ Problèmes de configuration détectés:', validation.errors);
+        }
       }
 
       this.initialized = true;
@@ -215,14 +220,22 @@ export class SettingsInitializer {
         errors.push(...syncValidation.errors);
       }
 
-      // Valider la configuration LLM
+      // Valider la configuration LLM (plus flexible en mode développement)
       try {
         const llmConfig = await this.llmConfigManager.getCurrentConfig();
         if (!llmConfig.apiKey) {
-          errors.push('Aucune clé API LLM configurée');
+          if (import.meta.env.PROD) {
+            errors.push('Aucune clé API LLM configurée');
+          } else {
+            console.info('💡 Mode développement: Clé API LLM non configurée (normal)');
+          }
         }
       } catch (error) {
-        errors.push('Configuration LLM invalide');
+        if (import.meta.env.PROD) {
+          errors.push('Configuration LLM invalide');
+        } else {
+          console.info('💡 Mode développement: Configuration LLM non disponible (normal)');
+        }
       }
 
       // Valider les permissions de notification

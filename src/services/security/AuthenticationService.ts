@@ -167,9 +167,10 @@ export class AuthenticationService {
       // Enregistrer la tentative échouée
       await this.recordFailedAttempt(email, ipAddress);
       
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.warn('Échec d\'authentification', {
         email,
-        error: error.message,
+        error: errorMessage,
         ipAddress
       });
 
@@ -215,9 +216,10 @@ export class AuthenticationService {
       };
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la configuration MFA', {
         userId,
-        error: error.message
+        error: errorMessage
       });
       throw error;
     }
@@ -260,9 +262,10 @@ export class AuthenticationService {
       return verified;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la vérification MFA', {
         userId,
-        error: error.message
+        error: errorMessage
       });
       return false;
     }
@@ -419,7 +422,11 @@ export class AuthenticationService {
       // Supprimer les sessions les plus anciennes
       const sessions = userSessions.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .sort((a, b) => a.createdAt.toDate().getTime() - b.createdAt.toDate().getTime());
+        .sort((a, b) => {
+          const aTime = (a as any).createdAt?.toDate?.()?.getTime() || 0;
+          const bTime = (b as any).createdAt?.toDate?.()?.getTime() || 0;
+          return aTime - bTime;
+        });
 
       const sessionsToRemove = sessions.slice(0, sessions.length - this.config.session.concurrentSessions + 1);
       

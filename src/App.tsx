@@ -1,9 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { store } from './store';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './components/auth/AuthProvider';
 import { LegalProvider } from './contexts/LegalContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import NavigationButtons from './components/NavigationButtons';
 import AppLayout from './components/AppLayout';
 import Layout from './components/Layout';
@@ -31,13 +30,24 @@ import PrivacyPolicy from './components/legal/PrivacyPolicy';
 import TermsOfService from './components/legal/TermsOfService';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import PrivateRoute from './components/auth/PrivateRoute';
+import TrainingPageIndependent from './pages/TrainingPageIndependent';
+import TrainingPageDecoupled from './pages/TrainingPageDecoupled';
+import TrainingSessionPageNew from './pages/TrainingSessionPageNew';
+import TrainingValidationPage from './pages/TrainingValidationPage';
+import NotificationsPage from './pages/NotificationsPage';
+import Workshop1IntelligentPage from './pages/Workshop1IntelligentPage';
+
+import RequestMonitor from './components/security/RequestMonitor';
+
+// 🛡️ FLAG DE SÉCURITÉ POUR LE MODULE FORMATION
+const TRAINING_MODULE_ENABLED = import.meta.env.VITE_TRAINING_MODULE_ENABLED !== 'false';
 
 function App() {
   return (
-    <Provider store={store}>
-      <AuthProvider>
+    <AuthProvider>
         <LegalProvider>
-          <ErrorBoundary>
+          <NotificationProvider>
+            <ErrorBoundary>
             <Router
               future={{
                 v7_startTransition: true,
@@ -66,6 +76,21 @@ function App() {
                   <Route path="/auto-generator" element={<PrivateRoute><AppLayout><AutoMissionGeneratorPage /></AppLayout></PrivateRoute>} />
                   <Route path="/test-generator" element={<TestGeneratorPage />} />
 
+                  {/* 🎓 MODULE FORMATION INTERACTIVE (CONDITIONNEL) */}
+                  {TRAINING_MODULE_ENABLED && (
+                    <>
+                      <Route path="/training" element={<PrivateRoute><AppLayout><Layout><TrainingPageIndependent /></Layout></AppLayout></PrivateRoute>} />
+                      <Route path="/training-decoupled" element={<PrivateRoute><AppLayout><Layout><TrainingPageDecoupled /></Layout></AppLayout></PrivateRoute>} />
+                      <Route path="/training/session/:sessionId" element={<PrivateRoute><AppLayout><TrainingSessionPageNew /></AppLayout></PrivateRoute>} />
+                      <Route path="/training/new" element={<PrivateRoute><AppLayout><Layout><TrainingPageIndependent /></Layout></AppLayout></PrivateRoute>} />
+                      <Route path="/training/validation" element={<PrivateRoute><TrainingValidationPage /></PrivateRoute>} />
+
+                      {/* 🎯 NOUVEAU MODULE WORKSHOP 1 INTELLIGENT */}
+                      <Route path="/training/workshop1" element={<PrivateRoute><AppLayout><Layout><Workshop1IntelligentPage /></Layout></AppLayout></PrivateRoute>} />
+                      <Route path="/training/workshop1/:sessionId" element={<PrivateRoute><AppLayout><Layout><Workshop1IntelligentPage /></Layout></AppLayout></PrivateRoute>} />
+                    </>
+                  )}
+
                   {/* 🔧 CORRECTION: Page d'index des workshops */}
                   <Route path="/workshops" element={<PrivateRoute><AppLayout><Layout><WorkshopsIndex /></Layout></AppLayout></PrivateRoute>} />
 
@@ -90,14 +115,19 @@ function App() {
                   <Route path="/continuous-improvement" element={<PrivateRoute><AppLayout><Layout><CommunicationHub /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/strategic-planning" element={<PrivateRoute><AppLayout><Layout><CommunicationHub /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/settings" element={<PrivateRoute><AppLayout><Layout><Settings /></Layout></AppLayout></PrivateRoute>} />
+
+                  {/* 🔔 PAGE DES NOTIFICATIONS */}
+                  <Route path="/notifications" element={<PrivateRoute><AppLayout><NotificationsPage /></AppLayout></PrivateRoute>} />
                 </Routes>
                 <NavigationButtons />
+                {/* 🛡️ Moniteur de sécurité temporairement désactivé */}
+                {/* {import.meta.env.DEV && <RequestMonitor />} */}
               </div>
             </Router>
           </ErrorBoundary>
-        </LegalProvider>
-      </AuthProvider>
-    </Provider>
+        </NotificationProvider>
+      </LegalProvider>
+    </AuthProvider>
   );
 }
 

@@ -206,12 +206,23 @@ export class SettingsService {
   // 📖 RÉCUPÉRATION DES PARAMÈTRES
   public async getSettings(): Promise<AppSettings> {
     try {
-      const settingsDoc = await getDoc(doc(db, 'app_settings', 'global'));
-      
+      // 🛡️ PROTECTION: Timeout pour éviter les blocages
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout Firebase')), 10000);
+      });
+
+      const settingsPromise = getDoc(doc(db, 'app_settings', 'global'));
+      const settingsDoc = await Promise.race([settingsPromise, timeoutPromise]) as any;
+
       if (!settingsDoc.exists()) {
         // Créer les paramètres par défaut
         const defaultSettings = this.getDefaultSettings();
-        await this.saveSettings(defaultSettings, 'system');
+        // 🚨 SÉCURITÉ: Ne pas essayer de sauvegarder si problème de connectivité
+        try {
+          await this.saveSettings(defaultSettings, 'system');
+        } catch (saveError) {
+          console.warn('Impossible de sauvegarder les paramètres par défaut, utilisation en mémoire');
+        }
         return defaultSettings;
       }
 
@@ -222,15 +233,20 @@ export class SettingsService {
         console.log('🔓 Déchiffrement des clés API');
         data.ai.apiKeys = await this.decryptApiKeysDirectly(data.ai.apiKeys);
       } else {
-        console.log('🔓 Lecture des clés API en clair');
+        // Mode développement : clés API en clair (normal)
+        if (import.meta.env.DEV) {
+          console.debug('🔓 Mode développement: Clés API en clair');
+        }
       }
 
       return data;
     } catch (error) {
+      // 🛡️ FALLBACK: Retourner les paramètres par défaut en cas d'erreur
+      console.warn('Erreur Firebase, utilisation des paramètres par défaut:', error);
       this.logger.error('Erreur lors de la récupération des paramètres', {
         error: (error as Error).message
       });
-      throw error;
+      return this.getDefaultSettings();
     }
   }
 
@@ -370,68 +386,7 @@ export class SettingsService {
     };
   }
 
-  // 🔐 CHIFFREMENT DES CLÉS API (conditionnel)
-  private async encryptApiKeys(apiKeys: any): Promise<any> {
-    // Vérifier si le chiffrement est activé
-    const currentSettings = await this.getSettings();
-    const encryptionEnabled = currentSettings.security.encryptionSettings.enabled;
 
-    if (!encryptionEnabled) {
-      console.log('🔓 Chiffrement désactivé, stockage des clés en clair');
-      return apiKeys; // Retourner les clés en clair si chiffrement désactivé
-    }
-
-    const encrypted: any = {};
-
-    for (const [provider, key] of Object.entries(apiKeys)) {
-      if (key && typeof key === 'string') {
-        try {
-          encrypted[provider] = await this.encryptionService.encrypt(key);
-        } catch (error) {
-          this.logger.warn('Erreur de chiffrement, stockage en clair', {
-            provider,
-            error: (error as Error).message
-          });
-          encrypted[provider] = key; // Fallback en clair
-        }
-      }
-    }
-
-    return encrypted;
-  }
-
-  // 🔓 DÉCHIFFREMENT DES CLÉS API (conditionnel)
-  private async decryptApiKeys(encryptedApiKeys: any): Promise<any> {
-    // Vérifier si le chiffrement est activé
-    const currentSettings = await this.getSettings();
-    const encryptionEnabled = currentSettings.security.encryptionSettings.enabled;
-
-    if (!encryptionEnabled) {
-      console.log('🔓 Chiffrement désactivé, lecture des clés en clair');
-      return encryptedApiKeys; // Retourner les clés telles quelles si chiffrement désactivé
-    }
-
-    const decrypted: any = {};
-
-    for (const [provider, encryptedKey] of Object.entries(encryptedApiKeys)) {
-      if (encryptedKey && typeof encryptedKey === 'string') {
-        try {
-          // Tenter de déchiffrer
-          decrypted[provider] = await this.encryptionService.decrypt(encryptedKey);
-        } catch (error) {
-          // Si échec, considérer que c'est déjà en clair
-          this.logger.info('Clé API probablement en clair', {
-            provider
-          });
-          decrypted[provider] = encryptedKey;
-        }
-      } else {
-        decrypted[provider] = encryptedKey;
-      }
-    }
-
-    return decrypted;
-  }
 
   // ✅ VALIDATION DES PARAMÈTRES
   public validateSettings(settings: AppSettings): { valid: boolean; errors: string[] } {
@@ -457,9 +412,14 @@ export class SettingsService {
       errors.push('Le modèle IA sélectionné n\'est pas disponible');
     }
 
-    // Validation des clés API
+    // Validation des clés API (plus flexible en mode développement)
     if (settings.ai.provider === 'openrouter' && !settings.ai.apiKeys.openrouter) {
-      errors.push('La clé API OpenRouter est requise');
+      if (import.meta.env.PROD) {
+        errors.push('La clé API OpenRouter est requise');
+      } else {
+        // En mode développement, c'est juste un avertissement
+        console.warn('⚠️ Mode développement: Clé API OpenRouter non configurée');
+      }
     }
 
     return {

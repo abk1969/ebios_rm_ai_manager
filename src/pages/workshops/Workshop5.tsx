@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../store';
 import { getMissionById, updateMission } from '../../services/firebase/missions';
 import { getStrategicScenarios } from '../../services/firebase/strategicScenarios';
 import { getSupportingAssets } from '../../services/firebase/supportingAssets';
 import { getBusinessValuesByMission } from '../../services/firebase/businessValues';
-import { WORKSHOP_VALIDATION_CRITERIA, EbiosUtils } from '../../lib/ebios-constants';
-import { getRelevantControls } from '../../lib/security-frameworks';
+import { EbiosUtils } from '../../lib/ebios-constants';
 import AICoherenceIndicator from '../../components/ai/AICoherenceIndicator';
 import type { GravityScale, BusinessValue } from '../../types/ebios';
 import Button from '../../components/ui/button';
@@ -292,7 +289,7 @@ const Workshop5 = () => {
   }, [missionId]);
 
   // Validation selon critères EBIOS RM Atelier 5
-  const validateWorkshopCompletion = (scenarios: StrategicScenario[], assets: SupportingAsset[]) => {
+  const validateWorkshopCompletion = (scenarios: StrategicScenario[], _assets: SupportingAsset[]) => {
     const results: WorkshopValidation[] = [
       {
         criterion: 'Plan de traitement défini',
@@ -1071,7 +1068,7 @@ ${riskAnalysis.map(r => {
                 Suggestions IA de Mesures de Sécurité ({aiSuggestions.length})
               </h3>
               <div className="space-y-4">
-                {aiSuggestions.map((suggestion, index) => (
+                {aiSuggestions.map((suggestion) => (
                   <div
                     key={suggestion.id}
                     className="border border-purple-200 rounded-lg p-4 bg-purple-50 hover:bg-purple-100 transition-colors"

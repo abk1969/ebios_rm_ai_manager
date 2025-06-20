@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { SettingsService, type AppSettings, type LLMModel } from '@/services/settings/SettingsService';
 import { ModelUpdater } from '@/services/settings/ModelUpdater';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 
 const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -338,7 +338,7 @@ const SettingsPage: React.FC = () => {
                     uid: user.uid,
                     email: user.email,
                     displayName: user.displayName,
-                    emailVerified: user.emailVerified
+                    mfaVerified: user.mfaVerified
                   } : null,
                   saving,
                   loading,
@@ -368,11 +368,11 @@ const SettingsPage: React.FC = () => {
                     uid: user.uid,
                     email: user.email,
                     displayName: user.displayName,
-                    emailVerified: user.emailVerified,
+                    mfaVerified: user.mfaVerified,
                     photoURL: user.photoURL,
-                    createdAt: user.createdAt
+                    role: user.role
                   });
-                  alert(`👤 Utilisateur: ${user.email}\nUID: ${user.uid}\nVérifié: ${user.emailVerified ? 'Oui' : 'Non'}`);
+                  alert(`👤 Utilisateur: ${user.email}\nUID: ${user.uid}\nMFA Vérifié: ${user.mfaVerified ? 'Oui' : 'Non'}`);
                 } else {
                   alert('❌ Aucun utilisateur connecté');
                 }

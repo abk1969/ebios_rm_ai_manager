@@ -24,7 +24,13 @@ export const helmetConfig = helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"],
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.gemini.google.com", "https://firestore.googleapis.com"],
+      connectSrc: [
+        "'self'",
+        "https://api.gemini.google.com",
+        "https://firestore.googleapis.com",
+        "https://firebase.googleapis.com",
+        "https://identitytoolkit.googleapis.com"
+      ],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],

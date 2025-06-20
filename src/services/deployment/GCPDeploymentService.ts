@@ -274,12 +274,12 @@ export class GCPDeploymentService {
 
   private loadDeploymentConfig(): DeploymentConfig {
     return {
-      projectId: process.env.VITE_FIREBASE_PROJECT_ID || '',
-      environment: (process.env.VITE_APP_ENV as any) || 'development',
-      region: process.env.VITE_GCP_REGION || 'europe-west1',
-      enableMonitoring: process.env.VITE_ENABLE_MONITORING === 'true',
-      enableAnalytics: process.env.VITE_ENABLE_ANALYTICS === 'true',
-      enableBackup: process.env.VITE_ENABLE_BACKUP === 'true',
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+      environment: (import.meta.env.VITE_APP_ENV as any) || 'development',
+      region: import.meta.env.VITE_GCP_REGION || 'europe-west1',
+      enableMonitoring: import.meta.env.VITE_ENABLE_MONITORING === 'true',
+      enableAnalytics: import.meta.env.VITE_ENABLE_ANALYTICS === 'true',
+      enableBackup: import.meta.env.VITE_ENABLE_BACKUP === 'true',
       performanceOptimizations: true
     };
   }
@@ -294,7 +294,7 @@ export class GCPDeploymentService {
       'VITE_FIREBASE_APP_ID'
     ];
 
-    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    const missingVars = requiredVars.filter(varName => !import.meta.env[varName]);
     
     if (missingVars.length > 0) {
       validation.errors.push(`Variables d'environnement manquantes: ${missingVars.join(', ')}`);

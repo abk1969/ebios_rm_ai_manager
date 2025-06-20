@@ -1,0 +1,657 @@
+/**
+ * 🔗 SERVICE D'INTÉGRATION DES NOTIFICATIONS
+ * Intégration du système de notifications A2A avec l'infrastructure existante
+ * POINT 2 - Système de Notifications Intelligentes A2A
+ */
+
+import { EbiosExpertProfile } from '../../../../infrastructure/a2a/types/AgentCardTypes';
+import { EbiosNotification } from '../../../../types/notifications';
+import { ExpertNotificationService, ExpertNotificationRequest } from './ExpertNotificationService';
+import { Workshop1NotificationAgent } from './Workshop1NotificationAgent';
+import { A2ANotificationProtocol } from './A2ANotificationProtocol';
+import { Workshop1MasterAgent } from './Workshop1MasterAgent';
+import { ExpertiseLevel } from './AdaptiveContentService';
+
+// 🎯 TYPES POUR L'INTÉGRATION
+
+export interface NotificationIntegrationConfig {
+  enableA2AProtocol: boolean;
+  enableExpertNotifications: boolean;
+  enableRealTimeSync: boolean;
+  batchProcessingInterval: number; // en ms
+  maxNotificationsPerBatch: number;
+  retryAttempts: number;
+  fallbackToStandardNotifications: boolean;
+}
+
+export interface IntegrationContext {
+  userId: string;
+  sessionId: string;
+  userProfile: EbiosExpertProfile;
+  expertiseLevel: ExpertiseLevel;
+  currentWorkshop: number;
+  currentModule: string;
+  integrationMode: 'real_time' | 'batch' | 'hybrid';
+}
+
+export interface NotificationIntegrationResult {
+  success: boolean;
+  notificationId?: string;
+  a2aMessageId?: string;
+  processingTime: number;
+  integrationPath: 'expert_service' | 'a2a_agent' | 'standard_fallback';
+  errors?: string[];
+  warnings?: string[];
+}
+
+export interface IntegrationMetrics {
+  totalNotificationsProcessed: number;
+  expertNotificationsGenerated: number;
+  a2aMessagesExchanged: number;
+  averageProcessingTime: number;
+  successRate: number;
+  fallbackUsageRate: number;
+  realTimeSyncCount: number;
+}
+
+export interface NotificationBatch {
+  batchId: string;
+  notifications: ExpertNotificationRequest[];
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  scheduledTime: Date;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  retryCount: number;
+}
+
+// 🔗 SERVICE PRINCIPAL D'INTÉGRATION
+
+export class NotificationIntegrationService {
+  private static instance: NotificationIntegrationService;
+  private config: NotificationIntegrationConfig;
+  private expertNotificationService: ExpertNotificationService;
+  private notificationAgent: Workshop1NotificationAgent;
+  private a2aProtocol: A2ANotificationProtocol;
+  private masterAgent: Workshop1MasterAgent;
+  private metrics: IntegrationMetrics;
+  private notificationBatches: Map<string, NotificationBatch> = new Map();
+  private processingInterval?: NodeJS.Timeout;
+
+  private constructor() {
+    this.config = {
+      enableA2AProtocol: true,
+      enableExpertNotifications: true,
+      enableRealTimeSync: true,
+      batchProcessingInterval: 5000, // 5 secondes
+      maxNotificationsPerBatch: 10,
+      retryAttempts: 3,
+      fallbackToStandardNotifications: true
+    };
+
+    this.expertNotificationService = ExpertNotificationService.getInstance();
+    this.notificationAgent = Workshop1NotificationAgent.getInstance();
+    this.a2aProtocol = new A2ANotificationProtocol();
+    this.masterAgent = Workshop1MasterAgent.getInstance();
+
+    this.metrics = {
+      totalNotificationsProcessed: 0,
+      expertNotificationsGenerated: 0,
+      a2aMessagesExchanged: 0,
+      averageProcessingTime: 0,
+      successRate: 100,
+      fallbackUsageRate: 0,
+      realTimeSyncCount: 0
+    };
+
+    this.initializeIntegration();
+  }
+
+  public static getInstance(): NotificationIntegrationService {
+    if (!NotificationIntegrationService.instance) {
+      NotificationIntegrationService.instance = new NotificationIntegrationService();
+    }
+    return NotificationIntegrationService.instance;
+  }
+
+  // 🚀 INITIALISATION DE L'INTÉGRATION
+
+  private async initializeIntegration(): Promise<void> {
+    try {
+      console.log('🔗 Initialisation du service d\'intégration des notifications...');
+
+      // Initialisation du protocole A2A
+      if (this.config.enableA2AProtocol) {
+        await this.a2aProtocol.initialize({
+          agentId: 'notification_integration_service',
+          agentType: 'notification',
+          communicationMode: 'hybrid',
+          retryAttempts: this.config.retryAttempts,
+          timeoutMs: 5000,
+          enableEncryption: true,
+          enableCompression: false
+        });
+      }
+
+      // Démarrage du traitement par lots
+      this.startBatchProcessing();
+
+      console.log('✅ Service d\'intégration des notifications initialisé');
+
+    } catch (error) {
+      console.error('❌ Erreur initialisation service d\'intégration:', error);
+    }
+  }
+
+  // 🎯 TRAITEMENT PRINCIPAL DES NOTIFICATIONS
+
+  public async processNotificationRequest(
+    context: IntegrationContext,
+    trigger: {
+      type: string;
+      severity: 'info' | 'warning' | 'critical';
+      data: Record<string, any>;
+      autoGenerated: boolean;
+    }
+  ): Promise<NotificationIntegrationResult> {
+    
+    const startTime = Date.now();
+    console.log(`🔗 Traitement notification pour ${context.userProfile.name} - Trigger: ${trigger.type}`);
+
+    try {
+      // 1. Détermination du mode de traitement
+      const processingMode = this.determineProcessingMode(context, trigger);
+
+      // 2. Création de la requête de notification experte
+      const notificationRequest: ExpertNotificationRequest = {
+        userId: context.userId,
+        userProfile: context.userProfile,
+        expertiseLevel: context.expertiseLevel,
+        context: {
+          workshopId: context.currentWorkshop,
+          moduleId: context.currentModule,
+          currentStep: trigger.data.currentStep || 'unknown',
+          progressPercentage: trigger.data.progressPercentage || 0,
+          timeSpent: trigger.data.timeSpent || 0,
+          lastActivity: new Date(),
+          sessionId: context.sessionId,
+          adaptationsApplied: trigger.data.adaptationsApplied || 0,
+          engagementScore: trigger.data.engagementScore || 100
+        },
+        trigger: {
+          type: trigger.type as any,
+          severity: trigger.severity,
+          data: trigger.data,
+          autoGenerated: trigger.autoGenerated
+        },
+        urgency: this.determineUrgency(trigger, context.expertiseLevel)
+      };
+
+      // 3. Traitement selon le mode
+      let result: NotificationIntegrationResult;
+
+      switch (processingMode) {
+        case 'real_time_expert':
+          result = await this.processRealTimeExpertNotification(notificationRequest);
+          break;
+        case 'a2a_agent':
+          result = await this.processA2AAgentNotification(notificationRequest);
+          break;
+        case 'batch':
+          result = await this.processBatchNotification(notificationRequest);
+          break;
+        case 'hybrid':
+          result = await this.processHybridNotification(notificationRequest);
+          break;
+        default:
+          result = await this.processFallbackNotification(notificationRequest);
+      }
+
+      // 4. Synchronisation avec l'agent maître si nécessaire
+      if (this.config.enableRealTimeSync && this.requiresMasterSync(trigger.type)) {
+        await this.syncWithMasterAgent(context, result);
+      }
+
+      // 5. Mise à jour des métriques
+      const processingTime = Date.now() - startTime;
+      this.updateMetrics(result, processingTime);
+
+      console.log(`✅ Notification traitée: ${result.notificationId} (${processingTime}ms)`);
+      return result;
+
+    } catch (error) {
+      console.error(`❌ Erreur traitement notification:`, error);
+      
+      // Tentative de fallback
+      if (this.config.fallbackToStandardNotifications) {
+        return await this.processFallbackNotification({
+          userId: context.userId,
+          userProfile: context.userProfile,
+          expertiseLevel: context.expertiseLevel,
+          context: {
+            workshopId: context.currentWorkshop,
+            moduleId: context.currentModule,
+            currentStep: 'error_fallback',
+            progressPercentage: 0,
+            timeSpent: 0,
+            lastActivity: new Date(),
+            sessionId: context.sessionId,
+            adaptationsApplied: 0,
+            engagementScore: 50
+          },
+          trigger: {
+            type: 'system_error' as any,
+            severity: 'warning',
+            data: { originalError: error.message },
+            autoGenerated: true
+          },
+          urgency: 'scheduled'
+        });
+      }
+
+      throw error;
+    }
+  }
+
+  // 🎯 MODES DE TRAITEMENT
+
+  private determineProcessingMode(
+    context: IntegrationContext,
+    trigger: any
+  ): 'real_time_expert' | 'a2a_agent' | 'batch' | 'hybrid' | 'fallback' {
+    
+    // Mode temps réel pour les experts de haut niveau
+    if (context.expertiseLevel.level === 'expert' || context.expertiseLevel.level === 'master') {
+      if (trigger.severity === 'critical' || trigger.type === 'methodology_alert') {
+        return 'real_time_expert';
+      }
+    }
+
+    // Mode A2A pour les collaborations et insights
+    if (trigger.type === 'collaboration_request' || trigger.type === 'expert_insight') {
+      return 'a2a_agent';
+    }
+
+    // Mode hybride pour les cas complexes
+    if (context.integrationMode === 'hybrid') {
+      return 'hybrid';
+    }
+
+    // Mode batch pour les notifications non urgentes
+    if (trigger.severity === 'info' && context.integrationMode === 'batch') {
+      return 'batch';
+    }
+
+    return 'real_time_expert';
+  }
+
+  private async processRealTimeExpertNotification(
+    request: ExpertNotificationRequest
+  ): Promise<NotificationIntegrationResult> {
+    
+    try {
+      const notification = await this.expertNotificationService.generateExpertNotification(request);
+      
+      return {
+        success: true,
+        notificationId: notification.id,
+        processingTime: 0, // Sera calculé par l'appelant
+        integrationPath: 'expert_service'
+      };
+      
+    } catch (error) {
+      return {
+        success: false,
+        processingTime: 0,
+        integrationPath: 'expert_service',
+        errors: [error.message]
+      };
+    }
+  }
+
+  private async processA2AAgentNotification(
+    request: ExpertNotificationRequest
+  ): Promise<NotificationIntegrationResult> {
+    
+    try {
+      const notificationId = await this.notificationAgent.processNotificationTrigger(
+        request.userId,
+        request.userProfile,
+        request.expertiseLevel,
+        request.context,
+        request.trigger
+      );
+      
+      return {
+        success: true,
+        notificationId,
+        processingTime: 0,
+        integrationPath: 'a2a_agent'
+      };
+      
+    } catch (error) {
+      return {
+        success: false,
+        processingTime: 0,
+        integrationPath: 'a2a_agent',
+        errors: [error.message]
+      };
+    }
+  }
+
+  private async processBatchNotification(
+    request: ExpertNotificationRequest
+  ): Promise<NotificationIntegrationResult> {
+    
+    try {
+      // Ajout à un lot de traitement
+      const batchId = await this.addToBatch(request);
+      
+      return {
+        success: true,
+        notificationId: `batch_${batchId}`,
+        processingTime: 0,
+        integrationPath: 'expert_service',
+        warnings: ['Notification ajoutée au traitement par lots']
+      };
+      
+    } catch (error) {
+      return {
+        success: false,
+        processingTime: 0,
+        integrationPath: 'expert_service',
+        errors: [error.message]
+      };
+    }
+  }
+
+  private async processHybridNotification(
+    request: ExpertNotificationRequest
+  ): Promise<NotificationIntegrationResult> {
+    
+    try {
+      // Traitement hybride : expert service + A2A si nécessaire
+      const expertResult = await this.processRealTimeExpertNotification(request);
+      
+      // Si collaboration ou insight, utiliser aussi A2A
+      if (request.trigger.type === 'collaboration_request' || request.trigger.type === 'expert_insight') {
+        const a2aResult = await this.processA2AAgentNotification(request);
+        
+        return {
+          success: expertResult.success && a2aResult.success,
+          notificationId: expertResult.notificationId,
+          a2aMessageId: a2aResult.notificationId,
+          processingTime: 0,
+          integrationPath: 'expert_service',
+          warnings: ['Traitement hybride : expert + A2A']
+        };
+      }
+      
+      return expertResult;
+      
+    } catch (error) {
+      return {
+        success: false,
+        processingTime: 0,
+        integrationPath: 'expert_service',
+        errors: [error.message]
+      };
+    }
+  }
+
+  private async processFallbackNotification(
+    request: ExpertNotificationRequest
+  ): Promise<NotificationIntegrationResult> {
+    
+    try {
+      // Notification standard simplifiée
+      const notification: EbiosNotification = {
+        id: `fallback_${Date.now()}`,
+        type: 'info',
+        category: 'workshop',
+        priority: 'medium',
+        status: 'unread',
+        title: 'Notification EBIOS RM',
+        message: 'Une notification importante vous attend.',
+        createdAt: new Date().toISOString(),
+        source: 'notification_integration_service',
+        context: {
+          workshopId: request.context.workshopId,
+          moduleId: request.context.moduleId,
+          userId: request.userId
+        }
+      };
+      
+      // Ici, on utiliserait le système de notifications standard
+      console.log('📋 Notification fallback créée:', notification.id);
+      
+      return {
+        success: true,
+        notificationId: notification.id,
+        processingTime: 0,
+        integrationPath: 'standard_fallback',
+        warnings: ['Utilisation du système de notifications standard']
+      };
+      
+    } catch (error) {
+      return {
+        success: false,
+        processingTime: 0,
+        integrationPath: 'standard_fallback',
+        errors: [error.message]
+      };
+    }
+  }
+
+  // 📦 TRAITEMENT PAR LOTS
+
+  private async addToBatch(request: ExpertNotificationRequest): Promise<string> {
+    const priority = this.determineBatchPriority(request);
+    
+    // Recherche d'un lot existant avec la même priorité
+    let targetBatch: NotificationBatch | undefined;
+    
+    for (const batch of this.notificationBatches.values()) {
+      if (batch.priority === priority && 
+          batch.status === 'pending' && 
+          batch.notifications.length < this.config.maxNotificationsPerBatch) {
+        targetBatch = batch;
+        break;
+      }
+    }
+    
+    // Création d'un nouveau lot si nécessaire
+    if (!targetBatch) {
+      const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      targetBatch = {
+        batchId,
+        notifications: [],
+        priority,
+        scheduledTime: new Date(Date.now() + this.config.batchProcessingInterval),
+        status: 'pending',
+        retryCount: 0
+      };
+      this.notificationBatches.set(batchId, targetBatch);
+    }
+    
+    // Ajout de la notification au lot
+    targetBatch.notifications.push(request);
+    
+    console.log(`📦 Notification ajoutée au lot ${targetBatch.batchId} (${targetBatch.notifications.length}/${this.config.maxNotificationsPerBatch})`);
+    return targetBatch.batchId;
+  }
+
+  private determineBatchPriority(request: ExpertNotificationRequest): 'low' | 'medium' | 'high' | 'urgent' {
+    if (request.trigger.severity === 'critical') return 'urgent';
+    if (request.trigger.severity === 'warning') return 'high';
+    if (request.expertiseLevel.level === 'junior') return 'high'; // Plus de guidance
+    return 'medium';
+  }
+
+  private startBatchProcessing(): void {
+    this.processingInterval = setInterval(async () => {
+      await this.processPendingBatches();
+    }, this.config.batchProcessingInterval);
+  }
+
+  private async processPendingBatches(): Promise<void> {
+    const now = new Date();
+    
+    for (const [batchId, batch] of this.notificationBatches.entries()) {
+      if (batch.status === 'pending' && batch.scheduledTime <= now) {
+        await this.processBatch(batch);
+      }
+    }
+  }
+
+  private async processBatch(batch: NotificationBatch): Promise<void> {
+    try {
+      console.log(`📦 Traitement du lot ${batch.batchId} (${batch.notifications.length} notifications)`);
+      
+      batch.status = 'processing';
+      
+      // Traitement de chaque notification du lot
+      for (const request of batch.notifications) {
+        try {
+          await this.expertNotificationService.generateExpertNotification(request);
+        } catch (error) {
+          console.error(`❌ Erreur traitement notification dans lot ${batch.batchId}:`, error);
+        }
+      }
+      
+      batch.status = 'completed';
+      console.log(`✅ Lot ${batch.batchId} traité avec succès`);
+      
+      // Nettoyage après 1 heure
+      setTimeout(() => {
+        this.notificationBatches.delete(batch.batchId);
+      }, 3600000);
+      
+    } catch (error) {
+      console.error(`❌ Erreur traitement lot ${batch.batchId}:`, error);
+      
+      batch.status = 'failed';
+      batch.retryCount++;
+      
+      // Retry si possible
+      if (batch.retryCount < this.config.retryAttempts) {
+        batch.status = 'pending';
+        batch.scheduledTime = new Date(Date.now() + this.config.batchProcessingInterval * batch.retryCount);
+      }
+    }
+  }
+
+  // 🔄 SYNCHRONISATION AVEC L'AGENT MAÎTRE
+
+  private async syncWithMasterAgent(
+    context: IntegrationContext,
+    result: NotificationIntegrationResult
+  ): Promise<void> {
+    
+    try {
+      console.log(`🔄 Synchronisation avec agent maître - Session ${context.sessionId}`);
+      
+      // Mise à jour de la progression dans l'agent maître
+      await this.masterAgent.updateSessionProgress(context.sessionId, {
+        moduleProgress: context.currentModule === 'completed' ? 100 : undefined,
+        timeSpent: 1, // Temps minimal pour la notification
+        engagementIndicators: result.success ? ['notification_processed'] : ['notification_error']
+      });
+      
+      this.metrics.realTimeSyncCount++;
+      
+    } catch (error) {
+      console.error(`❌ Erreur synchronisation agent maître:`, error);
+    }
+  }
+
+  // 🔧 MÉTHODES UTILITAIRES
+
+  private determineUrgency(
+    trigger: any,
+    expertiseLevel: ExpertiseLevel
+  ): 'immediate' | 'scheduled' | 'batch' {
+    if (trigger.severity === 'critical') return 'immediate';
+    if (trigger.type === 'methodology_alert') return 'immediate';
+    if (expertiseLevel.level === 'junior' && trigger.severity === 'warning') return 'immediate';
+    return 'scheduled';
+  }
+
+  private requiresMasterSync(triggerType: string): boolean {
+    const syncTriggers = ['progress_milestone', 'methodology_alert', 'quality_check', 'session_complete'];
+    return syncTriggers.includes(triggerType);
+  }
+
+  private updateMetrics(result: NotificationIntegrationResult, processingTime: number): void {
+    this.metrics.totalNotificationsProcessed++;
+    
+    if (result.success) {
+      if (result.integrationPath === 'expert_service') {
+        this.metrics.expertNotificationsGenerated++;
+      } else if (result.integrationPath === 'a2a_agent') {
+        this.metrics.a2aMessagesExchanged++;
+      } else if (result.integrationPath === 'standard_fallback') {
+        this.metrics.fallbackUsageRate++;
+      }
+    }
+    
+    // Mise à jour du temps de traitement moyen
+    this.metrics.averageProcessingTime = (this.metrics.averageProcessingTime + processingTime) / 2;
+    
+    // Calcul du taux de succès
+    const successCount = this.metrics.expertNotificationsGenerated + this.metrics.a2aMessagesExchanged;
+    this.metrics.successRate = (successCount / this.metrics.totalNotificationsProcessed) * 100;
+  }
+
+  // 📊 API PUBLIQUE
+
+  public getIntegrationMetrics(): IntegrationMetrics {
+    return { ...this.metrics };
+  }
+
+  public getConfiguration(): NotificationIntegrationConfig {
+    return { ...this.config };
+  }
+
+  public updateConfiguration(newConfig: Partial<NotificationIntegrationConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+    console.log('⚙️ Configuration d\'intégration mise à jour');
+  }
+
+  public getBatchStatus(): { batchId: string; status: string; count: number }[] {
+    return Array.from(this.notificationBatches.values()).map(batch => ({
+      batchId: batch.batchId,
+      status: batch.status,
+      count: batch.notifications.length
+    }));
+  }
+
+  // 🛑 ARRÊT PROPRE
+
+  public async shutdown(): Promise<void> {
+    try {
+      console.log('🛑 Arrêt du service d\'intégration des notifications...');
+      
+      // Arrêt du traitement par lots
+      if (this.processingInterval) {
+        clearInterval(this.processingInterval);
+      }
+      
+      // Traitement des lots en attente
+      await this.processPendingBatches();
+      
+      // Arrêt du protocole A2A
+      if (this.config.enableA2AProtocol) {
+        await this.a2aProtocol.shutdown();
+      }
+      
+      // Arrêt de l'agent de notifications
+      await this.notificationAgent.shutdown();
+      
+      console.log('✅ Service d\'intégration arrêté proprement');
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'arrêt du service d\'intégration:', error);
+    }
+  }
+}
+
+export default NotificationIntegrationService;

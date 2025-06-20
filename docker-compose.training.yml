@@ -1,0 +1,290 @@
+# 🐳 DOCKER COMPOSE - MODULE FORMATION DÉCOUPLÉ
+# Architecture microservices complètement isolée
+# Conformité RSSI et sécurité renforcée
+
+version: '3.8'
+
+networks:
+  training-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  
+  training-internal:
+    driver: bridge
+    internal: true
+
+volumes:
+  training_db_data:
+    driver: local
+  training_redis_data:
+    driver: local
+  training_logs:
+    driver: local
+
+services:
+  # 🚪 API Gateway - Point d'entrée unique
+  training-gateway:
+    image: ebios-training/gateway:latest
+    container_name: training-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=${TRAINING_JWT_SECRET}
+      - API_RATE_LIMIT=100
+      - CORS_ORIGINS=https://app.ebios-manager.com
+      - LOG_LEVEL=info
+    networks:
+      - training-network
+      - training-internal
+    depends_on:
+      - training-db
+      - training-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - training_logs:/app/logs
+
+  # 🤖 Service IA Instructeur
+  training-ai-instructor:
+    image: ebios-training/ai-instructor:latest
+    container_name: training-ai-instructor
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MODEL_VERSION=gemini-2.5-flash-preview-05-20
+      - MAX_TOKENS=4096
+      - TEMPERATURE=0.7
+      - REDIS_URL=redis://training-redis:6379
+      - DB_URL=postgresql://training_user:${DB_PASSWORD}@training-db:5432/ebios_training
+    networks:
+      - training-internal
+    depends_on:
+      - training-db
+      - training-redis
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # 📊 Service d'Évaluation
+  training-evaluator:
+    image: ebios-training/evaluator:latest
+    container_name: training-evaluator
+    environment:
+      - DB_URL=postgresql://training_user:${DB_PASSWORD}@training-db:5432/ebios_training
+      - REDIS_URL=redis://training-redis:6379
+      - ANSSI_VALIDATION_ENDPOINT=${ANSSI_VALIDATION_URL}
+    networks:
+      - training-internal
+    depends_on:
+      - training-db
+      - training-redis
+    restart: unless-stopped
+
+  # 📈 Service Analytics
+  training-analytics:
+    image: ebios-training/analytics:latest
+    container_name: training-analytics
+    environment:
+      - DB_URL=postgresql://training_user:${DB_PASSWORD}@training-db:5432/ebios_training
+      - REDIS_URL=redis://training-redis:6379
+      - METRICS_RETENTION_DAYS=90
+    networks:
+      - training-internal
+    depends_on:
+      - training-db
+      - training-redis
+    restart: unless-stopped
+
+  # 📚 Service de Contenu
+  training-content:
+    image: ebios-training/content:latest
+    container_name: training-content
+    environment:
+      - DB_URL=postgresql://training_user:${DB_PASSWORD}@training-db:5432/ebios_training
+      - CONTENT_CDN_URL=${CONTENT_CDN_URL}
+      - ANSSI_CONTENT_VALIDATION=true
+    networks:
+      - training-internal
+    depends_on:
+      - training-db
+    restart: unless-stopped
+    volumes:
+      - ./content:/app/content:ro
+
+  # 🔔 Service de Notifications
+  training-notifications:
+    image: ebios-training/notifications:latest
+    container_name: training-notifications
+    environment:
+      - REDIS_URL=redis://training-redis:6379
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+    networks:
+      - training-internal
+    depends_on:
+      - training-redis
+    restart: unless-stopped
+
+  # 🌐 Interface Web Embarquée
+  training-webapp:
+    image: ebios-training/webapp:latest
+    container_name: training-webapp
+    environment:
+      - REACT_APP_API_URL=http://training-gateway:8080/api/v1
+      - REACT_APP_WS_URL=ws://training-gateway:8080/ws
+      - REACT_APP_ENV=production
+    networks:
+      - training-internal
+    depends_on:
+      - training-gateway
+    restart: unless-stopped
+
+  # 🗄️ Base de Données PostgreSQL
+  training-db:
+    image: postgres:15-alpine
+    container_name: training-db
+    environment:
+      - POSTGRES_DB=ebios_training
+      - POSTGRES_USER=training_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    networks:
+      - training-internal
+    volumes:
+      - training_db_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U training_user -d ebios_training"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # 🔄 Cache Redis
+  training-redis:
+    image: redis:7-alpine
+    container_name: training-redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    networks:
+      - training-internal
+    volumes:
+      - training_redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # 📊 Monitoring Prometheus
+  training-prometheus:
+    image: prom/prometheus:latest
+    container_name: training-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    networks:
+      - training-internal
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # 📈 Grafana Dashboard
+  training-grafana:
+    image: grafana/grafana:latest
+    container_name: training-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    networks:
+      - training-internal
+    volumes:
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - training-prometheus
+    restart: unless-stopped
+
+  # 🔒 Reverse Proxy Nginx
+  training-nginx:
+    image: nginx:alpine
+    container_name: training-nginx
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - training_logs:/var/log/nginx
+    networks:
+      - training-network
+      - training-internal
+    depends_on:
+      - training-gateway
+      - training-webapp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 🔍 Log Aggregation
+  training-fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: training-fluentd
+    volumes:
+      - ./logging/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - training_logs:/var/log/training
+    networks:
+      - training-internal
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+# 🔐 Configuration de sécurité
+x-security-opts: &security-opts
+  security_opt:
+    - no-new-privileges:true
+  read_only: true
+  tmpfs:
+    - /tmp
+    - /var/tmp
+
+# 🏷️ Labels pour la gestion
+x-common-labels: &common-labels
+  labels:
+    - "com.ebios.module=training"
+    - "com.ebios.environment=production"
+    - "com.ebios.version=1.0.0"
+    - "com.ebios.maintainer=ebios-team"

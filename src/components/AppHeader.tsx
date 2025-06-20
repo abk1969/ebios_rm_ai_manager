@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Shield, 
+import {
+  Shield,
   Search,
-  Bell,
   User,
   Settings,
   LogOut,
   Menu,
-  X 
+  X
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { NotificationBell } from './notifications/NotificationBell';
 
 const AppHeader = () => {
   const { user, signOut } = useAuth();
@@ -66,10 +66,14 @@ const AppHeader = () => {
             </div>
 
             <div className="ml-4 flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-500 relative">
-                <Bell className="h-6 w-6" />
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
-              </button>
+              {/* 🔔 CLOCHE DE NOTIFICATIONS INTERACTIVE */}
+              <NotificationBell
+                size="md"
+                onViewAllClick={() => window.location.href = '/notifications'}
+                onNotificationClick={(notification) => {
+                  console.log('Notification cliquée:', notification.title);
+                }}
+              />
 
               <div className="relative">
                 <button
@@ -80,7 +84,7 @@ const AppHeader = () => {
                     <User className="h-5 w-5 text-blue-600" />
                   </div>
                   <span className="hidden md:block text-sm font-medium text-gray-700">
-                    {user?.firstName} {user?.lastName}
+                    {user?.displayName || user?.email || 'Utilisateur'}
                   </span>
                 </button>
 

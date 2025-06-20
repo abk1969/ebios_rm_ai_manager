@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -9,11 +9,8 @@ import { getBusinessValuesByMission } from '@/services/firebase/businessValues';
 import {
   WORKSHOP_VALIDATION_CRITERIA,
   EbiosUtils,
-  RISK_SOURCE_CATEGORIES,
-  MITRE_TECHNIQUES,
-  EBIOS_SCALES
+  RISK_SOURCE_CATEGORIES
 } from '@/lib/ebios-constants';
-import { getRelevantControls } from '@/lib/security-frameworks';
 import AICoherenceIndicator from '@/components/ai/AICoherenceIndicator';
 import Button from '@/components/ui/button';
 import {
@@ -23,8 +20,6 @@ import {
   AlertCircle,
   AlertTriangle,
   Info,
-  Settings,
-  Shield,
   Users,
   Zap,
   Lightbulb
@@ -355,7 +350,7 @@ const Workshop2 = () => {
     }
   };
 
-  const generateOperationalModeSuggestions = (riskSource: RiskSource, objective: RiskObjective): string[] => {
+  const generateOperationalModeSuggestions = (riskSource: RiskSource, _objective: RiskObjective): string[] => {
     const suggestions: string[] = [];
     const sourceCategory = riskSource.category;
 
@@ -391,24 +386,19 @@ const Workshop2 = () => {
       // Heuristiques selon le type de source de risque
       let priority: LikelihoodScale = 2;
       let description = '';
-      let relevantControls: any[] = [];
       
       // 🆕 AMÉLIORATION: Logique enrichie avec référentiels de sécurité
       if (riskSource.category === 'state' && value.criticalityLevel === 'essential') {
         priority = 4;
         description = `Espionnage ou sabotage de ${value.name} par acteur étatique`;
-        relevantControls = getRelevantControls('Workshop2', 'preventive', ['espionage', 'sabotage']);
       } else if (riskSource.category === 'cybercriminal' && value.category === 'primary') {
         priority = 3;
         description = `Compromission financière de ${value.name} par cybercriminels`;
-        relevantControls = getRelevantControls('Workshop2', 'preventive', ['financial', 'cybercrime']);
       } else if (riskSource.category === 'insider' && value.category === 'support') {
         priority = 3;
         description = `Abus de privilèges sur ${value.name} par utilisateur interne`;
-        relevantControls = getRelevantControls('Workshop2', 'detective', ['insider', 'privilege']);
       } else {
         description = `Objectif de ${RISK_SOURCE_CATEGORIES[riskSource.category]} visant ${value.name}`;
-        relevantControls = getRelevantControls('Workshop2', 'preventive', ['generic']);
       }
 
       suggestions.push({

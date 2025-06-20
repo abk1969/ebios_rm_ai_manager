@@ -326,27 +326,111 @@ export class ANSSIValidationService {
    * Validation globale de la mission selon ANSSI
    */
   static validateMission(mission: Mission): ValidationResult {
-    // Validation consolidée de tous les workshops
-    const results: ValidationResult[] = [];
+    const criticalIssues: string[] = [];
+    const warnings: string[] = [];
+    const recommendations: string[] = [];
 
-    // Ajouter les validations spécifiques selon les données disponibles
-    // Cette méthode sera étendue avec les autres workshops
+    // Validation de la complétude de la mission
+    if (!mission.title || mission.title.trim().length === 0) {
+      criticalIssues.push('Titre de mission manquant');
+    }
+
+    if (!mission.description || mission.description.trim().length < 50) {
+      criticalIssues.push('Description de mission insuffisante (minimum 50 caractères)');
+    }
+
+    if (!mission.scope || mission.scope.trim().length === 0) {
+      criticalIssues.push('Périmètre de mission non défini');
+    }
+
+    if (!mission.context || Object.keys(mission.context).length === 0) {
+      criticalIssues.push('Contexte de mission manquant');
+    }
+
+    // Validation des dates
+    if (!mission.startDate) {
+      warnings.push('Date de début non définie');
+    }
+
+    if (!mission.endDate) {
+      warnings.push('Date de fin non définie');
+    } else if (mission.startDate && new Date(mission.endDate) <= new Date(mission.startDate)) {
+      criticalIssues.push('Date de fin antérieure ou égale à la date de début');
+    }
+
+    // Calcul du score basé sur la complétude réelle
+    let score = 100;
+    score -= criticalIssues.length * 20; // -20 points par problème critique
+    score -= warnings.length * 5; // -5 points par avertissement
+
+    const isValid = criticalIssues.length === 0 && score >= 70;
+
+    // Recommandations basées sur les problèmes identifiés
+    if (criticalIssues.length > 0) {
+      recommendations.push('Corriger tous les problèmes critiques avant de continuer');
+    }
+    if (warnings.length > 0) {
+      recommendations.push('Compléter les informations manquantes pour améliorer la qualité');
+    }
+    if (score < 85) {
+      recommendations.push('Réviser et enrichir les données de la mission');
+    }
 
     return {
-      isValid: false,
-      score: Math.floor(Date.now() % 10),
-      criticalIssues: ['Validation globale non implémentée'],
-      warnings: [],
-      recommendations: ['Implémenter la validation globale'],
+      isValid,
+      score: Math.max(0, score),
+      criticalIssues,
+      warnings,
+      recommendations,
       anssiCompliance: {
-        workshop1: 0,
-        workshop2: 0,
-        workshop3: 0,
-        workshop4: 0,
-        workshop5: 0,
-        overall: 0
+        workshop1: this.calculateWorkshopCompliance(mission, 1),
+        workshop2: this.calculateWorkshopCompliance(mission, 2),
+        workshop3: this.calculateWorkshopCompliance(mission, 3),
+        workshop4: this.calculateWorkshopCompliance(mission, 4),
+        workshop5: this.calculateWorkshopCompliance(mission, 5),
+        overall: Math.max(0, score)
       }
     };
+  }
+
+  /**
+   * Calcule la conformité ANSSI pour un atelier spécifique
+   */
+  private static calculateWorkshopCompliance(mission: Mission, workshop: number): number {
+    // Calcul basé sur les données réelles de la mission
+    let compliance = 0;
+
+    switch (workshop) {
+      case 1:
+        // Vérifier la présence des éléments requis pour l'atelier 1
+        if (mission.businessValues && mission.businessValues.length >= 3) compliance += 40;
+        if (mission.supportingAssets && mission.supportingAssets.length >= 5) compliance += 40;
+        if (mission.stakeholders && mission.stakeholders.length >= 2) compliance += 20;
+        break;
+
+      case 2:
+        // Vérifier la présence des éléments requis pour l'atelier 2
+        if (mission.riskSources && mission.riskSources.length >= 5) compliance += 50;
+        if (mission.dreadedEvents && mission.dreadedEvents.length >= 3) compliance += 50;
+        break;
+
+      case 3:
+        // Vérifier la présence des éléments requis pour l'atelier 3
+        if (mission.strategicScenarios && mission.strategicScenarios.length >= 3) compliance += 100;
+        break;
+
+      case 4:
+        // Vérifier la présence des éléments requis pour l'atelier 4
+        if (mission.operationalScenarios && mission.operationalScenarios.length >= 2) compliance += 100;
+        break;
+
+      case 5:
+        // Vérifier la présence des éléments requis pour l'atelier 5
+        if (mission.securityMeasures && mission.securityMeasures.length >= 5) compliance += 100;
+        break;
+    }
+
+    return Math.min(100, compliance);
   }
 
   /**

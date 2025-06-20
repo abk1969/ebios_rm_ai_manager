@@ -7,14 +7,14 @@
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, getDocs, deleteDoc, doc, query, where } = require('firebase/firestore');
 
-// Configuration Firebase (même que dans l'app)
+// Configuration Firebase (production réelle)
 const firebaseConfig = {
-  apiKey: "AIzaSyBvJF8gF_6LQ2Q8yF5wF5wF5wF5wF5wF5w",
+  apiKey: "AIzaSyCN4GaNMnshiDw0Z0dgGnhmgbokVyd7LmA",
   authDomain: "ebiosdatabase.firebaseapp.com",
   projectId: "ebiosdatabase",
-  storageBucket: "ebiosdatabase.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef123456789012345678"
+  storageBucket: "ebiosdatabase.firebasestorage.app",
+  messagingSenderId: "1065555617003",
+  appId: "1:1065555617003:web:876f78760b435289a74aae"
 };
 
 // Initialisation Firebase

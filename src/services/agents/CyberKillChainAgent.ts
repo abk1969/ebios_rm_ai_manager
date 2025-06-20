@@ -1,3 +1,4 @@
+/**
  * ⚔️ AGENT CYBER KILL CHAIN - ATELIER 4 EBIOS RM
  * Agent spécialisé dans la simulation et modélisation des chaînes d'attaque
  * CRITICITÉ : HIGH - Conformité EBIOS RM Atelier 4 (actuellement 0%)
@@ -10,11 +11,9 @@ import {
   AgentResult, 
   AgentStatus 
 } from './AgentService';
-import type { 
-  OperationalScenario,
+import type {
   AttackPath,
-  MitreTechnique,
-  KillChainPhase
+  MitreTechnique
 } from '@/types/ebios';
 
 export interface CyberKillChainContext {
@@ -226,7 +225,7 @@ export class CyberKillChainAgent implements AgentService {
    */
   private async simulateAttackChain(
     input: { strategicScenario: any; targetEnvironment: any },
-    context?: any
+    _context?: any
   ): Promise<KillChainAnalysis> {
     const { strategicScenario, targetEnvironment } = input;
     
@@ -266,7 +265,7 @@ export class CyberKillChainAgent implements AgentService {
    */
   private async calculateAttackProbability(
     input: { attackPath: AttackPath; securityControls: any[] },
-    context?: any
+    _context?: any
   ): Promise<{ overallProbability: number; phaseBreakdown: any[] }> {
     const { attackPath, securityControls } = input;
     
@@ -299,7 +298,7 @@ export class CyberKillChainAgent implements AgentService {
    */
   private async mapMitreTechniques(
     input: { attackScenario: any; targetSystem: any },
-    context?: any
+    _context?: any
   ): Promise<{ mappedTechniques: MitreTechnique[]; coverage: number }> {
     const { attackScenario } = input;
     
@@ -326,9 +325,9 @@ export class CyberKillChainAgent implements AgentService {
    */
   private async identifyDetectionPoints(
     input: { killChainAnalysis: KillChainAnalysis; monitoringCapabilities: any },
-    context?: any
+    _context?: any
   ): Promise<{ detectionStrategy: any; recommendations: string[] }> {
-    const { killChainAnalysis, monitoringCapabilities } = input;
+    const { killChainAnalysis, monitoringCapabilities: _monitoringCapabilities } = input;
     
     const detectionStrategy = {
       earlyDetection: this.identifyEarlyDetectionPoints(killChainAnalysis),
@@ -376,7 +375,7 @@ export class CyberKillChainAgent implements AgentService {
     });
   }
 
-  private analyzeAttackerProfile(strategicScenario: any): any {
+  private analyzeAttackerProfile(_strategicScenario: any): any {
     return {
       sophistication: 'medium',
       resources: 'moderate',
@@ -385,7 +384,7 @@ export class CyberKillChainAgent implements AgentService {
     };
   }
 
-  private async generateKillChainPhases(attackerProfile: any, targetEnvironment: any): Promise<KillChainPhaseAnalysis[]> {
+  private async generateKillChainPhases(_attackerProfile: any, _targetEnvironment: any): Promise<KillChainPhaseAnalysis[]> {
     return this.mitreAttackDB.killChainPhases.map(phase => ({
       phase: phase as string, // 🔧 CORRECTION: Conversion en string
       techniques: [],
@@ -397,7 +396,7 @@ export class CyberKillChainAgent implements AgentService {
     }));
   }
 
-  private calculatePhaseProbabilities(phases: KillChainPhaseAnalysis[], environment: any): any {
+  private calculatePhaseProbabilities(phases: KillChainPhaseAnalysis[], _environment: any): any {
     const phaseSuccessProbabilities = phases.map(p => p.successProbability);
     const overallLikelihood = phaseSuccessProbabilities.reduce((acc, p) => acc * p, 1);
     
@@ -430,11 +429,11 @@ export class CyberKillChainAgent implements AgentService {
     }];
   }
 
-  private mapToMitreTechniques(phases: KillChainPhaseAnalysis[]): MitreTechnique[] {
+  private mapToMitreTechniques(_phases: KillChainPhaseAnalysis[]): MitreTechnique[] {
     return Array.from(this.mitreAttackDB.techniques.values()).slice(0, 5);
   }
 
-  private identifyDetectionOpportunities(phases: KillChainPhaseAnalysis[], environment: any): any[] {
+  private identifyDetectionOpportunities(phases: KillChainPhaseAnalysis[], _environment: any): any[] {
     return phases.map(phase => ({
       phase: phase.phase,
       technique: 'Sample Technique',
@@ -443,7 +442,7 @@ export class CyberKillChainAgent implements AgentService {
     }));
   }
 
-  private generateSecurityRecommendations(phases: KillChainPhaseAnalysis[], detectionOps: any[]): any {
+  private generateSecurityRecommendations(_phases: KillChainPhaseAnalysis[], _detectionOps: any[]): any {
     return {
       preventive: [
         'Renforcer la formation de sensibilisation au phishing',
@@ -476,17 +475,17 @@ export class CyberKillChainAgent implements AgentService {
     return rates[phaseType] || 0.5;
   }
 
-  private calculateControlsImpact(phase: any, controls: any[]): number {
+  private calculateControlsImpact(_phase: any, controls: any[]): number {
     // Calcul simplifié de l'impact des contrôles de sécurité
     return Math.min(0.8, controls.length * 0.1);
   }
 
-  private findMatchingMitreTechniques(action: any): MitreTechnique[] {
+  private findMatchingMitreTechniques(_action: any): MitreTechnique[] {
     // Recherche simplifiée de techniques correspondantes
     return Array.from(this.mitreAttackDB.techniques.values()).slice(0, 2);
   }
 
-  private identifyEarlyDetectionPoints(analysis: KillChainAnalysis): any {
+  private identifyEarlyDetectionPoints(_analysis: KillChainAnalysis): any {
     return {
       phase: 'reconnaissance',
       indicators: ['Unusual DNS queries', 'Port scanning activity'],
@@ -494,21 +493,21 @@ export class CyberKillChainAgent implements AgentService {
     };
   }
 
-  private identifyRealTimeMonitoring(analysis: KillChainAnalysis): any {
+  private identifyRealTimeMonitoring(_analysis: KillChainAnalysis): any {
     return {
       techniques: ['Behavioral analysis', 'Anomaly detection'],
       coverage: 0.8
     };
   }
 
-  private identifyForensicPoints(analysis: KillChainAnalysis): any {
+  private identifyForensicPoints(_analysis: KillChainAnalysis): any {
     return {
       artifacts: ['Log files', 'Memory dumps', 'Network captures'],
       retention: '90 days'
     };
   }
 
-  private calculateConfidence(taskType: string, result: any): number {
+  private calculateConfidence(taskType: string, _result: any): number {
     // Calcul de confiance basé sur le type de tâche et la qualité du résultat
     const baseConfidence: Record<string, number> = {
       'simulate-attack-chain': 0.85,
@@ -519,7 +518,7 @@ export class CyberKillChainAgent implements AgentService {
     return baseConfidence[taskType] || 0.7;
   }
 
-  private generateSuggestions(taskType: string, result: any): string[] {
+  private generateSuggestions(taskType: string, _result: any): string[] {
     const suggestions: Record<string, string[]> = {
       'simulate-attack-chain': [
         'Considérer des scénarios d\'attaque alternatifs',

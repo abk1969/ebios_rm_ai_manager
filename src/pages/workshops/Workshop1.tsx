@@ -56,8 +56,16 @@ import DependencyGraph from '../../components/ai/DependencyGraph';
 import EbiosGuidancePanel from '../../components/ai/EbiosGuidancePanel';
 import QualityMetricsPanel from '../../components/ai/QualityMetricsPanel';
 import { dataQualityDetector } from '../../services/ai/DataQualityDetector';
-import { a2aDataQualityService } from '../../services/ai/A2ADataQualityService';
-import { dataQualityCorrectionManager } from '../../services/ai/DataQualityCorrectionManager';
+// 🛡️ SÉCURITÉ: Import conditionnel du service A2A pour éviter les erreurs
+let a2aDataQualityService: any = null;
+let dataQualityCorrectionManager: any = null;
+
+try {
+  a2aDataQualityService = require('../../services/ai/A2ADataQualityService').a2aDataQualityService;
+  dataQualityCorrectionManager = require('../../services/ai/DataQualityCorrectionManager').dataQualityCorrectionManager;
+} catch (error) {
+  console.warn('⚠️ Module A2A non disponible, mode dégradé activé:', error);
+}
 // 🧪 TEMPORAIRE: Import du test de contexte
 import '../../utils/testMissionContext';
 import type {
@@ -150,11 +158,17 @@ const Workshop1 = () => {
   const [guidancePanelCollapsed, setGuidancePanelCollapsed] = useState(false);
   const [showQualityMetrics, setShowQualityMetrics] = useState(false);
 
-  // 🔗 Configurer la référence au gestionnaire de corrections
+  // 🔗 Configurer la référence au gestionnaire de corrections (mode sécurisé)
   React.useEffect(() => {
-    dataQualityDetector.setCorrectionManager((stableKey: string) =>
-      dataQualityCorrectionManager.getHistory(stableKey)
-    );
+    if (dataQualityCorrectionManager) {
+      try {
+        dataQualityDetector.setCorrectionManager((stableKey: string) =>
+          dataQualityCorrectionManager.getHistory(stableKey)
+        );
+      } catch (error) {
+        console.warn('⚠️ Erreur configuration gestionnaire corrections:', error);
+      }
+    }
   }, []);
 
   // 🔍 NOUVEAU : Surveillance des changements de données (DÉSACTIVÉE TEMPORAIREMENT)
@@ -359,19 +373,28 @@ const Workshop1 = () => {
     const allIssues: any[] = [];
 
     try {
-      // 🔒 NOUVEAU : Vérifier si une entité a des champs déjà corrigés
+      // 🔒 NOUVEAU : Vérifier si une entité a des champs déjà corrigés (mode sécurisé)
       const hasUncorrectedFields = (entity: any, entityType: string) => {
+        if (!dataQualityCorrectionManager) {
+          return true; // Si le gestionnaire n'est pas disponible, analyser quand même
+        }
+
         const textFields = ['name', 'description', 'category', 'criticalityLevel', 'consequences', 'type'];
 
         for (const fieldName of textFields) {
           const value = entity[fieldName];
           if (value && typeof value === 'string' && value.trim().length > 0) {
-            const stableKey = `${entityType}:${entity.id}:${fieldName}`;
-            const correctionHistory = dataQualityCorrectionManager.getHistory(stableKey);
+            try {
+              const stableKey = `${entityType}:${entity.id}:${fieldName}`;
+              const correctionHistory = dataQualityCorrectionManager.getHistory(stableKey);
 
-            if (!correctionHistory || correctionHistory.correctionCount === 0) {
-              // Ce champ n'a pas été corrigé, l'entité peut être analysée
-              return true;
+              if (!correctionHistory || correctionHistory.correctionCount === 0) {
+                // Ce champ n'a pas été corrigé, l'entité peut être analysée
+                return true;
+              }
+            } catch (error) {
+              console.warn('⚠️ Erreur vérification corrections:', error);
+              return true; // En cas d'erreur, analyser quand même
             }
           }
         }
@@ -391,6 +414,11 @@ const Workshop1 = () => {
         }
 
         try {
+          // 🛡️ SÉCURITÉ: Vérifier la disponibilité du service A2A
+          if (!a2aDataQualityService) {
+            throw new Error('Service A2A non disponible');
+          }
+
           const a2aAnalysis = await a2aDataQualityService.analyzeEntityWithA2A(
             'businessValue',
             bv,

@@ -1,9 +1,9 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFirestore, type Firestore, enableNetwork, disableNetwork, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-// Configuration Firebase réelle
+// Configuration Firebase officielle (directement depuis la console Firebase)
 const firebaseConfig = {
   apiKey: "AIzaSyCN4GaNMnshiDw0Z0dgGnhmgbokVyd7LmA",
   authDomain: "ebiosdatabase.firebaseapp.com",
@@ -26,13 +26,13 @@ let db: Firestore;
 let storage: FirebaseStorage;
 
 try {
-  // Initialiser Firebase
+  // Initialiser Firebase avec la configuration officielle
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
   storage = getStorage(app);
 
-  // 🔧 CORRECTION: Logs seulement en développement
+  // Log uniquement en développement
   if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
     console.log('✅ Firebase initialisé avec succès');
     console.log('🔑 Mode : Production (Firebase réel)');
@@ -61,4 +61,40 @@ export const getEnvironmentInfo = () => {
     hasValidConfig: true,
     isFirebaseReal: true
   };
+};
+
+// Fonctions utilitaires pour gérer la connectivité
+export const enableFirestoreNetwork = async () => {
+  try {
+    await enableNetwork(db);
+    console.log('🌐 Réseau Firestore activé');
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Impossible d\'activer le réseau Firestore:', error);
+    return false;
+  }
+};
+
+export const disableFirestoreNetwork = async () => {
+  try {
+    await disableNetwork(db);
+    console.log('📱 Mode offline Firestore activé');
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Impossible de désactiver le réseau Firestore:', error);
+    return false;
+  }
+};
+
+export const checkFirebaseConnectivity = async () => {
+  try {
+    // Tentative de connexion simple
+    const testDoc = await import('firebase/firestore').then(({ doc, getDoc }) =>
+      getDoc(doc(db, 'test', 'connectivity'))
+    );
+    return true;
+  } catch (error) {
+    console.warn('⚠️ Firebase hors ligne:', error);
+    return false;
+  }
 };

@@ -61,19 +61,26 @@ export class SecurityService {
   }
 
   private initializeServices(): void {
-    this.authService = new AuthenticationService(this.config.auth);
-    this.authzService = new AuthorizationService(this.config.rbac);
-    this.encryptionService = new EncryptionService(this.config.encryption);
-    this.auditService = new AuditService(this.config.audit);
-    this.monitoringService = new MonitoringService(this.config.monitoring);
-    this.complianceService = new ComplianceService(this.config.compliance);
+    try {
+      this.authService = new AuthenticationService(this.config.auth);
+      this.authzService = new AuthorizationService(this.config.rbac);
+      this.encryptionService = new EncryptionService(this.config.encryption);
+      this.auditService = new AuditService(this.config.audit);
+      this.monitoringService = new MonitoringService(this.config.monitoring);
+      this.complianceService = new ComplianceService(this.config.compliance);
 
-    this.logger.info('🔒 Services de sécurité initialisés', {
-      environment: import.meta.env.MODE,
-      mfaEnabled: this.config.auth.mfaRequired,
-      encryptionEnabled: true,
-      auditEnabled: true
-    });
+      this.logger.info('🔒 Services de sécurité initialisés', {
+        environment: import.meta.env.MODE,
+        mfaEnabled: this.config.auth.mfaRequired,
+        encryptionEnabled: true,
+        auditEnabled: true
+      });
+    } catch (error) {
+      this.logger.error('❌ Erreur initialisation services sécurité', {
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
+      });
+      throw error;
+    }
   }
 
   // 🔐 AUTHENTIFICATION
@@ -116,7 +123,7 @@ export class SecurityService {
         timestamp: new Date(),
         ipAddress: credentials.ipAddress,
         userAgent: credentials.userAgent,
-        details: { error: error.message }
+        details: { error: error instanceof Error ? error.message : 'Erreur inconnue' }
       });
 
       throw error;
@@ -154,7 +161,7 @@ export class SecurityService {
         result: 'failure',
         severity: 'high',
         timestamp: new Date(),
-        details: { error: error.message }
+        details: { error: error instanceof Error ? error.message : 'Erreur inconnue' }
       });
 
       return false;
@@ -186,7 +193,7 @@ export class SecurityService {
         result: 'failure',
         severity: 'high',
         timestamp: new Date(),
-        details: { error: error.message }
+        details: { error: error instanceof Error ? error.message : 'Erreur inconnue' }
       });
 
       throw error;
@@ -217,7 +224,7 @@ export class SecurityService {
         result: 'failure',
         severity: 'high',
         timestamp: new Date(),
-        details: { error: error.message }
+        details: { error: error instanceof Error ? error.message : 'Erreur inconnue' }
       });
 
       throw error;
@@ -237,7 +244,7 @@ export class SecurityService {
     } catch (error) {
       this.logger.error('Erreur lors de l\'enregistrement de l\'événement de sécurité', {
         event,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
     }
   }
@@ -313,7 +320,7 @@ export class SecurityService {
         result: 'failure',
         severity: 'high',
         timestamp: new Date(),
-        details: { error: error.message }
+        details: { error: error instanceof Error ? error.message : 'Erreur inconnue' }
       });
 
       throw error;

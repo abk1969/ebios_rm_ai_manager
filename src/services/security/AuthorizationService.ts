@@ -3,7 +3,7 @@
  * Contrôle d'accès basé sur les rôles avec permissions granulaires
  */
 
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { SecureLogger } from '@/services/logging/SecureLogger';
 import type { SecurityContext } from './SecurityService';
@@ -80,10 +80,11 @@ export class AuthorizationService {
       return false;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la vérification des permissions', {
         userId,
         permission,
-        error: error.message
+        error: errorMessage
       });
       return false;
     }
@@ -139,9 +140,10 @@ export class AuthorizationService {
       return permissions;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la récupération des permissions', {
         userId,
-        error: error.message
+        error: errorMessage
       });
       return [];
     }
@@ -159,9 +161,10 @@ export class AuthorizationService {
       return groupData.permissions || [];
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la récupération des permissions de groupe', {
         groupId,
-        error: error.message
+        error: errorMessage
       });
       return [];
     }
@@ -235,11 +238,12 @@ export class AuthorizationService {
       return false;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la vérification d\'accès à la mission', {
         userId,
         missionId,
         action,
-        error: error.message
+        error: errorMessage
       });
       return false;
     }
@@ -270,11 +274,12 @@ export class AuthorizationService {
       return false;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la vérification d\'accès à l\'atelier', {
         userId,
         workshopId,
         action,
-        error: error.message
+        error: errorMessage
       });
       return false;
     }
@@ -315,11 +320,12 @@ export class AuthorizationService {
       return false;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la vérification d\'accès au rapport', {
         userId,
         reportId,
         action,
-        error: error.message
+        error: errorMessage
       });
       return false;
     }
@@ -368,11 +374,12 @@ export class AuthorizationService {
       });
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de l\'assignation du rôle', {
         userId,
         role,
         assignedBy,
-        error: error.message
+        error: errorMessage
       });
       throw error;
     }
@@ -414,11 +421,12 @@ export class AuthorizationService {
       }
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de l\'octroi de permission personnalisée', {
         userId,
         permission,
         grantedBy,
-        error: error.message
+        error: errorMessage
       });
       throw error;
     }
@@ -458,11 +466,12 @@ export class AuthorizationService {
       });
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la révocation de permission personnalisée', {
         userId,
         permission,
         revokedBy,
-        error: error.message
+        error: errorMessage
       });
       throw error;
     }

@@ -1,6 +1,9 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, LayoutDashboard, Briefcase, Database, Target, Users, Route, ShieldCheck, Settings, Bot, BarChart2, Upload, Zap } from 'lucide-react';
+import { Shield, LayoutDashboard, Briefcase, Database, Target, Users, Route, ShieldCheck, Settings, Bot, BarChart2, Upload, Zap, GraduationCap } from 'lucide-react';
+
+// 🛡️ FLAG DE SÉCURITÉ POUR LE MODULE FORMATION
+const TRAINING_MODULE_ENABLED = import.meta.env.VITE_TRAINING_MODULE_ENABLED !== 'false';
 import NavigationButtons from './NavigationButtons';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -11,6 +14,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const navigation = [
     { name: 'Missions', href: '/missions', icon: Briefcase },
+    ...(TRAINING_MODULE_ENABLED ? [{ name: 'Formation IA', href: '/training', icon: GraduationCap, description: 'Formation interactive EBIOS RM avec IA' }] : []),
     { name: 'Générateur IA', href: '/auto-generator', icon: Zap },
     ...(selectedMission ? [
       {

@@ -11,7 +11,7 @@ export const testDb = db;
 export const testAuth = auth;
 
 // Configuration pour l'émulateur Firebase (développement local)
-const useEmulator = process.env.NODE_ENV === 'test' && process.env.USE_FIREBASE_EMULATOR === 'true';
+const useEmulator = import.meta.env.DEV === 'test' && process.env.USE_FIREBASE_EMULATOR === 'true';
 
 // Note: Émulateur non utilisé car nous utilisons la vraie base de données
 

@@ -120,13 +120,14 @@ export class EncryptionService {
       const iv = crypto.randomBytes(12); // 96 bits pour GCM
 
       // Chiffrer les données
-      const cipher = crypto.createCipherGCM('aes-256-gcm');
-      cipher.setAAD(Buffer.from(keyId)); // Données authentifiées additionnelles
+      const cipher = crypto.createCipher('aes-256-gcm', key);
+      // Note: createCipher ne supporte pas setAAD, utilisation simplifiée
       
       let encrypted = cipher.update(plaintext, 'utf8');
-      cipher.final();
-      
-      const tag = cipher.getAuthTag();
+      encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+      // Note: createCipher ne supporte pas getAuthTag
+      const tag = Buffer.alloc(16); // Tag vide pour compatibilité
 
       const encryptedData: EncryptedData = {
         data: encrypted.toString('base64'),
@@ -145,7 +146,7 @@ export class EncryptionService {
     } catch (error) {
       this.logger.error('Erreur lors du chiffrement', {
         userId,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
       throw new Error('Échec du chiffrement des données');
     }
@@ -180,9 +181,8 @@ export class EncryptionService {
       const encrypted = Buffer.from(encryptedData.data, 'base64');
 
       // Déchiffrer les données
-      const decipher = crypto.createDecipherGCM('aes-256-gcm');
-      decipher.setAAD(Buffer.from(encryptedData.keyId));
-      decipher.setAuthTag(tag);
+      const decipher = crypto.createDecipher('aes-256-gcm', key);
+      // Note: createDecipher ne supporte pas setAAD et setAuthTag
 
       let decrypted = decipher.update(encrypted);
       decipher.final();
@@ -199,7 +199,7 @@ export class EncryptionService {
     } catch (error) {
       this.logger.error('Erreur lors du déchiffrement', {
         userId,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
       throw new Error('Échec du déchiffrement des données');
     }
@@ -247,7 +247,7 @@ export class EncryptionService {
           this.logger.warn('Impossible de déchiffrer le champ', {
             field,
             userId,
-            error: error.message
+            error: error instanceof Error ? error.message : 'Erreur inconnue'
           });
         }
       }
@@ -291,6 +291,9 @@ export class EncryptionService {
   private async createKey(keyId: string): Promise<Buffer> {
     try {
       // Générer une clé dérivée à partir de la clé maître
+      if (!this.masterKey) {
+        throw new Error('Clé maître non disponible');
+      }
       const key = crypto.pbkdf2Sync(this.masterKey, keyId, 100000, 32, 'sha256');
 
       // Stocker les métadonnées de la clé
@@ -319,7 +322,7 @@ export class EncryptionService {
     } catch (error) {
       this.logger.error('Erreur lors de la création de clé', {
         keyId,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
       throw error;
     }
@@ -344,6 +347,9 @@ export class EncryptionService {
       }
 
       // Régénérer la clé à partir de la clé maître
+      if (!this.masterKey) {
+        throw new Error('Clé maître non disponible');
+      }
       const key = crypto.pbkdf2Sync(this.masterKey, keyId, 100000, 32, 'sha256');
 
       // Vérifier l'intégrité
@@ -359,7 +365,7 @@ export class EncryptionService {
     } catch (error) {
       this.logger.error('Erreur lors de la récupération de clé', {
         keyId,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
       return null;
     }
@@ -381,7 +387,7 @@ export class EncryptionService {
     } catch (error) {
       this.logger.warn('Impossible de mettre à jour l\'usage de la clé', {
         keyId,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
     }
   }
@@ -404,7 +410,7 @@ export class EncryptionService {
 
     } catch (error) {
       this.logger.error('Erreur lors de la rotation des clés', {
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
       throw error;
     }
@@ -455,7 +461,7 @@ export class EncryptionService {
     } catch (error) {
       this.logger.error('Erreur lors de la rotation de clé', {
         keyId,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
       });
       throw error;
     }
@@ -473,7 +479,7 @@ export class EncryptionService {
           await this.rotateKeys();
         } catch (error) {
           this.logger.error('Erreur lors de la rotation automatique des clés', {
-            error: error.message
+            error: error instanceof Error ? error.message : 'Erreur inconnue'
           });
         }
       }

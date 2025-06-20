@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Zap, FileText, Download, CheckCircle } from 'lucide-react';
+import { AlertCircle, Zap, FileText, Download, CheckCircle, Edit3, Check, X } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AutoMissionGeneratorService, { MissionContext as ServiceMissionContext } from '@/services/ai/AutoMissionGeneratorService';
 
@@ -82,6 +82,8 @@ const AutoMissionGenerator: React.FC = () => {
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showCustomSector, setShowCustomSector] = useState(false);
+  const [customSectorValue, setCustomSectorValue] = useState('');
   const [generationProgress, setGenerationProgress] = useState<GenerationProgress>({
     step: '',
     progress: 0,
@@ -113,13 +115,14 @@ const AutoMissionGenerator: React.FC = () => {
     'Médico-social - Centres de soins spécialisés',
     'Médico-social - Services d\'aide à domicile',
 
-    // SERVICES FINANCIERS
+    // SERVICES FINANCIERS COMPLETS
     'Banques de détail et commerciales',
     'Banques d\'investissement et de marché',
     'Banques coopératives et mutualistes',
     'Assurances vie et non-vie',
     'Mutuelles et institutions de prévoyance',
     'Sociétés de gestion d\'actifs',
+    'Épargne et placement financier',
     'Fonds de pension et retraite',
     'Fintech et néobanques',
     'Services de paiement et monétique',
@@ -638,10 +641,24 @@ const AutoMissionGenerator: React.FC = () => {
   const handleArrayFieldChange = (field: keyof MissionContext, value: string, checked: boolean) => {
     setContext(prev => ({
       ...prev,
-      [field]: checked 
+      [field]: checked
         ? [...(prev[field] as string[]), value]
         : (prev[field] as string[]).filter(item => item !== value)
     }));
+  };
+
+  // Fonction pour gérer la saisie libre du secteur
+  const handleCustomSectorSubmit = () => {
+    if (customSectorValue.trim()) {
+      setContext(prev => ({ ...prev, sector: customSectorValue.trim() }));
+      setCustomSectorValue('');
+      setShowCustomSector(false);
+    }
+  };
+
+  const handleCustomSectorCancel = () => {
+    setCustomSectorValue('');
+    setShowCustomSector(false);
   };
 
   const generateMission = async () => {

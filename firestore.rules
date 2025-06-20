@@ -3,82 +3,144 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 🔧 RÈGLES TEMPORAIRES POUR LES TESTS
-    // ATTENTION: Ces règles permettent l'accès libre - à utiliser uniquement pour les tests
+    // 🔐 FONCTIONS UTILITAIRES DE SÉCURITÉ
 
-    // Collection de test - accès libre temporaire
+    // Vérification de l'authentification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Vérification de l'email vérifié
+    function isEmailVerified() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    // Vérification du propriétaire
+    function isOwner(resource) {
+      return request.auth.uid == resource.data.createdBy;
+    }
+
+    // Collection de test - accès restreint aux utilisateurs authentifiés
     match /_test/{document} {
-      allow read, write: if true;
+      allow read, write: if isAuthenticated();
     }
     
-    // Collections principales EBIOS RM - accès libre temporaire pour les tests
+    // Collections principales EBIOS RM - accès sécurisé
     match /missions/{missionId} {
-      allow read, write: if true;
+      // Lecture : utilisateur authentifié avec email vérifié
+      allow read: if isAuthenticated() && isEmailVerified();
+
+      // Écriture : propriétaire ou utilisateur authentifié pour création
+      allow create: if isAuthenticated() && isEmailVerified() &&
+                       request.auth.uid == request.resource.data.createdBy;
+      allow update, delete: if isAuthenticated() && isEmailVerified() &&
+                               (isOwner(resource) || request.auth.uid in resource.data.get('teamMembers', []));
 
       // Sous-collections de la mission
       match /{subcollection}/{document} {
-        allow read, write: if true;
+        allow read: if isAuthenticated() && isEmailVerified();
+        allow write: if isAuthenticated() && isEmailVerified() &&
+                        (isOwner(get(/databases/$(database)/documents/missions/$(missionId))) ||
+                         request.auth.uid in get(/databases/$(database)/documents/missions/$(missionId)).data.get('teamMembers', []));
       }
     }
 
-    // Biens essentiels
+    // Biens essentiels - accès sécurisé
     match /businessValues/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Biens supports
+    // Biens supports - accès sécurisé
     match /supportingAssets/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Événements redoutés
+    // Événements redoutés - accès sécurisé
     match /dreadedEvents/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Sources de risque
+    // Sources de risque - accès sécurisé
     match /riskSources/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Scénarios stratégiques
+    // Scénarios stratégiques - accès sécurisé
     match /strategicScenarios/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Scénarios opérationnels
+    // Scénarios opérationnels - accès sécurisé
     match /operationalScenarios/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Mesures de sécurité
+    // Mesures de sécurité - accès sécurisé
     match /securityMeasures/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if isAuthenticated() && isEmailVerified() &&
+                      (request.auth.uid == resource.data.get('createdBy', '') ||
+                       request.auth.uid == request.resource.data.get('createdBy', ''));
     }
 
-    // Métriques et rapports
+    // Métriques et rapports - accès restreint
     match /metrics/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if false; // Géré uniquement par les services système
     }
 
-    // Logs et audit
+    // Logs et audit - accès très restreint
     match /auditLogs/{document} {
-      allow read, write: if true;
+      allow read: if false; // Accès uniquement via les services backend
+      allow write: if false; // Géré uniquement par les services système
     }
 
-    // Configuration et paramètres
+    // Configuration et paramètres - accès administrateur
     match /config/{document} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if false; // Géré uniquement par les administrateurs via backend
     }
 
-    // Utilisateurs et profils
+    // Utilisateurs et profils - accès personnel
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isEmailVerified());
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Règle par défaut - accès libre temporaire pour les tests
+    // Sessions de formation - accès personnel
+    match /trainingSessions/{sessionId} {
+      allow read, write: if isAuthenticated() &&
+                            request.auth.uid == resource.data.get('userId', '') ||
+                            request.auth.uid == request.resource.data.get('userId', '');
+    }
+
+    // Alertes de sécurité - lecture seule pour utilisateurs authentifiés
+    match /security_alerts/{document} {
+      allow read: if isAuthenticated() && isEmailVerified();
+      allow write: if false; // Géré uniquement par les services système
+    }
+
+    // Règle par défaut - accès refusé
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

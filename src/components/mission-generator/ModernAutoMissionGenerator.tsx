@@ -10,15 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Search, 
-  Filter, 
-  Zap, 
-  Building2, 
-  Shield, 
-  Cpu, 
-  FileText, 
-  CheckCircle2, 
+import {
+  Search,
+  Filter,
+  Zap,
+  Building2,
+  Shield,
+  Cpu,
+  FileText,
+  CheckCircle2,
   ArrowRight,
   Sparkles,
   Target,
@@ -28,7 +28,9 @@ import {
   Lock,
   TrendingUp,
   X,
-  Plus
+  Plus,
+  Edit3,
+  Check
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AutoMissionGeneratorService } from '@/services/ai/AutoMissionGeneratorService';
@@ -91,6 +93,8 @@ const ModernAutoMissionGenerator: React.FC = () => {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showCustomSector, setShowCustomSector] = useState(false);
+  const [customSectorValue, setCustomSectorValue] = useState('');
   const [generationProgress, setGenerationProgress] = useState({
     step: '',
     progress: 0,
@@ -99,7 +103,7 @@ const ModernAutoMissionGenerator: React.FC = () => {
     reports: [] as string[]
   });
 
-  // Données enrichies (extraites du composant précédent)
+  // Données enrichies (extraites du composant précédent) - ÉLARGIE POUR TOUS SECTEURS FR/EU
   const sectors = [
     // SECTEUR PUBLIC
     { id: 'admin-centrale', name: 'Administration centrale (Ministères, Préfectures)', category: 'public', tags: ['gouvernement', 'état'] },
@@ -107,27 +111,58 @@ const ModernAutoMissionGenerator: React.FC = () => {
     { id: 'sante-publique', name: 'Établissements publics de santé (CHU, CHR, Hôpitaux)', category: 'public', tags: ['santé', 'médical'] },
     { id: 'education', name: 'Éducation nationale et enseignement supérieur', category: 'public', tags: ['éducation', 'université'] },
     { id: 'justice', name: 'Justice et services pénitentiaires', category: 'public', tags: ['justice', 'droit'] },
-    
+    { id: 'defense', name: 'Défense et sécurité nationale', category: 'public', tags: ['défense', 'militaire'] },
+    { id: 'social-public', name: 'Services sociaux et médico-sociaux publics', category: 'public', tags: ['social', 'aide'] },
+    { id: 'secu-sociale', name: 'Organismes de sécurité sociale (CPAM, CAF, URSSAF)', category: 'public', tags: ['sécurité sociale', 'prestations'] },
+
     // SANTÉ PRIVÉE
     { id: 'sante-privee', name: 'Santé - Établissements hospitaliers privés', category: 'santé', tags: ['médical', 'privé'] },
     { id: 'cliniques', name: 'Santé - Cliniques et centres médicaux', category: 'santé', tags: ['médical', 'soins'] },
     { id: 'pharma', name: 'Santé - Industrie pharmaceutique', category: 'santé', tags: ['médicament', 'recherche'] },
-    
-    // FINANCE
-    { id: 'banques', name: 'Banques de détail et commerciales', category: 'finance', tags: ['banque', 'crédit'] },
-    { id: 'assurance', name: 'Assurances vie et non-vie', category: 'finance', tags: ['assurance', 'risque'] },
+    { id: 'laboratoires', name: 'Santé - Laboratoires d\'analyses médicales', category: 'santé', tags: ['analyse', 'diagnostic'] },
+    { id: 'pharmacies', name: 'Santé - Pharmacies et officines', category: 'santé', tags: ['pharmacie', 'médicament'] },
+    { id: 'telemedicine', name: 'Santé - Télémédecine et e-santé', category: 'santé', tags: ['télémédecine', 'digital'] },
+
+    // SERVICES FINANCIERS COMPLETS
+    { id: 'banques-detail', name: 'Banques de détail et commerciales', category: 'finance', tags: ['banque', 'crédit'] },
+    { id: 'banques-investissement', name: 'Banques d\'investissement et de marché', category: 'finance', tags: ['investissement', 'marché'] },
+    { id: 'banques-cooperatives', name: 'Banques coopératives et mutualistes', category: 'finance', tags: ['coopérative', 'mutuelle'] },
+    { id: 'assurance-vie', name: 'Assurances vie et non-vie', category: 'finance', tags: ['assurance', 'risque'] },
+    { id: 'mutuelles', name: 'Mutuelles et institutions de prévoyance', category: 'finance', tags: ['mutuelle', 'prévoyance'] },
+    { id: 'gestion-actifs', name: 'Sociétés de gestion d\'actifs', category: 'finance', tags: ['gestion', 'actifs'] },
+    { id: 'epargne', name: 'Épargne et placement financier', category: 'finance', tags: ['épargne', 'placement', 'investissement'] },
+    { id: 'fonds-pension', name: 'Fonds de pension et retraite', category: 'finance', tags: ['pension', 'retraite'] },
     { id: 'fintech', name: 'Fintech et néobanques', category: 'finance', tags: ['innovation', 'digital'] },
-    
+    { id: 'paiement', name: 'Services de paiement et monétique', category: 'finance', tags: ['paiement', 'monétique'] },
+    { id: 'courtage', name: 'Courtage et intermédiation financière', category: 'finance', tags: ['courtage', 'intermédiation'] },
+    { id: 'credit-bail', name: 'Crédit-bail et affacturage', category: 'finance', tags: ['crédit-bail', 'affacturage'] },
+
     // INDUSTRIE
     { id: 'automobile', name: 'Industrie automobile', category: 'industrie', tags: ['véhicule', 'transport'] },
     { id: 'aeronautique', name: 'Industrie aéronautique et spatiale', category: 'industrie', tags: ['avion', 'espace'] },
-    { id: 'energie', name: 'Production d\'électricité (nucléaire, renouvelable)', category: 'énergie', tags: ['électricité', 'nucléaire'] },
-    
+    { id: 'navale', name: 'Industrie navale et maritime', category: 'industrie', tags: ['naval', 'maritime'] },
+    { id: 'chimique', name: 'Industrie chimique et pétrochimique', category: 'industrie', tags: ['chimie', 'pétrole'] },
+    { id: 'agroalimentaire', name: 'Industrie agroalimentaire', category: 'industrie', tags: ['alimentaire', 'agriculture'] },
+    { id: 'textile', name: 'Industrie textile et habillement', category: 'industrie', tags: ['textile', 'mode'] },
+    { id: 'metallurgie', name: 'Métallurgie et sidérurgie', category: 'industrie', tags: ['métal', 'acier'] },
+    { id: 'electronique', name: 'Industrie électronique et composants', category: 'industrie', tags: ['électronique', 'composants'] },
+
+    // ÉNERGIE ET UTILITIES
+    { id: 'energie-production', name: 'Production d\'électricité (nucléaire, renouvelable)', category: 'énergie', tags: ['électricité', 'nucléaire'] },
+    { id: 'energie-transport', name: 'Transport et distribution d\'électricité', category: 'énergie', tags: ['transport', 'distribution'] },
+    { id: 'gaz', name: 'Production et distribution de gaz', category: 'énergie', tags: ['gaz', 'distribution'] },
+    { id: 'petrole', name: 'Pétrole et raffinerie', category: 'énergie', tags: ['pétrole', 'raffinerie'] },
+    { id: 'renouvelables', name: 'Énergies renouvelables (éolien, solaire)', category: 'énergie', tags: ['renouvelable', 'vert'] },
+    { id: 'eau', name: 'Distribution d\'eau et assainissement', category: 'utilities', tags: ['eau', 'assainissement'] },
+    { id: 'dechets', name: 'Gestion des déchets et recyclage', category: 'utilities', tags: ['déchets', 'recyclage'] },
+
     // TECH
     { id: 'software', name: 'Éditeurs de logiciels', category: 'tech', tags: ['logiciel', 'développement'] },
     { id: 'cloud', name: 'Hébergement et cloud computing', category: 'tech', tags: ['cloud', 'infrastructure'] },
     { id: 'cybersec', name: 'Cybersécurité', category: 'tech', tags: ['sécurité', 'protection'] },
-    { id: 'ai', name: 'Intelligence artificielle et data science', category: 'tech', tags: ['ia', 'données'] }
+    { id: 'ai', name: 'Intelligence artificielle et data science', category: 'tech', tags: ['ia', 'données'] },
+    { id: 'telecoms', name: 'Opérateurs télécoms fixes et mobiles', category: 'tech', tags: ['télécom', 'mobile'] },
+    { id: 'internet', name: 'Fournisseurs d\'accès Internet', category: 'tech', tags: ['internet', 'fai'] }
   ];
 
   const organizationSizes = [
@@ -297,6 +332,20 @@ const ModernAutoMissionGenerator: React.FC = () => {
       }));
     }
     setShowSuggestions(false);
+  };
+
+  // Fonction pour gérer la saisie libre du secteur
+  const handleCustomSectorSubmit = () => {
+    if (customSectorValue.trim()) {
+      setContext(prev => ({ ...prev, sector: customSectorValue.trim() }));
+      setCustomSectorValue('');
+      setShowCustomSector(false);
+    }
+  };
+
+  const handleCustomSectorCancel = () => {
+    setCustomSectorValue('');
+    setShowCustomSector(false);
   };
 
   // Fonction de génération de mission
@@ -477,38 +526,136 @@ const ModernAutoMissionGenerator: React.FC = () => {
 
                   <div>
                     <Label className="text-sm font-medium text-gray-700">Secteur d'activité *</Label>
-                    <div className="mt-2">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          placeholder="Rechercher un secteur..."
-                          value={filters.sectorFilter}
-                          onChange={(e) => setFilters(prev => ({ ...prev, sectorFilter: e.target.value }))}
-                          className="pl-10 border-gray-200"
-                        />
-                      </div>
-                      <div className="mt-3 max-h-48 overflow-y-auto space-y-2">
-                        {filteredSectors.map(sector => (
-                          <div
-                            key={sector.id}
-                            className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                              context.sector === sector.name
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                            onClick={() => setContext(prev => ({ ...prev, sector: sector.name }))}
-                          >
-                            <div className="font-medium text-sm">{sector.name}</div>
-                            <div className="flex gap-1 mt-1">
-                              {sector.tags.map(tag => (
-                                <Badge key={tag} variant="secondary" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
+
+                    {/* Secteur sélectionné - TOUJOURS VISIBLE */}
+                    {context.sector && (
+                      <div className="mt-2 mb-3">
+                        <div className="text-sm font-medium text-blue-900 mb-2">Secteur sélectionné</div>
+                        <div className="p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-blue-800">{context.sector}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setContext(prev => ({ ...prev, sector: '' }))}
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                        ))}
+                        </div>
                       </div>
+                    )}
+
+                    {/* Options de sélection */}
+                    <div className="mt-2">
+                      <div className="flex gap-2 mb-3">
+                        <Button
+                          type="button"
+                          variant={showCustomSector ? "secondary" : "outline"}
+                          onClick={() => {
+                            setShowCustomSector(!showCustomSector);
+                            if (showCustomSector) {
+                              setCustomSectorValue('');
+                            }
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                          Secteur personnalisé
+                        </Button>
+                      </div>
+
+                      {/* Saisie libre du secteur */}
+                      {showCustomSector && (
+                        <div className="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <Label className="text-sm font-medium text-yellow-800 mb-2 block">
+                            Saisissez votre secteur d'activité
+                          </Label>
+                          <div className="flex gap-2">
+                            <Input
+                              value={customSectorValue}
+                              onChange={(e) => setCustomSectorValue(e.target.value)}
+                              placeholder="Ex: Épargne, Gestion de patrimoine, etc."
+                              className="flex-1 border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500"
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleCustomSectorSubmit();
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              onClick={handleCustomSectorSubmit}
+                              disabled={!customSectorValue.trim()}
+                              className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handleCustomSectorCancel}
+                              className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Recherche dans les secteurs prédéfinis */}
+                      {!showCustomSector && (
+                        <>
+                          <div className="relative">
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Input
+                              placeholder="Rechercher un secteur prédéfini..."
+                              value={filters.sectorFilter}
+                              onChange={(e) => setFilters(prev => ({ ...prev, sectorFilter: e.target.value }))}
+                              className="pl-10 border-gray-200"
+                            />
+                          </div>
+                          <div className="mt-3 max-h-48 overflow-y-auto space-y-2">
+                            {filteredSectors.map(sector => (
+                              <div
+                                key={sector.id}
+                                className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                                  context.sector === sector.name
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                                onClick={() => setContext(prev => ({ ...prev, sector: sector.name }))}
+                              >
+                                <div className="font-medium text-sm">{sector.name}</div>
+                                <div className="flex gap-1 mt-1">
+                                  {sector.tags.map(tag => (
+                                    <Badge key={tag} variant="secondary" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                            {filteredSectors.length === 0 && filters.sectorFilter && (
+                              <div className="text-center py-4 text-gray-500">
+                                Aucun secteur trouvé pour "{filters.sectorFilter}".
+                                <br />
+                                <Button
+                                  type="button"
+                                  variant="link"
+                                  onClick={() => setShowCustomSector(true)}
+                                  className="text-blue-600 p-0 h-auto"
+                                >
+                                  Créer un secteur personnalisé
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 

@@ -1104,23 +1104,143 @@ export class A2AOrchestrator {
   }
 
   private async validateWorkshop1To2Coherence(results: Record<number, WorkflowResult>): Promise<void> {
-    // Validation que les sources de risque couvrent les valeurs métier
     console.log('🔗 Validation cohérence Atelier 1 -> 2');
+
+    const workshop1Data = results[1]?.data;
+    const workshop2Data = results[2]?.data;
+
+    if (!workshop1Data || !workshop2Data) {
+      throw new Error('Données manquantes pour validation A1->A2');
+    }
+
+    // VALIDATION CRITIQUE: Chaque valeur métier doit avoir au moins un événement redouté
+    const businessValues = workshop1Data.businessValues || [];
+    const dreadedEvents = workshop2Data.dreadedEvents || [];
+
+    const uncoveredValues = businessValues.filter((bv: any) =>
+      !dreadedEvents.some((de: any) => de.businessValueId === bv.id)
+    );
+
+    if (uncoveredValues.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${uncoveredValues.length} valeurs métier sans événements redoutés associés`);
+    }
+
+    // VALIDATION CRITIQUE: Chaque source de risque doit cibler au moins une valeur métier
+    const riskSources = workshop2Data.riskSources || [];
+    const unlinkedSources = riskSources.filter((rs: any) =>
+      !rs.targetedValues || rs.targetedValues.length === 0
+    );
+
+    if (unlinkedSources.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${unlinkedSources.length} sources de risque sans valeurs métier ciblées`);
+    }
+
+    console.log('✅ Cohérence A1->A2 validée');
   }
 
   private async validateWorkshop2To3Coherence(results: Record<number, WorkflowResult>): Promise<void> {
-    // Validation que les scénarios stratégiques couvrent les sources de risque
     console.log('🔗 Validation cohérence Atelier 2 -> 3');
+
+    const workshop2Data = results[2]?.data;
+    const workshop3Data = results[3]?.data;
+
+    if (!workshop2Data || !workshop3Data) {
+      throw new Error('Données manquantes pour validation A2->A3');
+    }
+
+    // VALIDATION CRITIQUE: Chaque source de risque doit avoir au moins un scénario stratégique
+    const riskSources = workshop2Data.riskSources || [];
+    const strategicScenarios = workshop3Data.strategicScenarios || [];
+
+    const uncoveredSources = riskSources.filter((rs: any) =>
+      !strategicScenarios.some((ss: any) => ss.riskSourceId === rs.id)
+    );
+
+    if (uncoveredSources.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${uncoveredSources.length} sources de risque sans scénarios stratégiques`);
+    }
+
+    // VALIDATION CRITIQUE: Cohérence des niveaux de risque
+    const invalidRiskLevels = strategicScenarios.filter((ss: any) => {
+      const source = riskSources.find((rs: any) => rs.id === ss.riskSourceId);
+      return source && (ss.likelihood * ss.impact) !== ss.riskLevel;
+    });
+
+    if (invalidRiskLevels.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${invalidRiskLevels.length} scénarios avec calculs de risque incohérents`);
+    }
+
+    console.log('✅ Cohérence A2->A3 validée');
   }
 
   private async validateWorkshop3To4Coherence(results: Record<number, WorkflowResult>): Promise<void> {
-    // Validation que les chemins opérationnels déclinent les scénarios stratégiques
     console.log('🔗 Validation cohérence Atelier 3 -> 4');
+
+    const workshop3Data = results[3]?.data;
+    const workshop4Data = results[4]?.data;
+
+    if (!workshop3Data || !workshop4Data) {
+      throw new Error('Données manquantes pour validation A3->A4');
+    }
+
+    // VALIDATION CRITIQUE: Chaque scénario stratégique doit avoir au moins un mode opératoire
+    const strategicScenarios = workshop3Data.strategicScenarios || [];
+    const operationalModes = workshop4Data.operationalModes || [];
+
+    const uncoveredScenarios = strategicScenarios.filter((ss: any) =>
+      !operationalModes.some((om: any) => om.strategicScenarioId === ss.id)
+    );
+
+    if (uncoveredScenarios.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${uncoveredScenarios.length} scénarios stratégiques sans modes opératoires`);
+    }
+
+    // VALIDATION CRITIQUE: Cohérence des techniques MITRE ATT&CK
+    const modesWithoutMitre = operationalModes.filter((om: any) =>
+      !om.techniques || om.techniques.length === 0
+    );
+
+    if (modesWithoutMitre.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${modesWithoutMitre.length} modes opératoires sans techniques MITRE ATT&CK`);
+    }
+
+    console.log('✅ Cohérence A3->A4 validée');
   }
 
   private async validateWorkshop4To5Coherence(results: Record<number, WorkflowResult>): Promise<void> {
-    // Validation que les mesures de sécurité traitent les risques identifiés
     console.log('🔗 Validation cohérence Atelier 4 -> 5');
+
+    const workshop4Data = results[4]?.data;
+    const workshop5Data = results[5]?.data;
+
+    if (!workshop4Data || !workshop5Data) {
+      throw new Error('Données manquantes pour validation A4->A5');
+    }
+
+    // VALIDATION CRITIQUE: Chaque mode opératoire doit avoir des mesures de sécurité associées
+    const operationalModes = workshop4Data.operationalModes || [];
+    const securityMeasures = workshop5Data.securityMeasures || [];
+
+    const uncoveredModes = operationalModes.filter((om: any) =>
+      !securityMeasures.some((sm: any) => sm.targetedModes && sm.targetedModes.includes(om.id))
+    );
+
+    if (uncoveredModes.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${uncoveredModes.length} modes opératoires sans mesures de sécurité`);
+    }
+
+    // VALIDATION CRITIQUE: Cohérence des stratégies de traitement
+    const treatmentStrategies = workshop5Data.treatmentStrategies || [];
+    const invalidStrategies = treatmentStrategies.filter((ts: any) => {
+      const mode = operationalModes.find((om: any) => om.id === ts.operationalModeId);
+      return mode && ts.riskReduction > 95; // Réduction de risque irréaliste
+    });
+
+    if (invalidStrategies.length > 0) {
+      throw new Error(`VALIDATION ÉCHOUÉE: ${invalidStrategies.length} stratégies avec réduction de risque irréaliste (>95%)`);
+    }
+
+    console.log('✅ Cohérence A4->A5 validée');
   }
 
   /**

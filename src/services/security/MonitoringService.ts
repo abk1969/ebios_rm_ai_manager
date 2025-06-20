@@ -124,9 +124,10 @@ export class MonitoringService {
       }
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors du traitement de l\'événement de sécurité', {
         event,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -153,9 +154,10 @@ export class MonitoringService {
       anomalies.push(...exfiltrationAnomalies);
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la détection d\'anomalies', {
         userId: context.userId,
-        error: error.message
+        error: errorMessage
       });
     }
 
@@ -201,9 +203,10 @@ export class MonitoringService {
       });
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors du déclenchement d\'alerte', {
         alert,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -239,9 +242,10 @@ export class MonitoringService {
       });
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la déclaration d\'incident', {
         incident,
-        error: error.message
+        error: errorMessage
       });
     }
   }
@@ -327,8 +331,9 @@ export class MonitoringService {
       return metrics;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de la récupération des métriques de sécurité', {
-        error: error.message
+        error: errorMessage
       });
       throw error;
     }
@@ -336,10 +341,53 @@ export class MonitoringService {
 
   // 🔧 MÉTHODES PRIVÉES
   private async storeMetric(metric: SecurityMetric): Promise<void> {
-    await addDoc(collection(db, 'security_metrics'), {
-      ...metric,
-      timestamp: Timestamp.fromDate(metric.timestamp)
-    });
+    try {
+      // 🛡️ SÉCURITÉ: Nettoyer les données pour Firestore
+      const cleanMetric = {
+        name: metric.name,
+        value: typeof metric.value === 'number' ? metric.value : 0,
+        timestamp: Timestamp.fromDate(metric.timestamp),
+        tags: metric.tags ? this.sanitizeForFirestore(metric.tags) : {},
+        source: 'monitoring_service'
+      };
+
+      await addDoc(collection(db, 'security_metrics'), cleanMetric);
+    } catch (error) {
+      // 🚨 FALLBACK: En cas d'erreur, ne pas bloquer l'application
+      console.warn('Erreur stockage métrique (non bloquante):', error);
+    }
+  }
+
+  /**
+   * 🧹 Nettoie les données pour Firestore
+   */
+  private sanitizeForFirestore(obj: any): any {
+    if (obj === null || obj === undefined) return null;
+
+    if (typeof obj === 'string' || typeof obj === 'number' || typeof obj === 'boolean') {
+      return obj;
+    }
+
+    if (obj instanceof Date) {
+      return Timestamp.fromDate(obj);
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.sanitizeForFirestore(item)).filter(item => item !== undefined);
+    }
+
+    if (typeof obj === 'object') {
+      const cleaned: any = {};
+      for (const [key, value] of Object.entries(obj)) {
+        const cleanedValue = this.sanitizeForFirestore(value);
+        if (cleanedValue !== undefined) {
+          cleaned[key] = cleanedValue;
+        }
+      }
+      return cleaned;
+    }
+
+    return undefined; // Exclure les types non supportés
   }
 
   private recordEventMetrics(event: SecurityEvent): void {
@@ -476,7 +524,8 @@ export class MonitoringService {
       }
     };
 
-    return titles[event.type]?.[event.action] || `Événement ${event.type}`;
+    const typeActions = titles[event.type as keyof typeof titles];
+    return typeActions?.[event.action as keyof typeof typeActions] || `Événement ${event.type}`;
   }
 
   private generateAlertDescription(event: SecurityEvent): string {
@@ -535,6 +584,12 @@ export class MonitoringService {
   }
 
   private startMetricsCollection(): void {
+    // 🔧 DÉVELOPPEMENT: Désactiver la collection automatique pour éviter les erreurs
+    if (import.meta.env.DEV) {
+      console.log('🔧 Mode développement: Collection de métriques désactivée');
+      return;
+    }
+
     // Collection de métriques système toutes les minutes
     setInterval(() => {
       this.collectSystemMetrics();
@@ -558,8 +613,9 @@ export class MonitoringService {
     try {
       // Logique d'analyse des patterns
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       this.logger.error('Erreur lors de l\'analyse d\'anomalies', {
-        error: error.message
+        error: errorMessage
       });
     }
   }
