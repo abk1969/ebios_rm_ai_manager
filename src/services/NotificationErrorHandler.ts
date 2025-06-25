@@ -594,6 +594,3 @@ export class NotificationErrorHandler {
 export const notificationErrorHandler = NotificationErrorHandler.getInstance();
 
 export default NotificationErrorHandler;
-
-// 🎯 INSTANCE GLOBALE
-export const notificationErrorHandler = NotificationErrorHandler.getInstance();
