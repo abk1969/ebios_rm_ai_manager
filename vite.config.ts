@@ -54,6 +54,18 @@ export default defineConfig({
     port: 5173,
     host: true,
     cors: true,
+    proxy: {
+      // Proxy pour le service AI local
+      '/api/ai': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+    // Configuration pour les émulateurs Firebase
+    fs: {
+      allow: ['..'],
+    },
   },
   preview: {
     // Configuration pour la prévisualisation

@@ -12,7 +12,13 @@ from datetime import datetime
 
 # Configuration de l'application Flask
 app = Flask(__name__)
-CORS(app, origins=["*"])  # Permettre toutes les origines pour Cloud Run
+
+# Configuration CORS pour le développement local
+if os.environ.get('FLASK_ENV') == 'development':
+    CORS(app, origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"])
+    print("🏠 Mode développement local activé")
+else:
+    CORS(app, origins=["*"])  # Permettre toutes les origines pour Cloud Run
 
 # Configuration du logging pour Cloud Run
 logging.basicConfig(
@@ -237,5 +243,14 @@ def internal_error(error):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    logger.info(f"🚀 Démarrage du service EBIOS AI sur le port {port}")
-    app.run(host='0.0.0.0', port=port, debug=False)
+    debug_mode = os.environ.get('FLASK_ENV') == 'development'
+
+    if debug_mode:
+        logger.info(f"🏠 Démarrage du service EBIOS AI en mode développement sur le port {port}")
+        print(f"🌐 Service accessible sur: http://localhost:{port}")
+        print(f"🔍 Health check: http://localhost:{port}/health")
+        print(f"🤖 API d'analyse: http://localhost:{port}/api/ai/analyze")
+    else:
+        logger.info(f"🚀 Démarrage du service EBIOS AI sur le port {port}")
+
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
