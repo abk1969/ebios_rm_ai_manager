@@ -5,7 +5,7 @@ import { store } from './store';
 import App from './App';
 import { SettingsInitializer } from './services/settings/SettingsInitializer';
 // import { trainingIntegrationService } from './services/training/TrainingIntegrationService'; // DÉSACTIVÉ
-import { requestInterceptor } from './services/security/RequestInterceptor';
+import { requestInterceptor as _requestInterceptor } from './services/security/RequestInterceptor';
 import './index.css';
 
 // 🚀 Initialisation des paramètres au démarrage

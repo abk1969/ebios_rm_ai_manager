@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import EbiosRMMetricsService, { type EbiosRMMetrics } from '@/services/metrics/EbiosRMMetricsService';
 import PerformanceMonitor from '@/components/performance/PerformanceMonitor';
 import DeploymentDashboard from '@/components/deployment/DeploymentDashboard';
+import UnifiedMissionOverview from './UnifiedMissionOverview';
 
 interface EbiosGlobalDashboardProps {
   missionId: string;
@@ -75,6 +76,9 @@ const EbiosGlobalDashboard: React.FC<EbiosGlobalDashboardProps> = ({
   });
   const [isLoading, setIsLoading] = useState(true);
   const [metricsData, setMetricsData] = useState<EbiosRMMetrics | null>(null);
+
+  // 🎯 FLAG POUR LA VUE UNIFIÉE (peut être désactivé facilement)
+  const [showUnifiedView, setShowUnifiedView] = useState(true);
 
   useEffect(() => {
     if (missionId) {

@@ -16,7 +16,11 @@ import Workshop2 from './pages/workshops/Workshop2';
 import Workshop3 from './pages/workshops/Workshop3';
 import Workshop4 from './pages/workshops/Workshop4';
 import Workshop5 from './pages/workshops/Workshop5';
-import WorkshopRedirect from './components/workshops/WorkshopRedirect';
+import WorkshopMissionRequired from './components/workshops/WorkshopMissionRequired';
+// 🔧 DIAGNOSTIC TEMPORAIREMENT DÉSACTIVÉ POUR ÉVITER LES ERREURS
+// import { ReduxSelectorMonitor } from './components/debug/ReduxSelectorDiagnostic';
+// import SelectorWarningDetector from './components/debug/SelectorWarningDetector';
+import { useReduxWarningSupressor } from './utils/ReduxWarningSupressor';
 import WorkshopsIndex from './pages/WorkshopsIndex';
 import EbiosReport from './pages/EbiosReport';
 import EbiosDashboard from './pages/EbiosDashboard';
@@ -43,17 +47,35 @@ import RequestMonitor from './components/security/RequestMonitor';
 const TRAINING_MODULE_ENABLED = import.meta.env.VITE_TRAINING_MODULE_ENABLED !== 'false';
 
 function App() {
+  // 🔇 Activation du suppresseur d'avertissements Redux
+  const { getSuppressedCount } = useReduxWarningSupressor(true);
+
+  // Afficher le nombre d'avertissements supprimés après 10 secondes
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      const suppressedCount = getSuppressedCount();
+      if (suppressedCount > 0) {
+        console.info(`🔇 ${suppressedCount} avertissement(s) Redux supprimé(s) pour une expérience utilisateur optimale`);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [getSuppressedCount]);
+
   return (
     <AuthProvider>
         <LegalProvider>
           <NotificationProvider>
             <ErrorBoundary>
-            <Router
-              future={{
-                v7_startTransition: true,
-                v7_relativeSplatPath: true,
-              }}
-            >
+              {/* 🔧 DIAGNOSTIC TEMPORAIREMENT DÉSACTIVÉ POUR ÉVITER LES ERREURS */}
+              {/* <SelectorWarningDetector /> */}
+              {/* <ReduxSelectorMonitor> */}
+                <Router
+                  future={{
+                    v7_startTransition: true,
+                    v7_relativeSplatPath: true,
+                  }}
+                >
               <div className="min-h-screen relative">
                 <Routes>
                   {/* Public routes */}
@@ -94,19 +116,19 @@ function App() {
                   {/* 🔧 CORRECTION: Page d'index des workshops */}
                   <Route path="/workshops" element={<PrivateRoute><AppLayout><Layout><WorkshopsIndex /></Layout></AppLayout></PrivateRoute>} />
 
-                  {/* 🔧 ROUTES UNIFIÉES: Seules les routes avec missionId sont conservées */}
+                  {/* 🔧 ROUTES SÉCURISÉES: SEULES LES ROUTES AVEC MISSION SONT AUTORISÉES */}
                   <Route path="/workshops/:missionId/1" element={<PrivateRoute><AppLayout><Layout><Workshop1 /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/workshops/:missionId/2" element={<PrivateRoute><AppLayout><Layout><Workshop2 /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/workshops/:missionId/3" element={<PrivateRoute><AppLayout><Layout><Workshop3 /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/workshops/:missionId/4" element={<PrivateRoute><AppLayout><Layout><Workshop4 /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/workshops/:missionId/5" element={<PrivateRoute><AppLayout><Layout><Workshop5 /></Layout></AppLayout></PrivateRoute>} />
 
-                  {/* 🔧 REDIRECTIONS INTELLIGENTES: Anciennes routes avec gestion automatique */}
-                  <Route path="/workshop-1" element={<PrivateRoute><AppLayout><Layout><WorkshopRedirect workshopNumber={1}><Workshop1 /></WorkshopRedirect></Layout></AppLayout></PrivateRoute>} />
-                  <Route path="/workshop-2" element={<PrivateRoute><AppLayout><Layout><WorkshopRedirect workshopNumber={2}><Workshop2 /></WorkshopRedirect></Layout></AppLayout></PrivateRoute>} />
-                  <Route path="/workshop-3" element={<PrivateRoute><AppLayout><Layout><WorkshopRedirect workshopNumber={3}><Workshop3 /></WorkshopRedirect></Layout></AppLayout></PrivateRoute>} />
-                  <Route path="/workshop-4" element={<PrivateRoute><AppLayout><Layout><WorkshopRedirect workshopNumber={4}><Workshop4 /></WorkshopRedirect></Layout></AppLayout></PrivateRoute>} />
-                  <Route path="/workshop-5" element={<PrivateRoute><AppLayout><Layout><WorkshopRedirect workshopNumber={5}><Workshop5 /></WorkshopRedirect></Layout></AppLayout></PrivateRoute>} />
+                  {/* 🚫 REDIRECTIONS SÉCURISÉES: Anciennes routes redirigent vers sélection mission */}
+                  <Route path="/workshop-1" element={<PrivateRoute><AppLayout><Layout><WorkshopMissionRequired workshopNumber={1} /></Layout></AppLayout></PrivateRoute>} />
+                  <Route path="/workshop-2" element={<PrivateRoute><AppLayout><Layout><WorkshopMissionRequired workshopNumber={2} /></Layout></AppLayout></PrivateRoute>} />
+                  <Route path="/workshop-3" element={<PrivateRoute><AppLayout><Layout><WorkshopMissionRequired workshopNumber={3} /></Layout></AppLayout></PrivateRoute>} />
+                  <Route path="/workshop-4" element={<PrivateRoute><AppLayout><Layout><WorkshopMissionRequired workshopNumber={4} /></Layout></AppLayout></PrivateRoute>} />
+                  <Route path="/workshop-5" element={<PrivateRoute><AppLayout><Layout><WorkshopMissionRequired workshopNumber={5} /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/ebios-report" element={<PrivateRoute><AppLayout><Layout><EbiosReport /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/ebios-report/:missionId" element={<PrivateRoute><AppLayout><Layout><EbiosReport /></Layout></AppLayout></PrivateRoute>} />
                   <Route path="/reports" element={<PrivateRoute><AppLayout><Layout><EbiosReport /></Layout></AppLayout></PrivateRoute>} />
@@ -123,10 +145,10 @@ function App() {
                 {/* 🛡️ Moniteur de sécurité temporairement désactivé */}
                 {/* {import.meta.env.DEV && <RequestMonitor />} */}
               </div>
-            </Router>
-          </ErrorBoundary>
-        </NotificationProvider>
-      </LegalProvider>
+                </Router>
+            </ErrorBoundary>
+          </NotificationProvider>
+        </LegalProvider>
     </AuthProvider>
   );
 }

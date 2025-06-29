@@ -194,7 +194,7 @@ export class ANSSIValidationService {
     }
 
     // Validation critique : Évaluation des impacts
-    const eventsWithoutImpact = dreadedEvents.filter(de => !de.impact || de.impact < 1 || de.impact > 4);
+    const eventsWithoutImpact = dreadedEvents.filter(de => !de.gravity || de.gravity < 1 || de.gravity > 4);
     if (eventsWithoutImpact.length > 0) {
       issues.push(`${eventsWithoutImpact.length} événement(s) redouté(s) sans évaluation d'impact valide (1-4)`);
       score -= 10 * eventsWithoutImpact.length;

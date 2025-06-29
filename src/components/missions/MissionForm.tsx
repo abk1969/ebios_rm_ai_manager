@@ -31,6 +31,8 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import MultiValueInput from '@/components/ui/MultiValueInput';
 import { Mission } from '@/types/ebios';
+import { missionContextualAI } from '../../services/ai/MissionContextualAIOrchestrator';
+import MissionContextAISuggestions from '../ai/MissionContextAISuggestions';
 
 // Interface pour le contexte de mission (réutilisée du générateur automatique)
 interface MissionContext {
@@ -188,6 +190,11 @@ const MissionForm: React.FC<MissionFormProps> = ({ onSubmit, initialData }) => {
   const [selectedSectorCategory, setSelectedSectorCategory] = useState('');
   const [showCustomSector, setShowCustomSector] = useState(false);
   const [customSectorValue, setCustomSectorValue] = useState('');
+
+  // 🤖 États pour l'IA contextuelle
+  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [currentField, setCurrentField] = useState<string>('');
   const [context, setContext] = useState<MissionContext>({
     organizationName: initialData?.name || '',
     sector: '',
@@ -295,6 +302,59 @@ const MissionForm: React.FC<MissionFormProps> = ({ onSubmit, initialData }) => {
   const handleCustomSectorCancel = () => {
     setCustomSectorValue('');
     setShowCustomSector(false);
+  };
+
+  // 🤖 Fonction pour charger les suggestions IA contextuelles
+  const loadContextualAISuggestions = async (fieldName: string) => {
+    if (!fieldName || isLoadingAI) return;
+
+    setCurrentField(fieldName);
+    setIsLoadingAI(true);
+
+    try {
+      const suggestions = await missionContextualAI.generateMissionContextSuggestions(
+        context,
+        fieldName
+      );
+
+      setAiSuggestions(suggestions);
+
+      console.log('🤖 Suggestions IA chargées:', {
+        field: fieldName,
+        count: suggestions.length,
+        sector: context.sector
+      });
+
+    } catch (error) {
+      console.error('❌ Erreur chargement suggestions IA:', error);
+      setAiSuggestions([]);
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
+
+  // 🤖 Fonction pour appliquer une suggestion IA
+  const applySuggestion = (suggestion: any) => {
+    const fieldName = currentField as keyof MissionContext;
+
+    if (Array.isArray(context[fieldName])) {
+      // Pour les champs tableau
+      setContext(prev => ({
+        ...prev,
+        [fieldName]: [...(prev[fieldName] as string[]), suggestion.title.replace(/^[^:]*:\s*/, '')]
+      }));
+    } else {
+      // Pour les champs simples
+      setContext(prev => ({
+        ...prev,
+        [fieldName]: suggestion.title.replace(/^[^:]*:\s*/, '')
+      }));
+    }
+
+    console.log('✅ Suggestion appliquée:', {
+      field: fieldName,
+      suggestion: suggestion.title
+    });
   };
 
   // Validation des étapes
@@ -797,6 +857,15 @@ const MissionForm: React.FC<MissionFormProps> = ({ onSubmit, initialData }) => {
                     required={true}
                   />
 
+                  {/* 🤖 Suggestions IA pour les processus critiques */}
+                  <MissionContextAISuggestions
+                    suggestions={currentField === 'criticalProcesses' ? aiSuggestions : []}
+                    isLoading={isLoadingAI && currentField === 'criticalProcesses'}
+                    currentField={currentField === 'criticalProcesses' ? 'criticalProcesses' : ''}
+                    onApplySuggestion={applySuggestion}
+                    onLoadSuggestions={loadContextualAISuggestions}
+                  />
+
                   <MultiValueInput
                     label="Parties prenantes"
                     values={context.stakeholders}
@@ -878,6 +947,15 @@ const MissionForm: React.FC<MissionFormProps> = ({ onSubmit, initialData }) => {
                     description="Identifiez les cadres réglementaires qui s'appliquent"
                     maxItems={15}
                     required={true}
+                  />
+
+                  {/* 🤖 Suggestions IA pour les réglementations */}
+                  <MissionContextAISuggestions
+                    suggestions={currentField === 'regulations' ? aiSuggestions : []}
+                    isLoading={isLoadingAI && currentField === 'regulations'}
+                    currentField={currentField === 'regulations' ? 'regulations' : ''}
+                    onApplySuggestion={applySuggestion}
+                    onLoadSuggestions={loadContextualAISuggestions}
                   />
 
                   <div>

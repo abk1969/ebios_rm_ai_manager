@@ -167,7 +167,20 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      // 🔧 CORRECTION: Enrichir les données avec les champs requis
+      const enrichedData = {
+        ...formData,
+        missionId, // Ajouter missionId requis
+        essentialAssetId: formData.impactedBusinessValues[0] || '', // 🔧 CORRECTION: Mapper vers essentialAssetId
+        businessValueId: formData.impactedBusinessValues[0] || '', // Maintenir pour compatibilité
+        impactType: 'availability' as const, // Valeur par défaut
+        consequences: formData.consequencesDescription || formData.description,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      console.log('🚨 Données événement redouté à créer:', enrichedData);
+      await onSubmit(enrichedData);
       onClose();
     } catch (error) {
       console.error('Erreur lors de la création:', error);

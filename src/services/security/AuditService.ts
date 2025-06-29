@@ -85,7 +85,7 @@ export interface AuditQuery {
 export class AuditService {
   private logger = SecureLogger.getInstance();
   private config: AuditConfig;
-  private signingKey?: Buffer;
+  private signingKey?: Uint8Array;
   private lastHash: string = '';
   private chainIndex: number = 0;
 
@@ -116,7 +116,12 @@ export class AuditService {
       throw new Error('VITE_AUDIT_SIGNING_KEY non définie dans les variables d\'environnement');
     }
 
-    this.signingKey = Buffer.from(signingKeyHex, 'hex');
+    // 🔧 CORRECTION: Utilisation d'Uint8Array au lieu de Buffer pour compatibilité navigateur
+    const keyBytes = new Uint8Array(signingKeyHex.length / 2);
+    for (let i = 0; i < signingKeyHex.length; i += 2) {
+      keyBytes[i / 2] = parseInt(signingKeyHex.substr(i, 2), 16);
+    }
+    this.signingKey = keyBytes;
     if (this.signingKey.length !== 32) {
       throw new Error('La clé de signature d\'audit doit faire 256 bits (32 bytes)');
     }

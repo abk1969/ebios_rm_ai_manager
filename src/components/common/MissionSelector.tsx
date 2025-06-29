@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Target, ChevronDown, AlertCircle, CheckCircle } from 'lucide-react';
 import { RootState } from '@/store';
 import { setSelectedMission } from '@/store/slices/missionsSlice';
+import { selectSelectedMission, selectAllMissions } from '@/store/selectors';
 import Button from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import type { Mission } from '@/types/ebios';
@@ -19,8 +20,8 @@ const MissionSelector: React.FC<MissionSelectorProps> = ({
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const selectedMission = useSelector((state: RootState) => state.missions.selectedMission);
-  const missions = useSelector((state: RootState) => state.missions.missions);
+  const selectedMission = useSelector(selectSelectedMission);
+  const missions = useSelector(selectAllMissions);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleMissionSelect = (mission: Mission) => {

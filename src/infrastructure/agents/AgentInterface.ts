@@ -14,7 +14,9 @@ export enum AgentCapability {
   MEASURE_OPTIMIZATION = 'measure_optimization',
   WORKFLOW_ORCHESTRATION = 'workflow_orchestration',
   COMPLIANCE_VALIDATION = 'compliance_validation',
-  WORKSHOP_EXECUTION = 'workshop_execution'
+  WORKSHOP_EXECUTION = 'workshop_execution',
+  MONITORING = 'monitoring',
+  RECOMMENDATION = 'recommendation'
 }
 
 export enum AgentStatus {
@@ -77,6 +79,8 @@ export interface AgentResult {
     processingTime: number;
     agentVersion: string;
     fallbackUsed?: boolean;
+    agentType?: string;
+    legacyFallback?: boolean;
   };
   confidence?: number;
   reasoning?: string[];
@@ -90,6 +94,10 @@ export interface AgentMetrics {
   lastHeartbeat: Date;
   uptime: number;
   errorRate: number;
+  // Propriétés additionnelles pour compatibilité
+  tasksExecuted?: number;
+  successRate?: number;
+  lastActivity?: Date;
 }
 
 /**

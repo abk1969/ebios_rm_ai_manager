@@ -20,7 +20,26 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error:', error, errorInfo);
+    // Gestion robuste des erreurs Redux et autres
+    if (error.message?.includes('Cannot read properties of undefined') &&
+        errorInfo.componentStack?.includes('useSelector')) {
+      console.error('🚨 Erreur de sélecteur Redux détectée:', {
+        error: error.message,
+        component: errorInfo.componentStack.split('\n')[1]?.trim(),
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.error('❌ Erreur non gérée:', error, errorInfo);
+    }
+
+    // En mode développement, afficher plus de détails
+    if (import.meta.env.DEV) {
+      console.group('🔍 Détails de l\'erreur');
+      console.error('Message:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('Component Stack:', errorInfo.componentStack);
+      console.groupEnd();
+    }
   }
 
   public render() {

@@ -7,10 +7,11 @@ const TRAINING_MODULE_ENABLED = import.meta.env.VITE_TRAINING_MODULE_ENABLED !==
 import NavigationButtons from './NavigationButtons';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
+import { selectSelectedMission } from '@/store/selectors';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  const selectedMission = useSelector((state: RootState) => state.missions.selectedMission);
+  const selectedMission = useSelector(selectSelectedMission);
 
   const navigation = [
     { name: 'Missions', href: '/missions', icon: Briefcase },

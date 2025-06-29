@@ -11,6 +11,7 @@ interface AddSupportingAssetModalProps {
   onClose: () => void;
   onSubmit: (data: Partial<SupportingAsset>) => void;
   businessValueId: string;
+  missionId: string; // 🔧 CORRECTION: Ajout du missionId requis
   initialData?: Partial<SupportingAsset>;
 }
 
@@ -19,6 +20,7 @@ const AddSupportingAssetModal: React.FC<AddSupportingAssetModalProps> = ({
   onClose,
   onSubmit,
   businessValueId,
+  missionId, // 🔧 CORRECTION: Ajout du missionId
   initialData,
 }) => {
   // Récupérer la valeur métier et les actifs existants depuis le store
@@ -82,12 +84,27 @@ const AddSupportingAssetModal: React.FC<AddSupportingAssetModalProps> = ({
           <div className="p-6">
             <SupportingAssetForm
               onSubmit={(data) => {
-                onSubmit({ ...data, businessValueId });
+                // 🔧 CORRECTION: Mapping correct des données selon le type SupportingAsset
+                const supportingAssetData = {
+                  ...data,
+                  businessValueId, // Maintenu pour compatibilité
+                  essentialAssetId: businessValueId, // 🔧 CORRECTION: Champ requis par le type
+                  missionId: data.missionId || '', // Assurer que missionId est présent
+                  vulnerabilities: data.vulnerabilities || [], // Assurer que vulnerabilities est un tableau
+                  dependsOn: data.dependsOn || [], // Assurer que dependsOn est un tableau
+                  securityLevel: data.securityLevel || 'internal', // Valeur par défaut
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                };
+
+                console.log('🏗️ Données actif support à créer:', supportingAssetData);
+                onSubmit(supportingAssetData);
                 onClose();
               }}
               onCancel={onClose}
               businessValue={businessValue}
               existingAssets={existingAssets}
+              missionId={missionId} // 🔧 CORRECTION: Transmission du missionId
               initialData={initialData}
             />
           </div>

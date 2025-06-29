@@ -51,12 +51,16 @@ export interface KeyMetadata {
 export class EncryptionService {
   private logger = SecureLogger.getInstance();
   private config: EncryptionConfig;
-  private keyCache = new Map<string, Buffer>();
+  private keyCache = new Map<string, Uint8Array>();
   private keyMetadata = new Map<string, KeyMetadata>();
-  private masterKey?: Buffer;
+  private masterKey?: Uint8Array;
+  private keyManager: import('./KeyManager').KeyManager;
 
   constructor(config: EncryptionConfig) {
     this.config = config;
+
+    // Initialisation du gestionnaire de clés avec import dynamique
+    this.initializeKeyManager();
 
     try {
       this.initializeMasterKey();
@@ -69,15 +73,82 @@ export class EncryptionService {
     this.startKeyRotationScheduler();
   }
 
-  // 🔑 INITIALISATION DE LA CLÉ MAÎTRE
+  // 🔑 INITIALISATION DU GESTIONNAIRE DE CLÉS
+  private async initializeKeyManager(): Promise<void> {
+    try {
+      // Import dynamique pour éviter les problèmes de module
+      const { KeyManager } = await import('./KeyManager');
+      this.keyManager = KeyManager.getInstance();
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'import du KeyManager:', error);
+      // Continuer sans KeyManager en mode dégradé
+      this.keyManager = undefined as any;
+    }
+  }
+
+  // 🔑 INITIALISATION ROBUSTE DE LA CLÉ MAÎTRE
   private initializeMasterKey(): void {
     const masterKeyHex = import.meta.env.VITE_MASTER_ENCRYPTION_KEY;
+    const isDevelopment = import.meta.env.DEV;
 
-    // En mode développement, désactiver le chiffrement par défaut
-    if (import.meta.env.DEV && !masterKeyHex) {
-      console.warn('🔓 Mode développement: Chiffrement désactivé');
-      this.masterKey = undefined;
-      return;
+    try {
+      // Utilisation du KeyManager si disponible, sinon fallback
+      if (this.keyManager) {
+        const encryptionKey = this.keyManager.createOrGenerateKey(masterKeyHex, isDevelopment);
+
+        this.masterKey = encryptionKey.bytes;
+
+        // Stockage de la clé dans le gestionnaire
+        this.keyManager.storeKey('master', encryptionKey);
+
+        // Logging sécurisé
+        console.info('🔐 Service de chiffrement initialisé avec KeyManager', {
+          algorithm: encryptionKey.algorithm,
+          keyLength: encryptionKey.bytes.length * 8,
+          isDefault: encryptionKey.isDefault,
+          createdAt: encryptionKey.createdAt.toISOString()
+        });
+
+        if (encryptionKey.isDefault) {
+          console.warn('⚠️ Utilisation d\'une clé de développement - Ne pas utiliser en production');
+        }
+      } else {
+        // Fallback sans KeyManager
+        this.initializeMasterKeyFallback(masterKeyHex, isDevelopment);
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur critique lors de l\'initialisation de la clé maître:', error);
+
+      // En mode développement, essayer de créer une clé de secours
+      if (isDevelopment) {
+        console.warn('🔧 Tentative de création d\'une clé de secours en mode développement');
+        try {
+          const fallbackKey = this.keyManager.createDevelopmentKey();
+          this.masterKey = fallbackKey.bytes;
+          this.keyManager.storeKey('master-fallback', fallbackKey);
+          console.warn('✅ Clé de secours créée avec succès');
+        } catch (fallbackError) {
+          console.error('❌ Impossible de créer une clé de secours:', fallbackError);
+          this.masterKey = undefined;
+        }
+      } else {
+        // En production, échec critique
+        this.masterKey = undefined;
+        throw new Error(`Initialisation du chiffrement échouée: ${error.message}`);
+      }
+    }
+  }
+
+  // 🔧 MÉTHODE FALLBACK SANS KEYMANAGER
+  private initializeMasterKeyFallback(masterKeyHex?: string, isDevelopment: boolean = false): void {
+    console.warn('🔧 Initialisation en mode fallback sans KeyManager');
+
+    // En mode développement, utiliser une clé par défaut si non définie
+    if (isDevelopment && !masterKeyHex) {
+      console.warn('🔓 Mode développement: Utilisation d\'une clé de chiffrement par défaut');
+      // Clé de développement de 256 bits (64 caractères hex)
+      masterKeyHex = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
     }
 
     if (!masterKeyHex) {
@@ -86,18 +157,33 @@ export class EncryptionService {
       return;
     }
 
+    // Validation de la longueur de la clé hex (doit être 64 caractères pour 256 bits)
+    if (masterKeyHex.length !== 64) {
+      console.error(`❌ Clé de chiffrement invalide: ${masterKeyHex.length} caractères au lieu de 64`);
+      this.masterKey = undefined;
+      return;
+    }
+
     try {
-      this.masterKey = Buffer.from(masterKeyHex, 'hex');
+      // Conversion hex vers bytes
+      const keyBytes = new Uint8Array(masterKeyHex.length / 2);
+      for (let i = 0; i < masterKeyHex.length; i += 2) {
+        keyBytes[i / 2] = parseInt(masterKeyHex.substr(i, 2), 16);
+      }
+
+      this.masterKey = keyBytes;
+
       if (this.masterKey.length !== 32) {
         throw new Error('La clé maître doit faire 256 bits (32 bytes)');
       }
 
-      this.logger.info('Service de chiffrement initialisé', {
-        algorithm: this.config.atRest.algorithm,
-        keyRotationDays: this.config.atRest.keyRotationDays
+      console.info('🔐 Service de chiffrement initialisé en mode fallback', {
+        keyLength: this.masterKey.length * 8,
+        isDevelopment
       });
+
     } catch (error) {
-      console.error('Erreur lors de l\'initialisation de la clé maître:', error);
+      console.error('❌ Erreur lors de l\'initialisation de la clé maître (fallback):', error);
       this.masterKey = undefined;
     }
   }

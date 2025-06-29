@@ -26,9 +26,9 @@ import { MetricsCollector } from '../monitoring/MetricsCollector';
 // import { WorkshopService } from '../../services/workshops/WorkshopService';
 // import { VisualizationService } from '../../services/visualization/VisualizationService';
 // import { ThreatIntelligenceService } from '../../services/ai/ThreatIntelligenceService';
-// 🔧 CORRECTION: Modules temporairement commentés car non trouvés
-// import { RiskAnalysisService } from '../../services/analysis/RiskAnalysisService';
-// import { ComplianceService } from '../../services/compliance/ComplianceService';
+// 🔧 CORRECTION: Modules avec chemins corrigés
+import { RiskAnalysisAgent } from '../../services/agents/RiskAnalysisAgent';
+import { ComplianceService } from '../../services/security/ComplianceService';
 
 /**
  * Adaptateur qui encapsule les services legacy dans l'interface agent

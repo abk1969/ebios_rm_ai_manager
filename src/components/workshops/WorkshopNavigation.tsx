@@ -4,12 +4,12 @@ import { Database, Target, Users, Route, ShieldCheck } from 'lucide-react';
 import Button from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+// 🚫 SUPPRESSION DES PATHS STATIQUES - UTILISATION DYNAMIQUE AVEC MISSION
 const workshops = [
   {
     number: 1,
     title: 'Define the Scope and Security Baseline',
     icon: Database,
-    path: '/workshop-1',
     description: 'Establish study framework and evaluate security baseline',
     steps: [
       'Define business values',
@@ -22,7 +22,6 @@ const workshops = [
     number: 2,
     title: 'Risk Sources',
     icon: Target,
-    path: '/workshop-2',
     description: 'Identify and analyze potential sources of risk',
     steps: [
       'Identify risk sources',
@@ -35,7 +34,6 @@ const workshops = [
     number: 3,
     title: 'Strategic Scenarios',
     icon: Users,
-    path: '/workshop-3',
     description: 'Develop strategic attack scenarios',
     steps: [
       'Map stakeholders',
@@ -48,7 +46,6 @@ const workshops = [
     number: 4,
     title: 'Operational Scenarios',
     icon: Route,
-    path: '/workshop-4',
     description: 'Define operational attack scenarios',
     steps: [
       'Define attack actions',
@@ -61,7 +58,6 @@ const workshops = [
     number: 5,
     title: 'Treatment Strategy',
     icon: ShieldCheck,
-    path: '/workshop-5',
     description: 'Define and implement security measures',
     steps: [
       'Define security measures',

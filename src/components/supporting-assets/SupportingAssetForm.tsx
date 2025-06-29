@@ -28,6 +28,7 @@ interface SupportingAssetFormProps {
   initialData?: Partial<SupportingAsset>;
   businessValue?: BusinessValue;
   existingAssets?: SupportingAsset[];
+  missionId?: string; // 🔧 CORRECTION: Ajout du missionId requis
   isAccessMode?: boolean;
 }
 
@@ -54,6 +55,7 @@ const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
   initialData,
   businessValue,
   existingAssets = [],
+  missionId, // 🔧 CORRECTION: Ajout du missionId
   isAccessMode = false
 }) => {
   // État local pour éviter les problèmes de react-hook-form
@@ -194,11 +196,14 @@ const SupportingAssetForm: React.FC<SupportingAssetFormProps> = ({
         ...formData,
         type: formData.type as 'data' | 'software' | 'hardware' | 'network' | 'personnel' | 'site' | 'organization',
         vulnerabilities,
-        dependsOn: dependencies
+        dependsOn: dependencies,
+        missionId: missionId || '', // 🔧 CORRECTION: Inclure missionId
+        securityLevel: formData.securityLevel as 'public' | 'internal' | 'confidential' | 'secret'
       },
       businessValue
     );
 
+    console.log('🏗️ Données enrichies à soumettre:', enrichedData);
     onSubmit(enrichedData);
   };
 

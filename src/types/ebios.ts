@@ -150,7 +150,8 @@ export interface DreadedEvent {
   id: string;
   name: string;
   description: string;
-  businessValueId: string;
+  essentialAssetId: string; // 🔧 CORRECTION: Référence vers le bien essentiel (logique EBIOS RM)
+  businessValueId?: string; // 🔧 DEPRECATED: Maintenu pour compatibilité, sera supprimé
   gravity: GravityScale;
   impactType: 'availability' | 'integrity' | 'confidentiality' | 'authenticity' | 'non_repudiation';
   consequences: string;
@@ -181,27 +182,78 @@ export interface DreadedEvent {
   };
 }
 
-export interface BusinessValue {
+// 🎯 BIENS ESSENTIELS (EBIOS RM) - Primary Assets
+export interface EssentialAsset {
   id: string;
   name: string;
   description: string;
-  category: 'primary' | 'support' | 'management' | 'essential'; // 🔧 CORRECTION: Ajout 'essential'
-  priority: GravityScale;
+  type: 'process' | 'information' | 'know_how'; // Types EBIOS RM
+  category: 'mission_critical' | 'business_critical' | 'operational';
   criticalityLevel: 'essential' | 'important' | 'useful';
-  dreadedEvents: DreadedEvent[];
+  businessValueIds: string[]; // Référence vers les valeurs métier supportées
   supportingAssets: SupportingAsset[];
+  dreadedEvents: DreadedEvent[];
   stakeholders: string[];
   missionId: string;
   createdAt: string;
   updatedAt: string;
 
-  // 🔧 CORRECTION: Propriétés manquantes utilisées dans le code
-  criticality?: 'low' | 'medium' | 'high' | 'critical';
+  // Propriétés EBIOS RM spécifiques
+  confidentialityRequirement: GravityScale;
+  integrityRequirement: GravityScale;
+  availabilityRequirement: GravityScale;
+  authenticityRequirement?: GravityScale;
+  nonRepudiationRequirement?: GravityScale;
+
+  // Contexte organisationnel
+  owner: string; // Propriétaire métier
+  custodian?: string; // Gardien technique
+  users: string[]; // Utilisateurs principaux
 
   // 🆕 COMPATIBILITÉ ACCESS
-  natureValeurMetier?: 'PROCESSUS' | 'INFORMATION';  // Nature Access
-  responsableEntite?: string;                         // Responsable textuel Access
-  missionNom?: string;                               // Référence textuelle Access
+  natureValeurMetier?: 'PROCESSUS' | 'INFORMATION';
+  responsableEntite?: string;
+  missionNom?: string;
+
+  // 🆕 MÉTADONNÉES IA
+  aiMetadata?: {
+    autoCompleted?: boolean;
+    suggestedCategory?: string;
+    coherenceScore?: number;
+    relatedAssets?: string[];
+    impactAnalysis?: {
+      criticalityScore: number;
+      dependencies: string[];
+      riskExposure: number;
+    };
+    recommendations?: string[];
+  };
+}
+
+// 💼 VALEURS MÉTIER (EBIOS RM) - Business Values (concept plus abstrait)
+export interface BusinessValue {
+  id: string;
+  name: string;
+  description: string;
+  category: 'reputation' | 'trust' | 'competitive_advantage' | 'financial' | 'regulatory' | 'operational';
+  priority: GravityScale;
+  essentialAssetIds: string[]; // Référence vers les biens essentiels qui supportent cette valeur
+  missionId: string;
+  createdAt: string;
+  updatedAt: string;
+
+  // Impact potentiel sur l'organisation
+  financialImpact?: {
+    directLoss: number;
+    indirectLoss: number;
+    currency: string;
+  };
+  reputationalImpact?: GravityScale;
+  regulatoryImpact?: GravityScale;
+  operationalImpact?: GravityScale;
+
+  // Parties prenantes concernées
+  stakeholderIds: string[];
 
   // 🆕 MÉTADONNÉES IA
   aiMetadata?: {
@@ -223,7 +275,8 @@ export interface SupportingAsset {
   name: string;
   type: 'data' | 'software' | 'hardware' | 'network' | 'personnel' | 'site' | 'organization';
   description: string;
-  businessValueId: string;
+  essentialAssetId: string; // 🔧 CORRECTION: Référence vers le bien essentiel (logique EBIOS RM)
+  businessValueId?: string; // 🔧 DEPRECATED: Maintenu pour compatibilité, sera supprimé
   missionId: string;
   securityLevel: 'public' | 'internal' | 'confidential' | 'secret';
   vulnerabilities: Vulnerability[] | string[]; // Support des deux formats pour compatibilité

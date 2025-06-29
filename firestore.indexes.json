@@ -51,6 +51,74 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "essentialAssets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "missionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "essentialAssets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "missionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "type",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "essentialAssets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "missionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "businessValueIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "essentialAssets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "missionId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []
