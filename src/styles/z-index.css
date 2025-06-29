@@ -1,0 +1,82 @@
+/* 
+ * Z-INDEX STANDARDIZATION
+ * Système de z-index cohérent pour éviter les conflits de layers
+ */
+
+/* Base layers */
+.z-base { z-index: 1; }
+.z-content { z-index: 10; }
+.z-header { z-index: 100; }
+.z-navigation { z-index: 200; }
+
+/* Interactive elements */
+.z-dropdown { z-index: 1000; }
+.z-tooltip { z-index: 2000; }
+.z-popover { z-index: 3000; }
+
+/* Overlays */
+.z-overlay { z-index: 5000; }
+.z-sidebar { z-index: 6000; }
+.z-drawer { z-index: 7000; }
+
+/* Modals */
+.z-modal-backdrop { z-index: 9000; }
+.z-modal { z-index: 9999; }
+.z-modal-high { z-index: 10000; }
+.z-modal-critical { z-index: 10001; }
+
+/* System alerts */
+.z-notification { z-index: 15000; }
+.z-toast { z-index: 16000; }
+.z-system-alert { z-index: 20000; }
+
+/* Workshop specific layers */
+.z-workshop-content { z-index: 10; }
+.z-workshop-sidebar { z-index: 100; }
+.z-workshop-modal { z-index: 9999; }
+.z-workshop-validation { z-index: 10000; }
+.z-workshop-ai-modal { z-index: 10001; }
+
+/* EBIOS specific layers */
+.z-ebios-workflow { z-index: 50; }
+.z-ebios-step-indicator { z-index: 60; }
+.z-ebios-help-overlay { z-index: 8000; }
+
+/* Utility classes for dynamic z-index */
+.z-auto { z-index: auto; }
+.z-0 { z-index: 0; }
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }
+
+/* Modal stacking system */
+.modal-stack-1 { z-index: 9999; }
+.modal-stack-2 { z-index: 10000; }
+.modal-stack-3 { z-index: 10001; }
+.modal-stack-4 { z-index: 10002; }
+.modal-stack-5 { z-index: 10003; }
+
+/* Backdrop layers */
+.backdrop-low { z-index: 8999; }
+.backdrop-medium { z-index: 9499; }
+.backdrop-high { z-index: 9999; }
+
+/* Animation layers */
+.z-animation { z-index: 1; }
+.z-loading { z-index: 9998; }
+
+/* Debug helpers */
+.z-debug-1 { 
+  z-index: 99999; 
+  border: 2px solid red !important; 
+}
+.z-debug-2 { 
+  z-index: 99998; 
+  border: 2px solid blue !important; 
+}
+.z-debug-3 { 
+  z-index: 99997; 
+  border: 2px solid green !important; 
+}

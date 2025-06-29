@@ -1,0 +1,90 @@
+CREATE TABLE IF NOT EXISTS "ERM_BienSupportAssocie" (
+                "Denomination Bien Support Associe" TEXT, "Valeur Metier" TEXT, Description TEXT, "Entite Personne Responsable" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Categorie" (
+                Categorie TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_CheminAttaque" (
+                "Source de Risque" TEXT, "Objectif Vise" TEXT, "Chemin Attaque" TEXT, "Partie Prenante" TEXT, Gravite TINYINT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_EntitePersonneResponsable" (
+                "Entite Personne Responsable" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_EvenementRedoute" (
+                "Valeur Metier" TEXT, "Evenement Redoute" TEXT, Gravite TINYINT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_EvenementRedouteImpact" (
+                "Valeur Metier" TEXT, "Evenement Redoute" TEXT, Impacts TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_GrapheAttaqueAction" (
+                "Chemin Attaque" TEXT, "Sequence Type Attaque" TEXT, "Numero Action Elementaire" TINYINT, "Precedent Numero Action" TINYINT, "Action Elementaire" TEXT, "Suivant Numero Action" TINYINT, "Mode Operatoire" TEXT, "Canal Exfiltration" TEXT, "Probabilite Succes" TINYINT, "Difficulte Technique" TINYINT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_MesureSecurite" (
+                "Partie Prenante" TEXT, "Chemin Attaque" TEXT, "Mesure Securite" TEXT, "Menace Initiale" TEXT, "Menace Residuelle" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_ObjectifVise" (
+                "Source de Risque" TEXT, "Objectif Vise" TEXT, Motivation TINYINT, Ressource TINYINT, Activite TINYINT, "Pertinence proposee" TINYINT, "Pertinence retenue" TINYINT, Retenu BOOLEAN
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_CanalExfiltration" (
+                "Canal Exfiltration" TEXT, "Logo Canal Exfiltration" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_DifficulteTechnique" (
+                Niveau TINYINT, Echelle TEXT, Description TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_GraviteDesImpacts" (
+                Gravite TINYINT, Echelle TEXT, Consequences TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_Pertinence" (
+                "Valeur Pertinence" TINYINT, Pertinence TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_ProbabiliteDifficulte" (
+                "Probabilite Succes" TINYINT, "Difficulte Technique" TINYINT, Vraisemblance TINYINT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_ProbabiliteSucces" (
+                Niveau TINYINT, Echelle TEXT, Description TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_RisqueGraviteVraisemblance" (
+                Gravite TINYINT, Vraisemblance TINYINT, "Niveau Risque" TINYINT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_StrategieRisque" (
+                "Numero Niveau Risque" TINYINT, "Niveau de Risque" TEXT, "Acceptabilite Risque" TEXT, "Inititile Decisions et Actions" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_TypeDeReferentiel" (
+                "Type de Referentiel" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_Vraisemblance" (
+                Niveau TINYINT, Echelle TEXT, Description TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_Param_Zone" (
+                "Valeur Zone" TINYINT, Zone TEXT, "Valeur Inferieur" TEXT, "Valeur Superieur" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_PartiePrenante" (
+                Categorie TEXT, "Partie Prenante" TEXT, Dependance TINYINT, Penetration TINYINT, Exposition TINYINT, "Maturite Cyber" TINYINT, Confiance TINYINT, "Fiabilite Cyber" INTEGER
+            );
+CREATE TABLE IF NOT EXISTS "ERM_PlanSecurite" (
+                "Mesure Securite" TEXT, "Type Mesure" TEXT, "Frein Difficulte MEO" TEXT, "Cout Complexite" TINYINT, "Echeance em mois" TINYINT, Status TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_PlanSecuriteResponsable" (
+                "Mesure Securite" TEXT, Responsable TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_PlanSecuriteScenario" (
+                "Mesure Securite" TEXT, "Scenario Risque" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_ScenarioRisque" (
+                "Id Scenario Risque" TEXT, "Source Risque" TEXT, "Objectif Vise" TEXT, "Valeur Metier" TEXT, "Canal Exfiltration" TEXT, "Partie Prenante" TEXT, "Description Scenario Risque" TEXT, Gravite TINYINT, Vraisemblance TINYINT, "Gestion Risque Residuel" TEXT, "Gravite Residuel" TINYINT, "Vraisemblance Residuel" TINYINT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_SocieteMission" (
+                "Nom Societe" TEXT, Adresse TEXT, Contact TEXT, Mission TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_SocleSecurite" (
+                "Nom du Referentiel" TEXT, "Type de Referentiel" TEXT, "Etat Application" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_SocleSecuriteEcart" (
+                "Nom du Referentiel" TEXT, Ecart TEXT, "Justification Ecart" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_SourceRisque" (
+                "Source de Risque" TEXT
+            );
+CREATE TABLE IF NOT EXISTS "ERM_ValeurMetier" (
+                "Denomination Valeur Metier" TEXT, Mission TEXT, "Nature Valeur Metier" TEXT, Description TEXT, "Entite Personne Responsable" TEXT
+            );

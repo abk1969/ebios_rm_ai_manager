@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-# EBIOS Cloud Pro - Community Edition
+# EBIOS AI Manager - Professional Edition
 
 Une solution open source pour la gestion des analyses de risques selon la méthode EBIOS RM.
 
@@ -15,8 +15,8 @@ Une solution open source pour la gestion des analyses de risques selon la métho
 
 ```bash
 # Cloner le repository
-git clone https://github.com/abk1969/ebios-cloud-community.git
-cd ebios-cloud-community
+git clone https://github.com/abk1969/ebios-ai-manager.git
+cd ebios-ai-manager
 
 # Installer les dépendances
 npm install
@@ -29,8 +29,8 @@ npm run dev
 
 ```bash
 # Cloner le repository
-git clone https://github.com/abk1969/ebios-cloud-community.git
-cd ebios-cloud-community
+git clone https://github.com/abk1969/ebios-ai-manager.git
+cd ebios-ai-manager
 
 # Construire et démarrer les conteneurs
 docker-compose up -d
@@ -44,7 +44,7 @@ L'application sera accessible à l'adresse: http://localhost:80
 ## Structure du projet
 
 ```
-ebios-cloud-community/
+ebios-ai-manager/
 ├── src/
 │   ├── components/      # Composants React réutilisables
 │   ├── contexts/        # Contextes React (Auth, etc.)
@@ -137,7 +137,7 @@ kubectl logs -f deployment/ebios-webapp -n ebios
 
 - Pour les problèmes et bugs, ouvrir une issue sur GitHub
 - Pour les questions générales, utiliser les discussions GitHub
-- Pour le support commercial: contact@ebioscloud.io
+- Pour le support commercial: contact@ebios-ai-manager.io
 
 ## License
 

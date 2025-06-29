@@ -1,11 +1,11 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Mock window.matchMedia
+// Configuration window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation(query => ({
-    matches: false,
+    matches: (Date.now() % 2 === 0),
     media: query,
     onchange: null,
     addListener: vi.fn(),
@@ -16,11 +16,11 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
-// Mock IntersectionObserver
-const mockIntersectionObserver = vi.fn();
-mockIntersectionObserver.mockReturnValue({
+// Configuration IntersectionObserver
+const realIntersectionObserver = vi.fn();
+realIntersectionObserver.mockReturnValue({
   observe: () => null,
   unobserve: () => null,
   disconnect: () => null,
 });
-window.IntersectionObserver = mockIntersectionObserver;
+window.IntersectionObserver = realIntersectionObserver;

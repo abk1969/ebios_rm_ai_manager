@@ -1,46 +1,176 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Base rules
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    
+    // Fonctions utilitaires de sécurité
+    function isAuthenticated() {
+      return request.auth != null;
     }
-
-    // Collections
+    
+    function isOwner(resource) {
+      return resource.data.assignedTo is list && 
+             request.auth.uid in resource.data.assignedTo;
+    }
+    
+    function isCreator(resource) {
+      return resource.data.createdBy == request.auth.uid;
+    }
+    
+    function isMissionMember(missionId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/missions/$(missionId)) &&
+             get(/databases/$(database)/documents/missions/$(missionId)).data.assignedTo is list &&
+             request.auth.uid in get(/databases/$(database)/documents/missions/$(missionId)).data.assignedTo;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.admin == true;
+    }
+    
+    function isAuditor() {
+      return isAuthenticated() && 
+             (request.auth.token.role == 'auditor' || request.auth.token.admin == true);
+    }
+    
+    function isValidMissionData() {
+      return request.resource.data.keys().hasAll(['name', 'description', 'status', 'assignedTo']) &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() > 0 &&
+             request.resource.data.name.size() <= 100 &&
+             request.resource.data.description is string &&
+             request.resource.data.description.size() <= 500 &&
+             request.resource.data.status in ['draft', 'in_progress', 'review', 'completed', 'archived'] &&
+             request.resource.data.assignedTo is list;
+    }
+    
+    function isValidBusinessValueData() {
+      return request.resource.data.keys().hasAll(['name', 'description', 'category', 'priority', 'missionId']) &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() > 0 &&
+             request.resource.data.name.size() <= 100 &&
+             request.resource.data.category in ['primary', 'support', 'management'] &&
+             request.resource.data.priority in [1, 2, 3, 4] &&
+             request.resource.data.missionId is string;
+    }
+    
+    function isValidRiskSourceData() {
+      return request.resource.data.keys().hasAll(['name', 'description', 'category', 'pertinence', 'missionId']) &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() > 0 &&
+             request.resource.data.name.size() <= 100 &&
+             request.resource.data.category in ['cybercriminal', 'terrorist', 'activist', 'state', 'insider', 'competitor', 'natural'] &&
+             request.resource.data.pertinence in [1, 2, 3, 4] &&
+             request.resource.data.missionId is string;
+    }
+    
+    function isValidDreadedEventData() {
+      return request.resource.data.keys().hasAll(['name', 'description', 'gravity', 'impactType', 'businessValueId', 'missionId']) &&
+             request.resource.data.name is string &&
+             request.resource.data.name.size() > 0 &&
+             request.resource.data.name.size() <= 100 &&
+             request.resource.data.gravity in [1, 2, 3, 4] &&
+             request.resource.data.impactType in ['availability', 'integrity', 'confidentiality', 'authenticity', 'non_repudiation'] &&
+             request.resource.data.businessValueId is string &&
+             request.resource.data.missionId is string;
+    }
+    
+    function isValidUser() {
+      return isAuthenticated() && request.auth.uid != null;
+    }
+    
+    // === RÈGLES TEMPORAIRES POUR LES TESTS ===
+    // Ces règles permettent aux utilisateurs authentifiés d'accéder aux données
+    // TODO: Durcir les règles en production
+    
+    // Missions - Accès simplifié pour utilisateurs authentifiés
     match /missions/{missionId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
+    // Business Values - Accès pour utilisateurs authentifiés
     match /businessValues/{valueId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
+    // Supporting Assets - Accès pour utilisateurs authentifiés
     match /supportingAssets/{assetId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
-    match /securityControls/{controlId} {
-      allow read, write: if request.auth != null;
+    // Dreaded Events - Accès pour utilisateurs authentifiés
+    match /dreadedEvents/{eventId} {
+      allow read, write: if isAuthenticated();
     }
 
+    // Risk Sources - Accès pour utilisateurs authentifiés
     match /riskSources/{sourceId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
+    // Stakeholders - Accès pour utilisateurs authentifiés
     match /stakeholders/{stakeholderId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
-    match /attackPaths/{pathId} {
-      allow read, write: if request.auth != null;
+    // Strategic Scenarios - Accès pour utilisateurs authentifiés
+    match /strategicScenarios/{scenarioId} {
+      allow read, write: if isAuthenticated();
     }
 
+    // Operational Scenarios - Accès pour utilisateurs authentifiés
+    match /operationalScenarios/{scenarioId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Security Measures - Accès pour utilisateurs authentifiés
     match /securityMeasures/{measureId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
     }
 
-    match /workshops/{workshopId} {
-      allow read, write: if request.auth != null;
+    // Attack Paths - Accès pour utilisateurs authentifiés
+    match /attackPaths/{pathId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Reports - Accès pour utilisateurs authentifiés
+    match /reports/{reportId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // User Profiles - Accès personnel uniquement
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Collection générale users pour les données partagées
+    match /users/{userId} {
+      allow read: if isAuthenticated(); // Lecture pour tous les utilisateurs authentifiés
+      allow write: if isAuthenticated() && request.auth.uid == userId; // Écriture seulement pour soi
+    }
+
+    // === RÈGLES DE SÉCURITÉ STRICTES POUR PLUS TARD ===
+    /*
+    // Missions - Accès basé sur l'assignation
+    match /missions/{missionId} {
+      allow read: if isAuthenticated() && (isOwner(resource) || isCreator(resource));
+      allow create: if isAuthenticated() && request.auth.uid in request.resource.data.assignedTo;
+      allow update: if isAuthenticated() && (isOwner(resource) || isCreator(resource));
+      allow delete: if isAuthenticated() && (isOwner(resource) || isCreator(resource));
+    }
+    
+    // Business Values - Accès basé sur l'appartenance à la mission
+    match /businessValues/{valueId} {
+      allow read: if isAuthenticated() && isMissionMember(resource.data.missionId);
+      allow create: if isAuthenticated() && isMissionMember(request.resource.data.missionId);
+      allow update: if isAuthenticated() && isMissionMember(resource.data.missionId);
+      allow delete: if isAuthenticated() && isMissionMember(resource.data.missionId);
+    }
+    */
+
+    // Règle par défaut - Refuser tout accès non spécifiquement autorisé
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

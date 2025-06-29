@@ -1,0 +1,1590 @@
+/**
+ * 🚨 ALERTING SERVICE - SYSTÈME D'ALERTES INTELLIGENT
+ * Service d'alertes avec seuils adaptatifs et escalade automatique
+ * CRITICITÉ : HIGH - Surveillance proactive de l'écosystème agentic
+ */
+
+import { db } from '@/lib/firebase';
+import { collection, addDoc, query, where, orderBy, limit, getDocs, updateDoc, doc } from 'firebase/firestore';
+
+export interface AlertThreshold {
+  id: string;
+  metricName: string;
+  metricType: 'performance' | 'functional' | 'technical' | 'business';
+  warningThreshold: number;
+  criticalThreshold: number;
+  unit: string;
+  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
+  timeWindow: number; // en minutes
+  consecutiveViolations: number;
+  enabled: boolean;
+  adaptiveThresholds: boolean;
+  escalationRules: EscalationRule[];
+  suppressionRules: SuppressionRule[];
+}
+
+export interface EscalationRule {
+  id: string;
+  severity: 'warning' | 'critical' | 'emergency';
+  delayMinutes: number;
+  channels: NotificationChannel[];
+  recipients: string[];
+  conditions: EscalationCondition[];
+}
+
+export interface EscalationCondition {
+  type: 'time_elapsed' | 'metric_degraded' | 'no_acknowledgment' | 'multiple_alerts';
+  value: number;
+  operator: 'gt' | 'gte' | 'eq';
+}
+
+export interface SuppressionRule {
+  id: string;
+  name: string;
+  conditions: SuppressionCondition[];
+  duration: number; // en minutes
+  enabled: boolean;
+}
+
+export interface SuppressionCondition {
+  type: 'maintenance_window' | 'known_issue' | 'deployment_in_progress' | 'test_environment';
+  value?: any;
+}
+
+export interface Alert {
+  id: string;
+  metricName: string;
+  severity: 'info' | 'warning' | 'critical' | 'emergency';
+  title: string;
+  description: string;
+  currentValue: number;
+  thresholdValue: number;
+  unit: string;
+  timestamp: Date;
+  acknowledgedAt?: Date;
+  acknowledgedBy?: string;
+  resolvedAt?: Date;
+  resolvedBy?: string;
+  escalationLevel: number;
+  suppressedUntil?: Date;
+  context: {
+    agentId?: string;
+    workshopId?: number;
+    userId?: string;
+    sessionId?: string;
+    component?: string;
+    environment: 'development' | 'staging' | 'production';
+  };
+  metadata: Record<string, any>;
+  relatedAlerts: string[];
+  actionsTaken: AlertAction[];
+}
+
+export interface AlertAction {
+  id: string;
+  type: 'notification_sent' | 'escalation' | 'auto_remediation' | 'manual_intervention';
+  timestamp: Date;
+  details: string;
+  success: boolean;
+  error?: string;
+}
+
+export type NotificationChannel = 
+  | 'email'
+  | 'slack'
+  | 'teams'
+  | 'webhook'
+  | 'sms'
+  | 'dashboard'
+  | 'mobile_push';
+
+export interface NotificationTemplate {
+  id: string;
+  name: string;
+  channel: NotificationChannel;
+  severity: 'warning' | 'critical' | 'emergency';
+  subject: string;
+  body: string;
+  variables: string[];
+  enabled: boolean;
+}
+
+export interface AlertingConfiguration {
+  globalEnabled: boolean;
+  defaultThresholds: Record<string, AlertThreshold>;
+  notificationChannels: Record<NotificationChannel, ChannelConfig>;
+  escalationPolicies: EscalationRule[];
+  suppressionPolicies: SuppressionRule[];
+  adaptiveThresholdsEnabled: boolean;
+  maintenanceWindows: MaintenanceWindow[];
+  alertCorrelationEnabled: boolean;
+  autoRemediationEnabled: boolean;
+}
+
+export interface ChannelConfig {
+  enabled: boolean;
+  endpoint?: string;
+  credentials?: Record<string, string>;
+  rateLimits: {
+    maxPerMinute: number;
+    maxPerHour: number;
+    maxPerDay: number;
+  };
+  retryPolicy: {
+    maxRetries: number;
+    backoffMultiplier: number;
+    maxBackoffSeconds: number;
+  };
+}
+
+export interface MaintenanceWindow {
+  id: string;
+  name: string;
+  startTime: Date;
+  endTime: Date;
+  recurring: boolean;
+  recurrencePattern?: string;
+  affectedComponents: string[];
+  suppressAllAlerts: boolean;
+  suppressedSeverities: ('warning' | 'critical' | 'emergency')[];
+}
+
+export interface AlertStatistics {
+  period: {
+    start: Date;
+    end: Date;
+  };
+  totalAlerts: number;
+  alertsBySeverity: Record<string, number>;
+  alertsByMetric: Record<string, number>;
+  alertsByComponent: Record<string, number>;
+  averageResolutionTime: number;
+  escalationRate: number;
+  falsePositiveRate: number;
+  acknowledgedRate: number;
+  topAlertingComponents: Array<{
+    component: string;
+    count: number;
+    averageSeverity: number;
+  }>;
+  trends: Array<{
+    metric: string;
+    trend: 'increasing' | 'decreasing' | 'stable';
+    changePercent: number;
+  }>;
+}
+
+/**
+ * Service d'alertes intelligent avec seuils adaptatifs
+ */
+export class AlertingService {
+  private static instance: AlertingService;
+  private configuration: AlertingConfiguration;
+  private activeAlerts: Map<string, Alert> = new Map();
+  private thresholds: Map<string, AlertThreshold> = new Map();
+  private notificationQueue: Array<{
+    alert: Alert;
+    channel: NotificationChannel;
+    recipients: string[];
+    template: NotificationTemplate;
+    retryCount: number;
+  }> = [];
+  private processingInterval: NodeJS.Timeout | null = null;
+  private adaptiveThresholdInterval: NodeJS.Timeout | null = null;
+
+  private constructor() {
+    this.configuration = this.getDefaultConfiguration();
+    this.initializeService();
+  }
+
+  /**
+   * Singleton pattern
+   */
+  static getInstance(): AlertingService {
+    if (!AlertingService.instance) {
+      AlertingService.instance = new AlertingService();
+    }
+    return AlertingService.instance;
+  }
+
+  /**
+   * Initialise le service d'alertes
+   */
+  private async initializeService(): Promise<void> {
+    try {
+      console.log('🚨 Initialisation Alerting Service');
+      
+      // Charger la configuration
+      await this.loadConfiguration();
+      
+      // Charger les seuils d'alerte
+      await this.loadAlertThresholds();
+      
+      // Charger les alertes actives
+      await this.loadActiveAlerts();
+      
+      // Démarrer le traitement des notifications
+      this.startNotificationProcessing();
+      
+      // Démarrer l'adaptation des seuils
+      if (this.configuration.adaptiveThresholdsEnabled) {
+        this.startAdaptiveThresholdAdjustment();
+      }
+      
+      console.log('✅ Alerting Service initialisé');
+    } catch (error) {
+      console.error('❌ Erreur initialisation Alerting Service:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Évalue une métrique et déclenche des alertes si nécessaire
+   */
+  async evaluateMetric(
+    metricName: string,
+    value: number,
+    unit: string,
+    context: Alert['context'],
+    metadata: Record<string, any> = {}
+  ): Promise<void> {
+    try {
+      if (!this.configuration.globalEnabled) {
+        return;
+      }
+
+      // Vérifier les fenêtres de maintenance
+      if (this.isInMaintenanceWindow(context.component)) {
+        return;
+      }
+
+      const threshold = this.thresholds.get(metricName);
+      if (!threshold || !threshold.enabled) {
+        return;
+      }
+
+      // Évaluer les seuils
+      const violation = this.evaluateThreshold(threshold, value);
+      if (!violation) {
+        // Résoudre l'alerte si elle existe
+        await this.resolveAlertIfExists(metricName, context);
+        return;
+      }
+
+      // Vérifier les violations consécutives
+      const consecutiveViolations = await this.checkConsecutiveViolations(
+        metricName,
+        context,
+        threshold.consecutiveViolations
+      );
+
+      if (consecutiveViolations < threshold.consecutiveViolations) {
+        console.log(`⚠️ Violation ${consecutiveViolations}/${threshold.consecutiveViolations} pour ${metricName}`);
+        return;
+      }
+
+      // Créer ou mettre à jour l'alerte
+      await this.createOrUpdateAlert({
+        metricName,
+        value,
+        unit,
+        threshold,
+        violation,
+        context,
+        metadata
+      });
+
+    } catch (error) {
+      console.error(`❌ Erreur évaluation métrique ${metricName}:`, error);
+    }
+  }
+
+  /**
+   * Évalue un seuil d'alerte
+   */
+  private evaluateThreshold(
+    threshold: AlertThreshold,
+    value: number
+  ): { severity: 'warning' | 'critical'; violated: boolean } | null {
+    const { operator, warningThreshold, criticalThreshold } = threshold;
+
+    let criticalViolated = false;
+    let warningViolated = false;
+
+    switch (operator) {
+      case 'gt':
+        criticalViolated = value > criticalThreshold;
+        warningViolated = value > warningThreshold;
+        break;
+      case 'gte':
+        criticalViolated = value >= criticalThreshold;
+        warningViolated = value >= warningThreshold;
+        break;
+      case 'lt':
+        criticalViolated = value < criticalThreshold;
+        warningViolated = value < warningThreshold;
+        break;
+      case 'lte':
+        criticalViolated = value <= criticalThreshold;
+        warningViolated = value <= warningThreshold;
+        break;
+      case 'eq':
+        criticalViolated = value === criticalThreshold;
+        warningViolated = value === warningThreshold;
+        break;
+    }
+
+    if (criticalViolated) {
+      return { severity: 'critical', violated: true };
+    } else if (warningViolated) {
+      return { severity: 'warning', violated: true };
+    }
+
+    return null;
+  }
+
+  /**
+   * Vérifie les violations consécutives
+   */
+  private async checkConsecutiveViolations(
+    metricName: string,
+    context: Alert['context'],
+    requiredViolations: number
+  ): Promise<number> {
+    try {
+      const now = new Date();
+      const timeWindow = new Date(now.getTime() - 10 * 60 * 1000); // 10 minutes
+
+      const q = query(
+        collection(db, 'alert_violations'),
+        where('metric_name', '==', metricName),
+        where('context.component', '==', context.component || ''),
+        where('timestamp', '>=', timeWindow),
+        orderBy('timestamp', 'desc'),
+        limit(requiredViolations)
+      );
+
+      const snapshot = await getDocs(q);
+      return snapshot.size;
+    } catch (error) {
+      console.error('Erreur vérification violations consécutives:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Crée ou met à jour une alerte
+   */
+  private async createOrUpdateAlert(params: {
+    metricName: string;
+    value: number;
+    unit: string;
+    threshold: AlertThreshold;
+    violation: { severity: 'warning' | 'critical'; violated: boolean };
+    context: Alert['context'];
+    metadata: Record<string, any>;
+  }): Promise<void> {
+    const { metricName, value, unit, threshold, violation, context, metadata } = params;
+
+    // Vérifier si une alerte similaire existe déjà
+    const existingAlertId = this.findExistingAlert(metricName, context);
+    
+    if (existingAlertId) {
+      // Mettre à jour l'alerte existante
+      await this.updateExistingAlert(existingAlertId, {
+        currentValue: value,
+        severity: violation.severity,
+        timestamp: new Date(),
+        metadata: { ...metadata, updated: true }
+      });
+    } else {
+      // Créer une nouvelle alerte
+      const alert: Alert = {
+        id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        metricName,
+        severity: violation.severity,
+        title: this.generateAlertTitle(metricName, violation.severity, value, unit),
+        description: this.generateAlertDescription(metricName, value, threshold, context),
+        currentValue: value,
+        thresholdValue: violation.severity === 'critical' ? threshold.criticalThreshold : threshold.warningThreshold,
+        unit,
+        timestamp: new Date(),
+        escalationLevel: 0,
+        context,
+        metadata,
+        relatedAlerts: [],
+        actionsTaken: []
+      };
+
+      // Enregistrer l'alerte
+      await this.saveAlert(alert);
+      
+      // Ajouter à la carte des alertes actives
+      this.activeAlerts.set(alert.id, alert);
+      
+      // Déclencher les notifications
+      await this.triggerNotifications(alert);
+      
+      // Démarrer l'escalade si configurée
+      this.scheduleEscalation(alert);
+      
+      console.log(`🚨 Alerte créée: ${alert.title}`);
+    }
+  }
+
+  /**
+   * Trouve une alerte existante similaire
+   */
+  private findExistingAlert(metricName: string, context: Alert['context']): string | null {
+    for (const [alertId, alert] of this.activeAlerts) {
+      if (
+        alert.metricName === metricName &&
+        alert.context.component === context.component &&
+        alert.context.agentId === context.agentId &&
+        !alert.resolvedAt
+      ) {
+        return alertId;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Met à jour une alerte existante
+   */
+  private async updateExistingAlert(
+    alertId: string,
+    updates: Partial<Alert>
+  ): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert) return;
+
+      // Mettre à jour l'alerte en mémoire
+      const updatedAlert = { ...alert, ...updates };
+      this.activeAlerts.set(alertId, updatedAlert);
+
+      // Mettre à jour en base
+      await updateDoc(doc(db, 'alerts', alertId), {
+        ...updates,
+        updated_at: new Date()
+      });
+
+      // Si la sévérité a augmenté, déclencher une escalade
+      if (updates.severity && this.shouldEscalate(alert.severity, updates.severity)) {
+        await this.escalateAlert(alertId);
+      }
+
+    } catch (error) {
+      console.error(`Erreur mise à jour alerte ${alertId}:`, error);
+    }
+  }
+
+  /**
+   * Détermine si une escalade est nécessaire
+   */
+  private shouldEscalate(
+    currentSeverity: Alert['severity'],
+    newSeverity: Alert['severity']
+  ): boolean {
+    const severityLevels = { info: 0, warning: 1, critical: 2, emergency: 3 };
+    return severityLevels[newSeverity] > severityLevels[currentSeverity];
+  }
+
+  /**
+   * Résout une alerte si elle existe
+   */
+  private async resolveAlertIfExists(
+    metricName: string,
+    context: Alert['context']
+  ): Promise<void> {
+    const alertId = this.findExistingAlert(metricName, context);
+    if (alertId) {
+      await this.resolveAlert(alertId, 'auto_resolved', 'Métrique revenue dans les seuils normaux');
+    }
+  }
+
+  /**
+   * Résout une alerte
+   */
+  async resolveAlert(
+    alertId: string,
+    resolvedBy: string,
+    reason: string
+  ): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert || alert.resolvedAt) {
+        return;
+      }
+
+      // Mettre à jour l'alerte
+      const resolvedAlert = {
+        ...alert,
+        resolvedAt: new Date(),
+        resolvedBy,
+        actionsTaken: [
+          ...alert.actionsTaken,
+          {
+            id: `action-${Date.now()}`,
+            type: 'manual_intervention' as const,
+            timestamp: new Date(),
+            details: `Alerte résolue: ${reason}`,
+            success: true
+          }
+        ]
+      };
+
+      this.activeAlerts.set(alertId, resolvedAlert);
+
+      // Mettre à jour en base
+      await updateDoc(doc(db, 'alerts', alertId), {
+        resolved_at: resolvedAlert.resolvedAt,
+        resolved_by: resolvedBy,
+        actions_taken: resolvedAlert.actionsTaken
+      });
+
+      // Envoyer notification de résolution
+      await this.sendResolutionNotification(resolvedAlert, reason);
+
+      console.log(`✅ Alerte résolue: ${alertId}`);
+
+    } catch (error) {
+      console.error(`Erreur résolution alerte ${alertId}:`, error);
+    }
+  }
+
+  /**
+   * Déclenche les notifications pour une alerte
+   */
+  private async triggerNotifications(alert: Alert): Promise<void> {
+    try {
+      const threshold = this.thresholds.get(alert.metricName);
+      if (!threshold) return;
+
+      // Trouver les règles d'escalade applicables
+      const escalationRules = threshold.escalationRules.filter(
+        rule => rule.severity === alert.severity
+      );
+
+      for (const rule of escalationRules) {
+        for (const channel of rule.channels) {
+          const template = await this.getNotificationTemplate(channel, alert.severity);
+          if (template) {
+            this.queueNotification({
+              alert,
+              channel,
+              recipients: rule.recipients,
+              template,
+              retryCount: 0
+            });
+          }
+        }
+      }
+
+    } catch (error) {
+      console.error('Erreur déclenchement notifications:', error);
+    }
+  }
+
+  /**
+   * Ajoute une notification à la queue
+   */
+  private queueNotification(notification: {
+    alert: Alert;
+    channel: NotificationChannel;
+    recipients: string[];
+    template: NotificationTemplate;
+    retryCount: number;
+  }): void {
+    this.notificationQueue.push(notification);
+  }
+
+  /**
+   * Démarre le traitement des notifications
+   */
+  private startNotificationProcessing(): void {
+    this.processingInterval = setInterval(async () => {
+      await this.processNotificationQueue();
+    }, 5000); // Toutes les 5 secondes
+  }
+
+  /**
+   * Traite la queue des notifications
+   */
+  private async processNotificationQueue(): Promise<void> {
+    if (this.notificationQueue.length === 0) return;
+
+    const notification = this.notificationQueue.shift();
+    if (!notification) return;
+
+    try {
+      await this.sendNotification(notification);
+      
+      // Enregistrer l'action
+      await this.recordAlertAction(notification.alert.id, {
+        id: `action-${Date.now()}`,
+        type: 'notification_sent',
+        timestamp: new Date(),
+        details: `Notification envoyée via ${notification.channel}`,
+        success: true
+      });
+
+    } catch (error) {
+      console.error('Erreur envoi notification:', error);
+      
+      // Retry logic
+      if (notification.retryCount < 3) {
+        notification.retryCount++;
+        this.notificationQueue.push(notification);
+      }
+      
+      // Enregistrer l'échec
+      await this.recordAlertAction(notification.alert.id, {
+        id: `action-${Date.now()}`,
+        type: 'notification_sent',
+        timestamp: new Date(),
+        details: `Échec notification via ${notification.channel}`,
+        success: false,
+        error: (error as Error).message // 🔧 CORRECTION: Type assertion
+      });
+    }
+  }
+
+  /**
+   * Envoie une notification
+   */
+  private async sendNotification(notification: {
+    alert: Alert;
+    channel: NotificationChannel;
+    recipients: string[];
+    template: NotificationTemplate;
+    retryCount: number;
+  }): Promise<void> {
+    const { alert, channel, recipients, template } = notification;
+    
+    // Vérifier les limites de taux
+    if (!this.checkRateLimit(channel)) {
+      throw new Error(`Rate limit dépassé pour ${channel}`);
+    }
+
+    // Générer le contenu de la notification
+    const content = this.generateNotificationContent(alert, template);
+
+    // Envoyer selon le canal
+    switch (channel) {
+      case 'email':
+        await this.sendEmailNotification(recipients, content.subject, content.body);
+        break;
+      case 'slack':
+        await this.sendSlackNotification(recipients, content.body);
+        break;
+      case 'teams':
+        await this.sendTeamsNotification(recipients, content.body);
+        break;
+      case 'webhook':
+        await this.sendWebhookNotification(alert, content);
+        break;
+      case 'dashboard':
+        await this.sendDashboardNotification(alert);
+        break;
+      default:
+        console.warn(`Canal de notification non supporté: ${channel}`);
+    }
+  }
+
+  /**
+   * Vérifie les limites de taux
+   */
+  private checkRateLimit(channel: NotificationChannel): boolean {
+    // Implémentation simplifiée - à améliorer avec un vrai rate limiter
+    return true;
+  }
+
+  /**
+   * Génère le contenu d'une notification
+   */
+  private generateNotificationContent(
+    alert: Alert,
+    template: NotificationTemplate
+  ): { subject: string; body: string } {
+    const variables = {
+      alertTitle: alert.title,
+      alertDescription: alert.description,
+      severity: alert.severity,
+      metricName: alert.metricName,
+      currentValue: alert.currentValue,
+      thresholdValue: alert.thresholdValue,
+      unit: alert.unit,
+      timestamp: alert.timestamp.toISOString(),
+      component: alert.context.component || 'Unknown',
+      agentId: alert.context.agentId || 'Unknown',
+      environment: alert.context.environment
+    };
+
+    let subject = template.subject;
+    let body = template.body;
+
+    // Remplacer les variables
+    for (const [key, value] of Object.entries(variables)) {
+      const placeholder = `{{${key}}}`;
+      subject = subject.replace(new RegExp(placeholder, 'g'), String(value));
+      body = body.replace(new RegExp(placeholder, 'g'), String(value));
+    }
+
+    return { subject, body };
+  }
+
+  /**
+   * Envoie une notification par email
+   */
+  private async sendEmailNotification(
+    recipients: string[],
+    subject: string,
+    body: string
+  ): Promise<void> {
+    // Implémentation à connecter avec un service d'email
+    console.log(`📧 Email envoyé à ${recipients.join(', ')}: ${subject}`);
+  }
+
+  /**
+   * Envoie une notification Slack
+   */
+  private async sendSlackNotification(
+    channels: string[],
+    message: string
+  ): Promise<void> {
+    // Implémentation à connecter avec l'API Slack
+    console.log(`💬 Slack envoyé à ${channels.join(', ')}: ${message}`);
+  }
+
+  /**
+   * Envoie une notification Teams
+   */
+  private async sendTeamsNotification(
+    channels: string[],
+    message: string
+  ): Promise<void> {
+    // Implémentation à connecter avec l'API Teams
+    console.log(`👥 Teams envoyé à ${channels.join(', ')}: ${message}`);
+  }
+
+  /**
+   * Envoie une notification webhook
+   */
+  private async sendWebhookNotification(
+    alert: Alert,
+    content: { subject: string; body: string }
+  ): Promise<void> {
+    // Implémentation à connecter avec des webhooks
+    console.log(`🔗 Webhook envoyé pour alerte: ${alert.id}`);
+  }
+
+  /**
+   * Envoie une notification au dashboard
+   */
+  private async sendDashboardNotification(alert: Alert): Promise<void> {
+    // Implémentation pour affichage temps réel dans le dashboard
+    console.log(`📊 Notification dashboard pour alerte: ${alert.id}`);
+  }
+
+  /**
+   * Envoie une notification de résolution
+   */
+  private async sendResolutionNotification(
+    alert: Alert,
+    reason: string
+  ): Promise<void> {
+    const template = await this.getNotificationTemplate('email', 'info');
+    if (template) {
+      const content = {
+        subject: `✅ Alerte résolue: ${alert.title}`,
+        body: `L'alerte "${alert.title}" a été résolue.\n\nRaison: ${reason}\n\nDétails:\n- Métrique: ${alert.metricName}\n- Valeur actuelle: ${alert.currentValue} ${alert.unit}\n- Composant: ${alert.context.component}\n- Résolu le: ${new Date().toISOString()}`
+      };
+      
+      console.log(`✅ Notification résolution envoyée: ${alert.id}`);
+    }
+  }
+
+  /**
+   * Enregistre une action d'alerte
+   */
+  private async recordAlertAction(
+    alertId: string,
+    action: AlertAction
+  ): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (alert) {
+        alert.actionsTaken.push(action);
+        this.activeAlerts.set(alertId, alert);
+        
+        // Mettre à jour en base
+        await updateDoc(doc(db, 'alerts', alertId), {
+          actions_taken: alert.actionsTaken
+        });
+      }
+    } catch (error) {
+      console.error('Erreur enregistrement action alerte:', error);
+    }
+  }
+
+  /**
+   * Programme une escalade
+   */
+  private scheduleEscalation(alert: Alert): void {
+    const threshold = this.thresholds.get(alert.metricName);
+    if (!threshold) return;
+
+    const escalationRules = threshold.escalationRules.filter(
+      rule => rule.severity === alert.severity
+    );
+
+    for (const rule of escalationRules) {
+      setTimeout(async () => {
+        await this.checkAndEscalate(alert.id, rule);
+      }, rule.delayMinutes * 60 * 1000);
+    }
+  }
+
+  /**
+   * Vérifie et effectue une escalade
+   */
+  private async checkAndEscalate(
+    alertId: string,
+    rule: EscalationRule
+  ): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert || alert.resolvedAt || alert.acknowledgedAt) {
+        return; // Alerte résolue ou acquittée
+      }
+
+      // Vérifier les conditions d'escalade
+      const shouldEscalate = this.evaluateEscalationConditions(alert, rule.conditions);
+      if (!shouldEscalate) {
+        return;
+      }
+
+      await this.escalateAlert(alertId);
+
+    } catch (error) {
+      console.error(`Erreur escalade alerte ${alertId}:`, error);
+    }
+  }
+
+  /**
+   * Évalue les conditions d'escalade
+   */
+  private evaluateEscalationConditions(
+    alert: Alert,
+    conditions: EscalationCondition[]
+  ): boolean {
+    for (const condition of conditions) {
+      switch (condition.type) {
+        case 'time_elapsed':
+          const elapsed = Date.now() - alert.timestamp.getTime();
+          if (elapsed < condition.value * 60 * 1000) {
+            return false;
+          }
+          break;
+        case 'no_acknowledgment':
+          if (alert.acknowledgedAt) {
+            return false;
+          }
+          break;
+        case 'metric_degraded':
+          // Vérifier si la métrique s'est dégradée
+          // Implémentation à compléter
+          break;
+        case 'multiple_alerts':
+          // Vérifier s'il y a plusieurs alertes similaires
+          // Implémentation à compléter
+          break;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Effectue une escalade d'alerte
+   */
+  private async escalateAlert(alertId: string): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert) return;
+
+      // Augmenter le niveau d'escalade
+      const escalatedAlert = {
+        ...alert,
+        escalationLevel: alert.escalationLevel + 1,
+        severity: this.getEscalatedSeverity(alert.severity),
+        actionsTaken: [
+          ...alert.actionsTaken,
+          {
+            id: `action-${Date.now()}`,
+            type: 'escalation' as const,
+            timestamp: new Date(),
+            details: `Escalade niveau ${alert.escalationLevel + 1}`,
+            success: true
+          }
+        ]
+      };
+
+      this.activeAlerts.set(alertId, escalatedAlert);
+
+      // Mettre à jour en base
+      await updateDoc(doc(db, 'alerts', alertId), {
+        escalation_level: escalatedAlert.escalationLevel,
+        severity: escalatedAlert.severity,
+        actions_taken: escalatedAlert.actionsTaken
+      });
+
+      // Déclencher de nouvelles notifications
+      await this.triggerNotifications(escalatedAlert);
+
+      console.log(`🔺 Alerte escaladée: ${alertId} (niveau ${escalatedAlert.escalationLevel})`);
+
+    } catch (error) {
+      console.error(`Erreur escalade alerte ${alertId}:`, error);
+    }
+  }
+
+  /**
+   * Obtient la sévérité escaladée
+   */
+  private getEscalatedSeverity(currentSeverity: Alert['severity']): Alert['severity'] {
+    const escalationMap: Record<Alert['severity'], Alert['severity']> = {
+      info: 'warning',
+      warning: 'critical',
+      critical: 'emergency',
+      emergency: 'emergency'
+    };
+    return escalationMap[currentSeverity];
+  }
+
+  /**
+   * Vérifie si on est dans une fenêtre de maintenance
+   */
+  private isInMaintenanceWindow(component?: string): boolean {
+    const now = new Date();
+    
+    for (const window of this.configuration.maintenanceWindows) {
+      if (now >= window.startTime && now <= window.endTime) {
+        if (window.suppressAllAlerts) {
+          return true;
+        }
+        if (component && window.affectedComponents.includes(component)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
+   * Démarre l'ajustement adaptatif des seuils
+   */
+  private startAdaptiveThresholdAdjustment(): void {
+    this.adaptiveThresholdInterval = setInterval(async () => {
+      await this.adjustAdaptiveThresholds();
+    }, 60 * 60 * 1000); // Toutes les heures
+  }
+
+  /**
+   * Ajuste les seuils adaptatifs
+   */
+  private async adjustAdaptiveThresholds(): Promise<void> {
+    try {
+      console.log('🔄 Ajustement seuils adaptatifs');
+      
+      for (const [metricName, threshold] of this.thresholds) {
+        if (!threshold.adaptiveThresholds) continue;
+        
+        // Analyser les données historiques
+        const historicalData = await this.getHistoricalMetricData(metricName, 7); // 7 jours
+        
+        if (historicalData.length < 100) continue; // Pas assez de données
+        
+        // Calculer de nouveaux seuils basés sur les percentiles
+        const newThresholds = this.calculateAdaptiveThresholds(historicalData);
+        
+        // Mettre à jour si les changements sont significatifs
+        if (this.shouldUpdateThreshold(threshold, newThresholds)) {
+          await this.updateThreshold(metricName, newThresholds);
+          console.log(`📊 Seuils adaptatifs mis à jour pour ${metricName}`);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Erreur ajustement seuils adaptatifs:', error);
+    }
+  }
+
+  /**
+   * Obtient les données historiques d'une métrique
+   */
+  private async getHistoricalMetricData(
+    metricName: string,
+    days: number
+  ): Promise<number[]> {
+    try {
+      const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      
+      const q = query(
+        collection(db, 'performance_metrics'),
+        where('metric_name', '==', metricName),
+        where('timestamp', '>=', startDate),
+        orderBy('timestamp', 'asc')
+      );
+      
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data().value);
+      
+    } catch (error) {
+      console.error('Erreur récupération données historiques:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Calcule de nouveaux seuils adaptatifs
+   */
+  private calculateAdaptiveThresholds(data: number[]): {
+    warningThreshold: number;
+    criticalThreshold: number;
+  } {
+    const sorted = data.sort((a, b) => a - b);
+    const p90 = sorted[Math.floor(sorted.length * 0.9)];
+    const p95 = sorted[Math.floor(sorted.length * 0.95)];
+    
+    return {
+      warningThreshold: p90,
+      criticalThreshold: p95
+    };
+  }
+
+  /**
+   * Détermine si un seuil doit être mis à jour
+   */
+  private shouldUpdateThreshold(
+    current: AlertThreshold,
+    proposed: { warningThreshold: number; criticalThreshold: number }
+  ): boolean {
+    const warningChange = Math.abs(current.warningThreshold - proposed.warningThreshold) / current.warningThreshold;
+    const criticalChange = Math.abs(current.criticalThreshold - proposed.criticalThreshold) / current.criticalThreshold;
+    
+    // Mettre à jour si le changement est > 10%
+    return warningChange > 0.1 || criticalChange > 0.1;
+  }
+
+  /**
+   * Met à jour un seuil
+   */
+  private async updateThreshold(
+    metricName: string,
+    newThresholds: { warningThreshold: number; criticalThreshold: number }
+  ): Promise<void> {
+    try {
+      const threshold = this.thresholds.get(metricName);
+      if (!threshold) return;
+      
+      const updatedThreshold = {
+        ...threshold,
+        ...newThresholds
+      };
+      
+      this.thresholds.set(metricName, updatedThreshold);
+      
+      // Sauvegarder en base
+      await updateDoc(doc(db, 'alert_thresholds', threshold.id), newThresholds);
+      
+    } catch (error) {
+      console.error('Erreur mise à jour seuil:', error);
+    }
+  }
+
+  /**
+   * Obtient un template de notification
+   */
+  private async getNotificationTemplate(
+    channel: NotificationChannel,
+    severity: 'warning' | 'critical' | 'emergency' | 'info'
+  ): Promise<NotificationTemplate | null> {
+    // Implémentation simplifiée - à charger depuis la base
+    const templates: Record<string, NotificationTemplate> = {
+      [`${channel}_${severity}`]: {
+        id: `template_${channel}_${severity}`,
+        name: `${channel} ${severity} template`,
+        channel,
+        severity: severity as any,
+        subject: '🚨 Alerte {{severity}}: {{alertTitle}}',
+        body: `Alerte détectée:\n\nTitre: {{alertTitle}}\nDescription: {{alertDescription}}\nSévérité: {{severity}}\nMétrique: {{metricName}}\nValeur actuelle: {{currentValue}} {{unit}}\nSeuil: {{thresholdValue}} {{unit}}\nComposant: {{component}}\nEnvironnement: {{environment}}\nHorodatage: {{timestamp}}`,
+        variables: ['alertTitle', 'alertDescription', 'severity', 'metricName', 'currentValue', 'unit', 'thresholdValue', 'component', 'environment', 'timestamp'],
+        enabled: true
+      }
+    };
+    
+    return templates[`${channel}_${severity}`] || null;
+  }
+
+  /**
+   * Génère un titre d'alerte
+   */
+  private generateAlertTitle(
+    metricName: string,
+    severity: 'warning' | 'critical',
+    value: number,
+    unit: string
+  ): string {
+    const severityEmoji = severity === 'critical' ? '🔴' : '⚠️';
+    return `${severityEmoji} ${metricName}: ${value} ${unit}`;
+  }
+
+  /**
+   * Génère une description d'alerte
+   */
+  private generateAlertDescription(
+    metricName: string,
+    value: number,
+    threshold: AlertThreshold,
+    context: Alert['context']
+  ): string {
+    const thresholdValue = threshold.criticalThreshold;
+    const component = context.component || 'Composant inconnu';
+    
+    return `La métrique "${metricName}" a atteint ${value} ${threshold.unit}, dépassant le seuil de ${thresholdValue} ${threshold.unit} pour le composant "${component}".`;
+  }
+
+  /**
+   * Sauvegarde une alerte
+   */
+  private async saveAlert(alert: Alert): Promise<void> {
+    try {
+      await addDoc(collection(db, 'alerts'), {
+        ...alert,
+        created_at: alert.timestamp,
+        updated_at: alert.timestamp
+      });
+    } catch (error) {
+      console.error('Erreur sauvegarde alerte:', error);
+    }
+  }
+
+  /**
+   * Charge la configuration
+   */
+  private async loadConfiguration(): Promise<void> {
+    try {
+      // Charger depuis la base ou utiliser la configuration par défaut
+      this.configuration = this.getDefaultConfiguration();
+    } catch (error) {
+      console.error('Erreur chargement configuration:', error);
+    }
+  }
+
+  /**
+   * Charge les seuils d'alerte
+   */
+  private async loadAlertThresholds(): Promise<void> {
+    try {
+      const q = query(collection(db, 'alert_thresholds'));
+      const snapshot = await getDocs(q);
+      
+      snapshot.forEach(doc => {
+        const data = doc.data() as AlertThreshold;
+        this.thresholds.set(data.metricName, data);
+      });
+      
+      // Ajouter les seuils par défaut si aucun n'existe
+      if (this.thresholds.size === 0) {
+        await this.createDefaultThresholds();
+      }
+      
+      console.log(`✅ ${this.thresholds.size} seuils d'alerte chargés`);
+    } catch (error) {
+      console.error('Erreur chargement seuils:', error);
+    }
+  }
+
+  /**
+   * Charge les alertes actives
+   */
+  private async loadActiveAlerts(): Promise<void> {
+    try {
+      const q = query(
+        collection(db, 'alerts'),
+        where('resolved_at', '==', null),
+        orderBy('timestamp', 'desc')
+      );
+      
+      const snapshot = await getDocs(q);
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const alert: Alert = {
+          id: doc.id,
+          metricName: data.metric_name,
+          severity: data.severity,
+          title: data.title,
+          description: data.description,
+          currentValue: data.current_value,
+          thresholdValue: data.threshold_value,
+          unit: data.unit,
+          timestamp: data.timestamp.toDate(),
+          acknowledgedAt: data.acknowledged_at?.toDate(),
+          acknowledgedBy: data.acknowledged_by,
+          resolvedAt: data.resolved_at?.toDate(),
+          resolvedBy: data.resolved_by,
+          escalationLevel: data.escalation_level || 0,
+          suppressedUntil: data.suppressed_until?.toDate(),
+          context: data.context,
+          metadata: data.metadata || {},
+          relatedAlerts: data.related_alerts || [],
+          actionsTaken: data.actions_taken || []
+        };
+        
+        this.activeAlerts.set(alert.id, alert);
+      });
+      
+      console.log(`✅ ${this.activeAlerts.size} alertes actives chargées`);
+    } catch (error) {
+      console.error('Erreur chargement alertes actives:', error);
+    }
+  }
+
+  /**
+   * Crée les seuils par défaut
+   */
+  private async createDefaultThresholds(): Promise<void> {
+    const defaultThresholds: Omit<AlertThreshold, 'id'>[] = [
+      {
+        metricName: 'response_time',
+        metricType: 'performance',
+        warningThreshold: 3000,
+        criticalThreshold: 5000,
+        unit: 'ms',
+        operator: 'gt',
+        timeWindow: 5,
+        consecutiveViolations: 3,
+        enabled: true,
+        adaptiveThresholds: true,
+        escalationRules: [{
+          id: 'escalation_response_time',
+          severity: 'critical',
+          delayMinutes: 15,
+          channels: ['email', 'dashboard'],
+          recipients: ['admin@example.com'],
+          conditions: [{ type: 'time_elapsed', value: 15, operator: 'gte' }]
+        }],
+        suppressionRules: []
+      },
+      {
+        metricName: 'error_rate',
+        metricType: 'technical',
+        warningThreshold: 0.05,
+        criticalThreshold: 0.1,
+        unit: 'ratio',
+        operator: 'gt',
+        timeWindow: 5,
+        consecutiveViolations: 2,
+        enabled: true,
+        adaptiveThresholds: true,
+        escalationRules: [{
+          id: 'escalation_error_rate',
+          severity: 'critical',
+          delayMinutes: 10,
+          channels: ['email', 'slack'],
+          recipients: ['dev-team@example.com'],
+          conditions: [{ type: 'time_elapsed', value: 10, operator: 'gte' }]
+        }],
+        suppressionRules: []
+      },
+      {
+        metricName: 'ebios_compliance_score',
+        metricType: 'functional',
+        warningThreshold: 0.8,
+        criticalThreshold: 0.7,
+        unit: 'score',
+        operator: 'lt',
+        timeWindow: 10,
+        consecutiveViolations: 1,
+        enabled: true,
+        adaptiveThresholds: false,
+        escalationRules: [{
+          id: 'escalation_compliance',
+          severity: 'critical',
+          delayMinutes: 30,
+          channels: ['email'],
+          recipients: ['compliance@example.com'],
+          conditions: [{ type: 'time_elapsed', value: 30, operator: 'gte' }]
+        }],
+        suppressionRules: []
+      }
+    ];
+
+    for (const threshold of defaultThresholds) {
+      const docRef = await addDoc(collection(db, 'alert_thresholds'), threshold);
+      this.thresholds.set(threshold.metricName, {
+        ...threshold,
+        id: docRef.id
+      });
+    }
+
+    console.log('✅ Seuils par défaut créés');
+  }
+
+  /**
+   * Obtient la configuration par défaut
+   */
+  private getDefaultConfiguration(): AlertingConfiguration {
+    return {
+      globalEnabled: true,
+      defaultThresholds: {},
+      notificationChannels: {
+        email: {
+          enabled: true,
+          rateLimits: { maxPerMinute: 10, maxPerHour: 100, maxPerDay: 500 },
+          retryPolicy: { maxRetries: 3, backoffMultiplier: 2, maxBackoffSeconds: 300 }
+        },
+        slack: {
+          enabled: false,
+          rateLimits: { maxPerMinute: 20, maxPerHour: 200, maxPerDay: 1000 },
+          retryPolicy: { maxRetries: 3, backoffMultiplier: 2, maxBackoffSeconds: 300 }
+        },
+        teams: {
+          enabled: false,
+          rateLimits: { maxPerMinute: 20, maxPerHour: 200, maxPerDay: 1000 },
+          retryPolicy: { maxRetries: 3, backoffMultiplier: 2, maxBackoffSeconds: 300 }
+        },
+        webhook: {
+          enabled: true,
+          rateLimits: { maxPerMinute: 50, maxPerHour: 500, maxPerDay: 2000 },
+          retryPolicy: { maxRetries: 5, backoffMultiplier: 2, maxBackoffSeconds: 600 }
+        },
+        sms: {
+          enabled: false,
+          rateLimits: { maxPerMinute: 5, maxPerHour: 20, maxPerDay: 50 },
+          retryPolicy: { maxRetries: 2, backoffMultiplier: 3, maxBackoffSeconds: 900 }
+        },
+        dashboard: {
+          enabled: true,
+          rateLimits: { maxPerMinute: 100, maxPerHour: 1000, maxPerDay: 10000 },
+          retryPolicy: { maxRetries: 1, backoffMultiplier: 1, maxBackoffSeconds: 60 }
+        },
+        mobile_push: {
+          enabled: false,
+          rateLimits: { maxPerMinute: 30, maxPerHour: 300, maxPerDay: 1500 },
+          retryPolicy: { maxRetries: 3, backoffMultiplier: 2, maxBackoffSeconds: 300 }
+        }
+      },
+      escalationPolicies: [],
+      suppressionPolicies: [],
+      adaptiveThresholdsEnabled: true,
+      maintenanceWindows: [],
+      alertCorrelationEnabled: true,
+      autoRemediationEnabled: false
+    };
+  }
+
+  /**
+   * Obtient les statistiques d'alertes
+   */
+  async getAlertStatistics(
+    startDate: Date,
+    endDate: Date
+  ): Promise<AlertStatistics> {
+    try {
+      const q = query(
+        collection(db, 'alerts'),
+        where('timestamp', '>=', startDate),
+        where('timestamp', '<=', endDate)
+      );
+      
+      const snapshot = await getDocs(q);
+      const alerts = snapshot.docs.map(doc => doc.data());
+      
+      // Calculer les statistiques
+      const totalAlerts = alerts.length;
+      const alertsBySeverity = alerts.reduce((acc, alert) => {
+        acc[alert.severity] = (acc[alert.severity] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const alertsByMetric = alerts.reduce((acc, alert) => {
+        acc[alert.metric_name] = (acc[alert.metric_name] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const alertsByComponent = alerts.reduce((acc, alert) => {
+        const component = alert.context?.component || 'Unknown';
+        acc[component] = (acc[component] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      const resolvedAlerts = alerts.filter(alert => alert.resolved_at);
+      const acknowledgedAlerts = alerts.filter(alert => alert.acknowledged_at);
+      const escalatedAlerts = alerts.filter(alert => alert.escalation_level > 0);
+      
+      const averageResolutionTime = resolvedAlerts.length > 0 
+        ? resolvedAlerts.reduce((sum, alert) => {
+            const resolutionTime = new Date(alert.resolved_at).getTime() - new Date(alert.timestamp).getTime();
+            return sum + resolutionTime;
+          }, 0) / resolvedAlerts.length
+        : 0;
+      
+      return {
+        period: { start: startDate, end: endDate },
+        totalAlerts,
+        alertsBySeverity,
+        alertsByMetric,
+        alertsByComponent,
+        averageResolutionTime: averageResolutionTime / (1000 * 60), // en minutes
+        escalationRate: totalAlerts > 0 ? escalatedAlerts.length / totalAlerts : 0,
+        falsePositiveRate: 0, // À calculer selon la logique métier
+        acknowledgedRate: totalAlerts > 0 ? acknowledgedAlerts.length / totalAlerts : 0,
+        topAlertingComponents: Object.entries(alertsByComponent)
+          .map(([component, count]) => ({
+            component,
+            count,
+            averageSeverity: 1 // À calculer
+          }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 10),
+        trends: [] // À implémenter
+      };
+      
+    } catch (error) {
+      console.error('Erreur calcul statistiques alertes:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Acquitte une alerte
+   */
+  async acknowledgeAlert(
+    alertId: string,
+    acknowledgedBy: string,
+    comment?: string
+  ): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert || alert.acknowledgedAt) {
+        return;
+      }
+
+      const acknowledgedAlert = {
+        ...alert,
+        acknowledgedAt: new Date(),
+        acknowledgedBy,
+        actionsTaken: [
+          ...alert.actionsTaken,
+          {
+            id: `action-${Date.now()}`,
+            type: 'manual_intervention' as const,
+            timestamp: new Date(),
+            details: `Alerte acquittée${comment ? ': ' + comment : ''}`,
+            success: true
+          }
+        ]
+      };
+
+      this.activeAlerts.set(alertId, acknowledgedAlert);
+
+      await updateDoc(doc(db, 'alerts', alertId), {
+        acknowledged_at: acknowledgedAlert.acknowledgedAt,
+        acknowledged_by: acknowledgedBy,
+        actions_taken: acknowledgedAlert.actionsTaken
+      });
+
+      console.log(`✅ Alerte acquittée: ${alertId} par ${acknowledgedBy}`);
+
+    } catch (error) {
+      console.error(`Erreur acquittement alerte ${alertId}:`, error);
+    }
+  }
+
+  /**
+   * Supprime une alerte
+   */
+  async suppressAlert(
+    alertId: string,
+    suppressedBy: string,
+    duration: number, // en minutes
+    reason: string
+  ): Promise<void> {
+    try {
+      const alert = this.activeAlerts.get(alertId);
+      if (!alert) return;
+
+      const suppressedUntil = new Date(Date.now() + duration * 60 * 1000);
+      
+      const suppressedAlert = {
+        ...alert,
+        suppressedUntil,
+        actionsTaken: [
+          ...alert.actionsTaken,
+          {
+            id: `action-${Date.now()}`,
+            type: 'manual_intervention' as const,
+            timestamp: new Date(),
+            details: `Alerte supprimée pour ${duration} minutes: ${reason}`,
+            success: true
+          }
+        ]
+      };
+
+      this.activeAlerts.set(alertId, suppressedAlert);
+
+      await updateDoc(doc(db, 'alerts', alertId), {
+        suppressed_until: suppressedUntil,
+        actions_taken: suppressedAlert.actionsTaken
+      });
+
+      console.log(`🔇 Alerte supprimée: ${alertId} jusqu'à ${suppressedUntil}`);
+
+    } catch (error) {
+      console.error(`Erreur suppression alerte ${alertId}:`, error);
+    }
+  }
+
+  /**
+   * Obtient les alertes actives
+   */
+  getActiveAlerts(): Alert[] {
+    return Array.from(this.activeAlerts.values())
+      .filter(alert => !alert.resolvedAt && (!alert.suppressedUntil || alert.suppressedUntil < new Date()));
+  }
+
+  /**
+   * Obtient les seuils configurés
+   */
+  getConfiguredThresholds(): AlertThreshold[] {
+    return Array.from(this.thresholds.values());
+  }
+
+  /**
+   * Arrête le service d'alertes
+   */
+  async shutdown(): Promise<void> {
+    console.log('🛑 Arrêt Alerting Service');
+    
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+      this.processingInterval = null;
+    }
+    
+    if (this.adaptiveThresholdInterval) {
+      clearInterval(this.adaptiveThresholdInterval);
+      this.adaptiveThresholdInterval = null;
+    }
+    
+    this.activeAlerts.clear();
+    this.thresholds.clear();
+    this.notificationQueue.length = 0;
+    
+    console.log('✅ Alerting Service arrêté');
+  }
+}

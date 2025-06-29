@@ -1,0 +1,553 @@
+/**
+ * SERVICE DE DONNÉES DE TEST RÉELLES
+ * Génère et gère des données réelles pour les tests EBIOS RM
+ */
+
+import { collection, addDoc, getDocs, deleteDoc, doc, writeBatch } from 'firebase/firestore';
+import { testDb } from '@/config/firebase.test';
+
+export interface TestMission {
+  id?: string;
+  name: string;
+  description: string;
+  organization: string;
+  scope: string;
+  status: 'draft' | 'in-progress' | 'completed' | 'archived';
+  createdAt: string;
+  updatedAt: string;
+  metadata: {
+    version: string;
+    methodology: 'EBIOS-RM';
+    compliance: string[];
+  };
+}
+
+export interface TestBusinessValue {
+  id?: string;
+  missionId: string;
+  name: string;
+  description: string;
+  category: 'data' | 'service' | 'process' | 'reputation';
+  criticalityLevel: 1 | 2 | 3 | 4;
+  impactTypes: string[];
+  stakeholders: string[];
+  dependencies: string[];
+  createdAt: string;
+}
+
+export interface TestSupportingAsset {
+  id?: string;
+  missionId: string;
+  name: string;
+  description: string;
+  type: 'physical' | 'logical' | 'human' | 'organizational';
+  category: string;
+  location: string;
+  owner: string;
+  securityLevel: 'public' | 'internal' | 'confidential' | 'secret';
+  businessValues: string[];
+  createdAt: string;
+}
+
+export interface TestDreadedEvent {
+  id?: string;
+  missionId: string;
+  name: string;
+  description: string;
+  impactedBusinessValues: string[];
+  impactLevel: 1 | 2 | 3 | 4;
+  impactTypes: {
+    availability: number;
+    integrity: number;
+    confidentiality: number;
+    authenticity: number;
+  };
+  consequences: string[];
+  createdAt: string;
+}
+
+/**
+ * Service de gestion des données de test réelles
+ */
+export class RealTestDataService {
+  private static instance: RealTestDataService;
+
+  public static getInstance(): RealTestDataService {
+    if (!RealTestDataService.instance) {
+      RealTestDataService.instance = new RealTestDataService();
+    }
+    return RealTestDataService.instance;
+  }
+
+  /**
+   * Crée une mission de test complète avec toutes ses données
+   */
+  async createTestMission(missionName: string = 'Mission Test EBIOS RM'): Promise<string> {
+    // console.log supprimé
+
+    // 1. Créer la mission
+    const mission: TestMission = {
+      name: missionName,
+      description: `Mission générée automatiquement le ${new Date().toLocaleDateString()}`,
+      organization: `Organisation-${Date.now()}`,
+      scope: 'Système d\'information critique de test',
+      status: 'in-progress',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        version: '1.0.0',
+        methodology: 'EBIOS-RM',
+        compliance: ['ANSSI', 'ISO27001', 'NIST']
+      }
+    };
+
+    const missionRef = await addDoc(collection(testDb, 'missionsData'), mission);
+    const missionId = missionRef.id;
+    console.log(`✅ Mission créée avec ID: ${missionId}`);
+
+    // 2. Créer les biens essentiels (minimum ANSSI: 3)
+    await this.createBusinessValues(missionId);
+
+    // 3. Créer les biens supports (minimum ANSSI: 5)
+    await this.createSupportingAssets(missionId);
+
+    // 4. Créer les événements redoutés (minimum ANSSI: 2)
+    await this.createDreadedEvents(missionId);
+
+    // 5. Créer les sources de risque
+    await this.createRiskSources(missionId);
+
+    // 6. Créer les scénarios stratégiques
+    await this.createStrategicScenarios(missionId);
+
+    // 7. Créer les scénarios opérationnels
+    await this.createOperationalScenarios(missionId);
+
+    // 8. Créer les mesures de sécurité
+    await this.createSecurityMeasures(missionId);
+
+    // console.log supprimé
+    return missionId;
+  }
+
+  /**
+   * Crée des biens essentiels réalistes
+   */
+  private async createBusinessValues(missionId: string): Promise<void> {
+    const businessValues: TestBusinessValue[] = [
+      {
+        missionId,
+        name: 'Données clients sensibles',
+        description: `Base de données générée le ${new Date().toLocaleDateString()}`,
+        category: 'data',
+        criticalityLevel: 4,
+        impactTypes: ['confidentialité', 'intégrité', 'disponibilité'],
+        stakeholders: ['Direction', 'RSSI', 'DPO'],
+        dependencies: ['Système de sauvegarde', 'Chiffrement'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Service de paiement en ligne',
+        description: 'Plateforme de traitement des transactions financières',
+        category: 'service',
+        criticalityLevel: 4,
+        impactTypes: ['disponibilité', 'intégrité', 'authentification'],
+        stakeholders: ['Direction commerciale', 'DSI', 'Compliance'],
+        dependencies: ['HSM', 'Réseau bancaire'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Processus de validation KYC',
+        description: 'Processus de vérification d\'identité et de conformité réglementaire',
+        category: 'process',
+        criticalityLevel: 3,
+        impactTypes: ['intégrité', 'traçabilité', 'conformité'],
+        stakeholders: ['Compliance', 'Juridique', 'Opérations'],
+        dependencies: ['Système documentaire', 'API externes'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Réputation de l\'organisation',
+        description: 'Image de marque et confiance des parties prenantes',
+        category: 'reputation',
+        criticalityLevel: 3,
+        impactTypes: ['image', 'confiance', 'business'],
+        stakeholders: ['Direction générale', 'Communication', 'Marketing'],
+        dependencies: ['Médias', 'Réseaux sociaux', 'Clients'],
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    businessValues.forEach(bv => {
+      const ref = doc(collection(testDb, 'businessValues'));
+      batch.set(ref, bv);
+    });
+    await batch.commit();
+    console.log(`✅ ${businessValues.length} biens essentiels créés`);
+  }
+
+  /**
+   * Crée des biens supports réalistes
+   */
+  private async createSupportingAssets(missionId: string): Promise<void> {
+    const supportingAssets: TestSupportingAsset[] = [
+      {
+        missionId,
+        name: 'Serveur de base de données principal',
+        description: 'Serveur hébergeant la base de données clients en production',
+        type: 'physical',
+        category: 'infrastructure',
+        location: 'Datacenter principal - Rack A12',
+        owner: 'DSI',
+        securityLevel: 'secret',
+        businessValues: ['Données clients sensibles'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Application web de paiement',
+        description: 'Interface utilisateur pour les transactions en ligne',
+        type: 'logical',
+        category: 'application',
+        location: 'Cloud AWS - eu-west-1',
+        owner: 'Équipe développement',
+        securityLevel: 'confidential',
+        businessValues: ['Service de paiement en ligne'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Équipe support client',
+        description: 'Personnel en charge de l\'assistance clientèle',
+        type: 'human',
+        category: 'personnel',
+        location: 'Siège social - Étage 3',
+        owner: 'RH',
+        securityLevel: 'internal',
+        businessValues: ['Service de paiement en ligne', 'Réputation de l\'organisation'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Procédure de validation KYC',
+        description: 'Documentation et processus de vérification d\'identité',
+        type: 'organizational',
+        category: 'processus',
+        location: 'Système documentaire',
+        owner: 'Compliance',
+        securityLevel: 'confidential',
+        businessValues: ['Processus de validation KYC'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Réseau interne sécurisé',
+        description: 'Infrastructure réseau de l\'organisation',
+        type: 'logical',
+        category: 'réseau',
+        location: 'Périmètre organisationnel',
+        owner: 'DSI',
+        securityLevel: 'secret',
+        businessValues: ['Données clients sensibles', 'Service de paiement en ligne'],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Système de sauvegarde',
+        description: 'Infrastructure de sauvegarde et de récupération',
+        type: 'physical',
+        category: 'infrastructure',
+        location: 'Datacenter secondaire',
+        owner: 'DSI',
+        securityLevel: 'secret',
+        businessValues: ['Données clients sensibles'],
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    supportingAssets.forEach(sa => {
+      const ref = doc(collection(testDb, 'supportingAssets'));
+      batch.set(ref, sa);
+    });
+    await batch.commit();
+    console.log(`✅ ${supportingAssets.length} biens supports créés`);
+  }
+
+  /**
+   * Crée des événements redoutés réalistes
+   */
+  private async createDreadedEvents(missionId: string): Promise<void> {
+    const dreadedEvents: TestDreadedEvent[] = [
+      {
+        missionId,
+        name: 'Fuite de données clients',
+        description: 'Divulgation non autorisée des données personnelles et financières',
+        impactedBusinessValues: ['Données clients sensibles', 'Réputation de l\'organisation'],
+        impactLevel: 4,
+        impactTypes: {
+          availability: 2,
+          integrity: 3,
+          confidentiality: 4,
+          authenticity: 2
+        },
+        consequences: [
+          'Sanctions RGPD',
+          'Perte de confiance clients',
+          'Impact financier majeur',
+          'Dommage réputationnel'
+        ],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Indisponibilité du service de paiement',
+        description: 'Interruption prolongée du système de paiement en ligne',
+        impactedBusinessValues: ['Service de paiement en ligne', 'Réputation de l\'organisation'],
+        impactLevel: 3,
+        impactTypes: {
+          availability: 4,
+          integrity: 2,
+          confidentiality: 1,
+          authenticity: 2
+        },
+        consequences: [
+          'Perte de chiffre d\'affaires',
+          'Insatisfaction clients',
+          'Pénalités contractuelles',
+          'Coûts de récupération'
+        ],
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Corruption des données de validation KYC',
+        description: 'Altération des données de vérification d\'identité',
+        impactedBusinessValues: ['Processus de validation KYC'],
+        impactLevel: 3,
+        impactTypes: {
+          availability: 2,
+          integrity: 4,
+          confidentiality: 2,
+          authenticity: 3
+        },
+        consequences: [
+          'Non-conformité réglementaire',
+          'Sanctions autorités',
+          'Risque de blanchiment',
+          'Audit externe'
+        ],
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    dreadedEvents.forEach(de => {
+      const ref = doc(collection(testDb, 'dreadedEvents'));
+      batch.set(ref, de);
+    });
+    await batch.commit();
+    console.log(`✅ ${dreadedEvents.length} événements redoutés créés`);
+  }
+
+  /**
+   * Crée des sources de risque réalistes
+   */
+  private async createRiskSources(missionId: string): Promise<void> {
+    const riskSources = [
+      {
+        missionId,
+        name: 'Cybercriminels organisés',
+        description: 'Groupes criminels spécialisés dans le vol de données financières',
+        category: 'externe',
+        motivation: 'financière',
+        capabilities: ['hacking avancé', 'ingénierie sociale', 'malware'],
+        resources: 'élevées',
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Employé malveillant',
+        description: 'Personnel interne avec accès privilégié',
+        category: 'interne',
+        motivation: 'vengeance',
+        capabilities: ['accès légitime', 'connaissance système'],
+        resources: 'moyennes',
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    riskSources.forEach(rs => {
+      const ref = doc(collection(testDb, 'riskSources'));
+      batch.set(ref, rs);
+    });
+    await batch.commit();
+    console.log(`✅ ${riskSources.length} sources de risque créées`);
+  }
+
+  /**
+   * Crée des scénarios stratégiques
+   */
+  private async createStrategicScenarios(missionId: string): Promise<void> {
+    const scenarios = [
+      {
+        missionId,
+        name: 'Attaque ciblée sur les données clients',
+        description: 'Scénario d\'exfiltration de données par cybercriminels',
+        riskSource: 'Cybercriminels organisés',
+        targetedAssets: ['Serveur de base de données principal'],
+        attackPath: 'Phishing -> Escalade privilèges -> Exfiltration',
+        likelihood: 3,
+        impact: 4,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    scenarios.forEach(s => {
+      const ref = doc(collection(testDb, 'strategicScenarios'));
+      batch.set(ref, s);
+    });
+    await batch.commit();
+    console.log(`✅ ${scenarios.length} scénarios stratégiques créés`);
+  }
+
+  /**
+   * Crée des scénarios opérationnels
+   */
+  private async createOperationalScenarios(missionId: string): Promise<void> {
+    const scenarios = [
+      {
+        missionId,
+        name: 'Exploitation vulnérabilité SQL injection',
+        description: 'Scénario détaillé d\'exploitation de faille applicative',
+        strategicScenario: 'Attaque ciblée sur les données clients',
+        technicalSteps: ['Reconnaissance', 'Injection SQL', 'Extraction données'],
+        likelihood: 2,
+        impact: 4,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    scenarios.forEach(s => {
+      const ref = doc(collection(testDb, 'operationalScenarios'));
+      batch.set(ref, s);
+    });
+    await batch.commit();
+    console.log(`✅ ${scenarios.length} scénarios opérationnels créés`);
+  }
+
+  /**
+   * Crée des mesures de sécurité
+   */
+  private async createSecurityMeasures(missionId: string): Promise<void> {
+    const measures = [
+      {
+        missionId,
+        name: 'Chiffrement base de données',
+        description: 'Chiffrement AES-256 des données sensibles',
+        type: 'technique',
+        category: 'protection',
+        status: 'implemented',
+        effectiveness: 4,
+        cost: 3,
+        createdAt: new Date().toISOString()
+      },
+      {
+        missionId,
+        name: 'Formation sécurité personnel',
+        description: 'Programme de sensibilisation aux risques cyber',
+        type: 'organisationnel',
+        category: 'prévention',
+        status: 'planned',
+        effectiveness: 3,
+        cost: 2,
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    const batch = writeBatch(testDb);
+    measures.forEach(m => {
+      const ref = doc(collection(testDb, 'securityMeasures'));
+      batch.set(ref, m);
+    });
+    await batch.commit();
+    console.log(`✅ ${measures.length} mesures de sécurité créées`);
+  }
+
+  /**
+   * Supprime toutes les données de test d'une mission
+   */
+  async deleteTestMission(missionId: string): Promise<void> {
+    // console.log supprimé
+
+    const collections = [
+      'missionsData',
+      'businessValues',
+      'supportingAssets',
+      'dreadedEvents',
+      'riskSources',
+      'strategicScenarios',
+      'operationalScenarios',
+      'securityMeasures'
+    ];
+
+    for (const collectionName of collections) {
+      const snapshot = await getDocs(collection(testDb, collectionName));
+      const batch = writeBatch(testDb);
+      
+      snapshot.docs.forEach(docSnapshot => {
+        const data = docSnapshot.data();
+        if (data.missionId === missionId || docSnapshot.id === missionId) {
+          batch.delete(docSnapshot.ref);
+        }
+      });
+      
+      await batch.commit();
+    }
+
+    // console.log supprimé
+  }
+
+  /**
+   * Nettoie toutes les données de test
+   */
+  async cleanupAllTestData(): Promise<void> {
+    // console.log supprimé
+
+    const collections = [
+      'missionsData',
+      'businessValues',
+      'supportingAssets',
+      'dreadedEvents',
+      'riskSources',
+      'strategicScenarios',
+      'operationalScenarios',
+      'securityMeasures'
+    ];
+
+    for (const collectionName of collections) {
+      const snapshot = await getDocs(collection(testDb, collectionName));
+      const batch = writeBatch(testDb);
+      
+      snapshot.docs.forEach(docSnapshot => {
+        batch.delete(docSnapshot.ref);
+      });
+      
+      if (snapshot.docs.length > 0) {
+        await batch.commit();
+        console.log(`✅ ${snapshot.docs.length} documents supprimés de ${collectionName}`);
+      }
+    }
+
+    console.log('✅ Nettoyage complet terminé');
+  }
+}
+
+export default RealTestDataService;

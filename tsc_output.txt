@@ -1,0 +1,1471 @@
+[96msrc/infrastructure/agents/AgentFactory.ts[0m:[93m173[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType 'DocumentationAgent' is not assignable to type 'EBIOSAgent'.
+  Types of property 'metrics' are incompatible.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m173[0m         return new DocumentationAgent(agentConfig);
+[7m   [0m [91m        ~~~~~~[0m
+
+[96msrc/infrastructure/agents/AgentFactory.ts[0m:[93m176[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType 'VisualizationAgent' is not assignable to type 'EBIOSAgent'.
+  Types of property 'metrics' are incompatible.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m176[0m         return new VisualizationAgent(agentConfig);
+[7m   [0m [91m        ~~~~~~[0m
+
+[96msrc/infrastructure/agents/AgentFactory.ts[0m:[93m202[0m:[93m5[0m - [91merror[0m[90m TS2322: [0mType 'LegacyServiceAdapter' is not assignable to type 'EBIOSAgent'.
+  Property 'status' is private in type 'LegacyServiceAdapter' but not in type 'EBIOSAgent'.
+
+[7m202[0m     return new LegacyServiceAdapter(type, agentConfig);
+[7m   [0m [91m    ~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m28[0m:[93m37[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../services/analysis/RiskAnalysisService' or its corresponding type declarations.
+
+[7m28[0m import { RiskAnalysisService } from '../../services/analysis/RiskAnalysisService';
+[7m  [0m [91m                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m29[0m:[93m35[0m - [91merror[0m[90m TS2307: [0mCannot find module '../../services/compliance/ComplianceService' or its corresponding type declarations.
+
+[7m29[0m import { ComplianceService } from '../../services/compliance/ComplianceService';
+[7m  [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m38[0m:[93m33[0m - [91merror[0m[90m TS2304: [0mCannot find name 'AgentCapability'.
+
+[7m38[0m   public readonly capabilities: AgentCapability[] = [];
+[7m  [0m [91m                                ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m67[0m:[93m14[0m - [91merror[0m[90m TS2416: [0mProperty 'metrics' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m67[0m   public get metrics(): Promise<AgentMetrics> {
+[7m  [0m [91m             ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m67[0m:[93m14[0m - [91merror[0m[90m TS2416: [0mProperty 'metrics' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'WorkshopAgent'.
+  Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m67[0m   public get metrics(): Promise<AgentMetrics> {
+[7m  [0m [91m             ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m71[0m:[93m10[0m - [91merror[0m[90m TS2416: [0mProperty 'canHandle' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '(task: AgentTask) => boolean' is not assignable to type '(taskType: string) => boolean'.
+    Types of parameters 'task' and 'taskType' are incompatible.
+      Type 'string' is not assignable to type 'AgentTask'.
+
+[7m71[0m   public canHandle(task: AgentTask): boolean {
+[7m  [0m [91m         ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m71[0m:[93m10[0m - [91merror[0m[90m TS2416: [0mProperty 'canHandle' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'WorkshopAgent'.
+  Type '(task: AgentTask) => boolean' is not assignable to type '(taskType: string) => boolean'.
+    Types of parameters 'task' and 'taskType' are incompatible.
+      Type 'string' is not assignable to type 'AgentTask'.
+
+[7m71[0m   public canHandle(task: AgentTask): boolean {
+[7m  [0m [91m         ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m75[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'heartbeat' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<boolean>' is not assignable to type '() => Promise<void>'.
+    Type 'Promise<boolean>' is not assignable to type 'Promise<void>'.
+      Type 'boolean' is not assignable to type 'void'.
+
+[7m75[0m   public async heartbeat(): Promise<boolean> {
+[7m  [0m [91m               ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m75[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'heartbeat' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'WorkshopAgent'.
+  Type '() => Promise<boolean>' is not assignable to type '() => Promise<void>'.
+    Type 'Promise<boolean>' is not assignable to type 'Promise<void>'.
+      Type 'boolean' is not assignable to type 'void'.
+
+[7m75[0m   public async heartbeat(): Promise<boolean> {
+[7m  [0m [91m               ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m159[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'legacyFallback' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m159[0m           legacyFallback: true,
+[7m   [0m [91m          ~~~~~~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m170[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'executeWorkshop' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'WorkshopAgent'.
+  Type '(plan: WorkflowPlan) => Promise<WorkflowResult>' is not assignable to type '(studyId: string, context: any) => Promise<AgentResult>'.
+    Types of parameters 'plan' and 'studyId' are incompatible.
+      Type 'string' is not assignable to type 'WorkflowPlan'.
+
+[7m170[0m   public async executeWorkshop(plan: WorkflowPlan): Promise<WorkflowResult> {
+[7m   [0m [91m               ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m176[0m:[93m14[0m - [91merror[0m[90m TS2339: [0mProperty 'context' does not exist on type 'WorkflowPlan'.
+
+[7m176[0m         plan.context
+[7m   [0m [91m             ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m180[0m:[93m9[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'planId' does not exist in type 'WorkflowResult'.
+
+[7m180[0m         planId: plan.id,
+[7m   [0m [91m        ~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m180[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'id' does not exist on type 'WorkflowPlan'.
+
+[7m180[0m         planId: plan.id,
+[7m   [0m [91m                     ~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m184[0m:[93m26[0m - [91merror[0m[90m TS2339: [0mProperty 'id' does not exist on type 'WorkflowPhase'.
+
+[7m184[0m           phaseId: phase.id,
+[7m   [0m [91m                         ~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m200[0m:[93m9[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'planId' does not exist in type 'WorkflowResult'.
+
+[7m200[0m         planId: plan.id,
+[7m   [0m [91m        ~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m200[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'id' does not exist on type 'WorkflowPlan'.
+
+[7m200[0m         planId: plan.id,
+[7m   [0m [91m                     ~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m219[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'getMetrics' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<AgentMetrics>' is not assignable to type '() => AgentMetrics'.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m219[0m   public async getMetrics(): Promise<AgentMetrics> {
+[7m   [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m219[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'getMetrics' in type 'LegacyServiceAdapter' is not assignable to the same property in base type 'WorkshopAgent'.
+  Type '() => Promise<AgentMetrics>' is not assignable to type '() => AgentMetrics'.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m219[0m   public async getMetrics(): Promise<AgentMetrics> {
+[7m   [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m224[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'tasksExecuted' does not exist in type 'AgentMetrics'.
+
+[7m224[0m       tasksExecuted: metrics.tasksExecuted || 0,
+[7m   [0m [91m      ~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m224[0m:[93m30[0m - [91merror[0m[90m TS2339: [0mProperty 'tasksExecuted' does not exist on type 'AgentMetric[]'.
+
+[7m224[0m       tasksExecuted: metrics.tasksExecuted || 0,
+[7m   [0m [91m                             ~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m225[0m:[93m28[0m - [91merror[0m[90m TS2339: [0mProperty 'successRate' does not exist on type 'AgentMetric[]'.
+
+[7m225[0m       successRate: metrics.successRate || 0,
+[7m   [0m [91m                           ~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m226[0m:[93m37[0m - [91merror[0m[90m TS2339: [0mProperty 'averageExecutionTime' does not exist on type 'AgentMetric[]'.
+
+[7m226[0m       averageExecutionTime: metrics.averageExecutionTime || 0,
+[7m   [0m [91m                                    ~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m227[0m:[93m29[0m - [91merror[0m[90m TS2339: [0mProperty 'lastActivity' does not exist on type 'AgentMetric[]'.
+
+[7m227[0m       lastActivity: metrics.lastActivity || new Date(),
+[7m   [0m [91m                            ~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/LegacyServiceAdapter.ts[0m:[93m339[0m:[93m9[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'legacyFallback' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m339[0m         legacyFallback: true,
+[7m   [0m [91m        ~~~~~~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m57[0m:[93m14[0m - [91merror[0m[90m TS2416: [0mProperty 'metrics' in type 'DocumentationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m57[0m   public get metrics(): Promise<AgentMetrics> {
+[7m  [0m [91m             ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m61[0m:[93m10[0m - [91merror[0m[90m TS2416: [0mProperty 'canHandle' in type 'DocumentationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '(task: AgentTask) => boolean' is not assignable to type '(taskType: string) => boolean'.
+    Types of parameters 'task' and 'taskType' are incompatible.
+      Type 'string' is not assignable to type 'AgentTask'.
+
+[7m61[0m   public canHandle(task: AgentTask): boolean {
+[7m  [0m [91m         ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m66[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'heartbeat' in type 'DocumentationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<boolean>' is not assignable to type '() => Promise<void>'.
+    Type 'Promise<boolean>' is not assignable to type 'Promise<void>'.
+      Type 'boolean' is not assignable to type 'void'.
+
+[7m66[0m   public async heartbeat(): Promise<boolean> {
+[7m  [0m [91m               ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m183[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m183[0m           agentType: 'documentation',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m210[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m210[0m           agentType: 'documentation',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m221[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'getMetrics' in type 'DocumentationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<AgentMetrics>' is not assignable to type '() => AgentMetrics'.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m221[0m   public async getMetrics(): Promise<AgentMetrics> {
+[7m   [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/DocumentationAgent.ts[0m:[93m230[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'tasksExecuted' does not exist in type 'AgentMetrics'.
+
+[7m230[0m       tasksExecuted: totalExecutions,
+[7m   [0m [91m      ~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m157[0m:[93m70[0m - [91merror[0m[90m TS2339: [0mProperty 'MONITORING' does not exist on type 'typeof AgentCapability'.
+
+[7m157[0m   public readonly capabilities: AgentCapability[] = [AgentCapability.MONITORING];
+[7m   [0m [91m                                                                     ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m283[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m283[0m           agentType: 'monitoring',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m323[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m323[0m           agentType: 'monitoring',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m334[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'getMetrics' in type 'MonitoringAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<AgentMetrics>' is not assignable to type '() => AgentMetrics'.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m334[0m   public async getMetrics(): Promise<AgentMetrics> {
+[7m   [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m342[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'tasksExecuted' does not exist in type 'AgentMetrics'.
+
+[7m342[0m       tasksExecuted: totalExecutions,
+[7m   [0m [91m      ~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m407[0m:[93m49[0m - [91merror[0m[90m TS2551: [0mProperty 'getAllExecutionRecords' does not exist on type 'MetricsCollector'. Did you mean 'getExecutionRecords'?
+
+[7m407[0m     const allExecutions = this.metricsCollector.getAllExecutionRecords()
+[7m   [0m [91m                                                ~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/infrastructure/monitoring/MetricsCollector.ts[0m:[93m203[0m:[93m10[0m
+    [7m203[0m   public getExecutionRecords(agentId?: string, timeWindow?: number): ExecutionRecord[] {
+    [7m   [0m [96m         ~~~~~~~~~~~~~~~~~~~[0m
+    'getExecutionRecords' is declared here.
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m408[0m:[93m15[0m - [91merror[0m[90m TS7006: [0mParameter 'e' implicitly has an 'any' type.
+
+[7m408[0m       .filter(e => e.timestamp >= period.start && e.timestamp <= period.end);
+[7m   [0m [91m              ~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m714[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType '"warning"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m714[0m         severity: 'warning',
+[7m   [0m [91m        ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m57[0m:[93m3[0m
+    [7m57[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'Issue'
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m728[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType '"warning"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m728[0m         severity: 'warning',
+[7m   [0m [91m        ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m57[0m:[93m3[0m
+    [7m57[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'Issue'
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m753[0m:[93m52[0m - [91merror[0m[90m TS2551: [0mProperty 'getAllExecutionRecords' does not exist on type 'MetricsCollector'. Did you mean 'getExecutionRecords'?
+
+[7m753[0m     const recentExecutions = this.metricsCollector.getAllExecutionRecords()
+[7m   [0m [91m                                                   ~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/infrastructure/monitoring/MetricsCollector.ts[0m:[93m203[0m:[93m10[0m
+    [7m203[0m   public getExecutionRecords(agentId?: string, timeWindow?: number): ExecutionRecord[] {
+    [7m   [0m [96m         ~~~~~~~~~~~~~~~~~~~[0m
+    'getExecutionRecords' is declared here.
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m754[0m:[93m15[0m - [91merror[0m[90m TS7006: [0mParameter 'e' implicitly has an 'any' type.
+
+[7m754[0m       .filter(e => e.timestamp > new Date(Date.now() - 5 * 60 * 1000)); // 5 derni├¿res minutes
+[7m   [0m [91m              ~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m766[0m:[93m50[0m - [91merror[0m[90m TS7006: [0mParameter 'e' implicitly has an 'any' type.
+
+[7m766[0m     const successRate = (recentExecutions.filter(e => e.success).length / recentExecutions.length) * 100;
+[7m   [0m [91m                                                 ~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m767[0m:[93m54[0m - [91merror[0m[90m TS7006: [0mParameter 'sum' implicitly has an 'any' type.
+
+[7m767[0m     const avgResponseTime = recentExecutions.reduce((sum, e) => sum + e.executionTime, 0) / recentExecutions.length;
+[7m   [0m [91m                                                     ~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m767[0m:[93m59[0m - [91merror[0m[90m TS7006: [0mParameter 'e' implicitly has an 'any' type.
+
+[7m767[0m     const avgResponseTime = recentExecutions.reduce((sum, e) => sum + e.executionTime, 0) / recentExecutions.length;
+[7m   [0m [91m                                                          ~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m795[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType '"warning"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m795[0m         severity: 'warning',
+[7m   [0m [91m        ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m57[0m:[93m3[0m
+    [7m57[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'Issue'
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m812[0m:[93m45[0m - [91merror[0m[90m TS7006: [0mParameter 'e' implicitly has an 'any' type.
+
+[7m812[0m         errorCount: recentExecutions.filter(e => !e.success).length
+[7m   [0m [91m                                            ~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m978[0m:[93m49[0m - [91merror[0m[90m TS2551: [0mProperty 'getAllExecutionRecords' does not exist on type 'MetricsCollector'. Did you mean 'getExecutionRecords'?
+
+[7m978[0m     const allExecutions = this.metricsCollector.getAllExecutionRecords();
+[7m   [0m [91m                                                ~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/infrastructure/monitoring/MetricsCollector.ts[0m:[93m203[0m:[93m10[0m
+    [7m203[0m   public getExecutionRecords(agentId?: string, timeWindow?: number): ExecutionRecord[] {
+    [7m   [0m [96m         ~~~~~~~~~~~~~~~~~~~[0m
+    'getExecutionRecords' is declared here.
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1213[0m:[93m12[0m - [91merror[0m[90m TS2367: [0mThis comparison appears to be unintentional because the types 'CircuitBreakerState' and '"OPEN"' have no overlap.
+
+[7m1213[0m     return this.circuitBreaker.getState() !== 'OPEN';
+[7m    [0m [91m           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1304[0m:[93m11[0m - [91merror[0m[90m TS18046: [0m'component' is of type 'unknown'.
+
+[7m1304[0m       if (component.status === 'critical') {
+[7m    [0m [91m          ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1308[0m:[93m86[0m - [91merror[0m[90m TS18046: [0m'component' is of type 'unknown'.
+
+[7m1308[0m           description: `Component ${componentName} is in critical state with score ${component.score}`,
+[7m    [0m [91m                                                                                     ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1310[0m:[93m56[0m - [91merror[0m[90m TS18046: [0m'component' is of type 'unknown'.
+
+[7m1310[0m           metadata: { component: componentName, score: component.score }
+[7m    [0m [91m                                                       ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1312[0m:[93m18[0m - [91merror[0m[90m TS18046: [0m'component' is of type 'unknown'.
+
+[7m1312[0m       } else if (component.status === 'warning') {
+[7m    [0m [91m                 ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1316[0m:[93m85[0m - [91merror[0m[90m TS18046: [0m'component' is of type 'unknown'.
+
+[7m1316[0m           description: `Component ${componentName} is in warning state with score ${component.score}`,
+[7m    [0m [91m                                                                                    ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/MonitoringAgent.ts[0m:[93m1318[0m:[93m56[0m - [91merror[0m[90m TS18046: [0m'component' is of type 'unknown'.
+
+[7m1318[0m           metadata: { component: componentName, score: component.score }
+[7m    [0m [91m                                                       ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m102[0m:[93m70[0m - [91merror[0m[90m TS2339: [0mProperty 'RECOMMENDATION' does not exist on type 'typeof AgentCapability'.
+
+[7m102[0m   public readonly capabilities: AgentCapability[] = [AgentCapability.RECOMMENDATION];
+[7m   [0m [91m                                                                     ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m305[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m305[0m           agentType: 'recommendation',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m336[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m336[0m           agentType: 'recommendation',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m347[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'getMetrics' in type 'RecommendationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<AgentMetrics>' is not assignable to type '() => AgentMetrics'.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m347[0m   public async getMetrics(): Promise<AgentMetrics> {
+[7m   [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m358[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'tasksExecuted' does not exist in type 'AgentMetrics'.
+
+[7m358[0m       tasksExecuted: totalExecutions,
+[7m   [0m [91m      ~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m674[0m:[93m22[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ beginner: { focusAreas: string[]; recommendedApproach: string; additionalSupport: string[]; }; intermediate: { focusAreas: string[]; recommendedApproach: string; additionalSupport: string[]; }; expert: { ...; }; }'.
+
+[7m674[0m     const guidance = this.knowledgeBase.methodologyGuidance[userProfile.experience];
+[7m   [0m [91m                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m676[0m:[93m44[0m - [91merror[0m[90m TS7006: [0mParameter 'support' implicitly has an 'any' type.
+
+[7m676[0m     return guidance.additionalSupport.map((support, index) => ({
+[7m   [0m [91m                                           ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/RecommendationAgent.ts[0m:[93m676[0m:[93m53[0m - [91merror[0m[90m TS7006: [0mParameter 'index' implicitly has an 'any' type.
+
+[7m676[0m     return guidance.additionalSupport.map((support, index) => ({
+[7m   [0m [91m                                                    ~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m105[0m:[93m14[0m - [91merror[0m[90m TS2416: [0mProperty 'metrics' in type 'VisualizationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m105[0m   public get metrics(): Promise<AgentMetrics> {
+[7m   [0m [91m             ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m109[0m:[93m10[0m - [91merror[0m[90m TS2416: [0mProperty 'canHandle' in type 'VisualizationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '(task: AgentTask) => boolean' is not assignable to type '(taskType: string) => boolean'.
+    Types of parameters 'task' and 'taskType' are incompatible.
+      Type 'string' is not assignable to type 'AgentTask'.
+
+[7m109[0m   public canHandle(task: AgentTask): boolean {
+[7m   [0m [91m         ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m114[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'heartbeat' in type 'VisualizationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<boolean>' is not assignable to type '() => Promise<void>'.
+    Type 'Promise<boolean>' is not assignable to type 'Promise<void>'.
+      Type 'boolean' is not assignable to type 'void'.
+
+[7m114[0m   public async heartbeat(): Promise<boolean> {
+[7m   [0m [91m               ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m243[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m243[0m           agentType: 'visualization',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m275[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'agentType' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m275[0m           agentType: 'visualization',
+[7m   [0m [91m          ~~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/AgentInterface.ts[0m:[93m76[0m:[93m3[0m
+    [7m76[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m286[0m:[93m16[0m - [91merror[0m[90m TS2416: [0mProperty 'getMetrics' in type 'VisualizationAgent' is not assignable to the same property in base type 'EBIOSAgent'.
+  Type '() => Promise<AgentMetrics>' is not assignable to type '() => AgentMetrics'.
+    Type 'Promise<AgentMetrics>' is missing the following properties from type 'AgentMetrics': tasksCompleted, tasksFailures, averageExecutionTime, lastHeartbeat, and 2 more.
+
+[7m286[0m   public async getMetrics(): Promise<AgentMetrics> {
+[7m   [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m298[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'tasksExecuted' does not exist in type 'AgentMetrics'.
+
+[7m298[0m       tasksExecuted: totalExecutions,
+[7m   [0m [91m      ~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/specialized/VisualizationAgent.ts[0m:[93m480[0m:[93m21[0m - [91merror[0m[90m TS2339: [0mProperty 'generateOptimizedStyling' does not exist on type 'VisualizationAgent'.
+
+[7m480[0m       styling: this.generateOptimizedStyling(context, density),
+[7m   [0m [91m                    ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m760[0m:[93m65[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m760[0m         return await this.executeScenarioIdentification(inputs, defaultContext);
+[7m   [0m [91m                                                                ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m762[0m:[93m61[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m762[0m         return await this.executeAttackPathModeling(inputs, defaultContext);
+[7m   [0m [91m                                                            ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m764[0m:[93m64[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m764[0m         return await this.executeFeasibilityAssessment(inputs, defaultContext);
+[7m   [0m [91m                                                               ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m766[0m:[93m57[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m766[0m         return await this.executeImpactAnalysis(inputs, defaultContext);
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m768[0m:[93m65[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m768[0m         return await this.executeScenarioPrioritization(inputs, defaultContext);
+[7m   [0m [91m                                                                ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m798[0m:[93m90[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m798[0m         return await this.createScenario(task.data.riskSource, task.data.businessValues, defaultContext);
+[7m   [0m [91m                                                                                         ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m800[0m:[93m87[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m800[0m         return await this.modelAttackPath(task.data.scenarioId, task.data.techniques, defaultContext);
+[7m   [0m [91m                                                                                      ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m802[0m:[93m67[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m802[0m         return await this.assessFeasibility(task.data.scenarioId, defaultContext);
+[7m   [0m [91m                                                                  ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m804[0m:[93m63[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m804[0m         return await this.analyzeImpact(task.data.scenarioId, defaultContext);
+[7m   [0m [91m                                                              ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m806[0m:[93m63[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m806[0m         return await this.calculateRisk(task.data.scenarioId, defaultContext);
+[7m   [0m [91m                                                              ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m808[0m:[93m68[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m808[0m         return await this.suggestMitigations(task.data.scenarioId, defaultContext);
+[7m   [0m [91m                                                                   ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m810[0m:[93m66[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m810[0m         return await this.validateScenario(task.data.scenarioId, defaultContext);
+[7m   [0m [91m                                                                 ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m812[0m:[93m61[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ workshopNumber: 3; organizationId: string; projectId: string; sessionId: string; userId: string; timestamp: Date; metadata: {}; configuration: { language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; };...' is not assignable to parameter of type 'WorkshopContext'.
+  Types of property 'configuration' are incompatible.
+    Type '{ language: string; methodology: string; aiRecommendations: boolean; realTimeValidation: boolean; autoSave: boolean; collaborativeMode: boolean; exportFormats: string[]; }' is missing the following properties from type 'WorkshopConfiguration': complianceLevel, customRules
+
+[7m812[0m         return await this.exportScenarios(task.data.format, defaultContext);
+[7m   [0m [91m                                                            ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m857[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '"info" | "warning"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+  Type '"info"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m857[0m       severity: issues.length === 0 ? 'info' : 'warning',
+[7m   [0m [91m      ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m117[0m:[93m3[0m
+    [7m117[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m   [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m858[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ issues: string[]; warnings: string[]; score: number; }' is not assignable to type 'string'.
+
+[7m858[0m       details: {
+[7m   [0m [91m      ~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m116[0m:[93m3[0m
+    [7m116[0m   details: string;
+    [7m   [0m [96m  ~~~~~~~[0m
+    The expected type comes from property 'details' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m881[0m:[93m37[0m - [91merror[0m[90m TS7006: [0mParameter 'd' implicitly has an 'any' type.
+
+[7m881[0m       if (!result.deliverables.some(d => d.content.includes(element))) {
+[7m   [0m [91m                                    ~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m896[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '"info" | "error"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+  Type '"info"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m896[0m       severity: issues.length === 0 ? 'info' : 'error',
+[7m   [0m [91m      ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m117[0m:[93m3[0m
+    [7m117[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m   [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m897[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ issues: string[]; warnings: never[]; score: number; }' is not assignable to type 'string'.
+
+[7m897[0m       details: {
+[7m   [0m [91m      ~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m116[0m:[93m3[0m
+    [7m116[0m   details: string;
+    [7m   [0m [96m  ~~~~~~~[0m
+    The expected type comes from property 'details' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m932[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '"info" | "warning"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+  Type '"info"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m932[0m       severity: issues.length === 0 ? 'info' : 'warning',
+[7m   [0m [91m      ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m117[0m:[93m3[0m
+    [7m117[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m   [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m933[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ issues: string[]; warnings: string[]; score: number; }' is not assignable to type 'string'.
+
+[7m933[0m       details: {
+[7m   [0m [91m      ~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m116[0m:[93m3[0m
+    [7m116[0m   details: string;
+    [7m   [0m [96m  ~~~~~~~[0m
+    The expected type comes from property 'details' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m968[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '"info" | "warning"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+  Type '"info"' is not assignable to type '"low" | "medium" | "high" | "critical"'.
+
+[7m968[0m       severity: issues.length === 0 ? 'info' : 'warning',
+[7m   [0m [91m      ~~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m117[0m:[93m3[0m
+    [7m117[0m   severity: 'low' | 'medium' | 'high' | 'critical';
+    [7m   [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'severity' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m969[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ issues: string[]; warnings: string[]; score: number; }' is not assignable to type 'string'.
+
+[7m969[0m       details: {
+[7m   [0m [91m      ~~~~~~~[0m
+
+  [96msrc/infrastructure/agents/workshop/WorkshopAgent.ts[0m:[93m116[0m:[93m3[0m
+    [7m116[0m   details: string;
+    [7m   [0m [96m  ~~~~~~~[0m
+    The expected type comes from property 'details' which is declared here on type 'ValidationResult'
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m997[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'strategic_scenarios' does not exist in type 'StepOutput'.
+
+[7m997[0m       strategic_scenarios: scenarios,
+[7m   [0m [91m      ~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1024[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'attack_paths' does not exist in type 'StepOutput'.
+
+[7m1024[0m       attack_paths: attackPaths,
+[7m    [0m [91m      ~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1047[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'feasibility_assessments' does not exist in type 'StepOutput'.
+
+[7m1047[0m       feasibility_assessments: feasibilityAssessments,
+[7m    [0m [91m      ~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1070[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'impact_analyses' does not exist in type 'StepOutput'.
+
+[7m1070[0m       impact_analyses: impactAnalyses,
+[7m    [0m [91m      ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1084[0m:[93m34[0m - [91merror[0m[90m TS2339: [0mProperty 'data' does not exist on type 'StepInput'.
+
+[7m1084[0m     const impactAnalyses = input.data.impact_analyses;
+[7m    [0m [91m                                 ~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1088[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'data' does not exist in type 'StepOutput'.
+
+[7m1088[0m       data: { prioritized_scenarios: prioritizedScenarios },
+[7m    [0m [91m      ~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1357[0m:[93m39[0m - [91merror[0m[90m TS2345: [0mArgument of type 'AttackPath' is not assignable to parameter of type 'string'.
+
+[7m1357[0m     const path = this.attackPaths.get(pathId);
+[7m    [0m [91m                                      ~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1446[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'isValid' does not exist in type 'ValidationResult'.
+
+[7m1446[0m       isValid: issues.length === 0,
+[7m    [0m [91m      ~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1738[0m:[93m38[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1738[0m         path.steps.some(step => step.mitreTechniques && step.mitreTechniques.length > 0)
+[7m    [0m [91m                                     ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1738[0m:[93m62[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1738[0m         path.steps.some(step => step.mitreTechniques && step.mitreTechniques.length > 0)
+[7m    [0m [91m                                                             ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1746[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'feasibility' does not exist on type 'StrategicScenario'.
+
+[7m1746[0m       if (scenario.feasibility &&
+[7m    [0m [91m                   ~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1747[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'feasibility' does not exist on type 'StrategicScenario'.
+
+[7m1747[0m           scenario.feasibility.likelihood !== undefined &&
+[7m    [0m [91m                   ~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1748[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'feasibility' does not exist on type 'StrategicScenario'.
+
+[7m1748[0m           scenario.feasibility.complexity !== undefined) {
+[7m    [0m [91m                   ~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1755[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'confidentiality' does not exist on type 'ImpactLevel'.
+
+[7m1755[0m           scenario.impact.confidentiality !== undefined &&
+[7m    [0m [91m                          ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1756[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'integrity' does not exist on type 'ImpactLevel'.
+
+[7m1756[0m           scenario.impact.integrity !== undefined &&
+[7m    [0m [91m                          ~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1757[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'availability' does not exist on type 'ImpactLevel'.
+
+[7m1757[0m           scenario.impact.availability !== undefined) {
+[7m    [0m [91m                          ~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1763[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1763[0m       if (scenario.riskRating && scenario.riskRating.overall !== undefined) {
+[7m    [0m [91m                   ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1763[0m:[93m43[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1763[0m       if (scenario.riskRating && scenario.riskRating.overall !== undefined) {
+[7m    [0m [91m                                          ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1777[0m:[93m11[0m - [91merror[0m[90m TS2416: [0mProperty 'calculateComplianceScore' in type 'Workshop3Agent' is not assignable to the same property in base type 'WorkshopAgent'.
+  Type '(scenarios: StrategicScenario[]) => number' is not assignable to type '() => number'.
+    Target signature provides too few arguments. Expected 1 or more, but got 0.
+
+[7m1777[0m   private calculateComplianceScore(scenarios: StrategicScenario[]): number {
+[7m    [0m [91m          ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1814[0m:[93m16[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1814[0m       scenario.riskRating &&
+[7m    [0m [91m               ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1815[0m:[93m16[0m - [91merror[0m[90m TS2339: [0mProperty 'feasibility' does not exist on type 'StrategicScenario'.
+
+[7m1815[0m       scenario.feasibility &&
+[7m    [0m [91m               ~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1826[0m:[93m38[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1826[0m         path.steps.some(step => step.mitreTechniques && step.mitreTechniques.length > 0)
+[7m    [0m [91m                                     ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1826[0m:[93m62[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1826[0m         path.steps.some(step => step.mitreTechniques && step.mitreTechniques.length > 0)
+[7m    [0m [91m                                                             ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1836[0m:[93m16[0m - [91merror[0m[90m TS2339: [0mProperty 'priority' does not exist on type 'StrategicScenario'.
+
+[7m1836[0m       scenario.priority !== undefined
+[7m    [0m [91m               ~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1875[0m:[93m18[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1875[0m             step.mitreTechniques && step.mitreTechniques.length > 0
+[7m    [0m [91m                 ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1875[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1875[0m             step.mitreTechniques && step.mitreTechniques.length > 0
+[7m    [0m [91m                                         ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1880[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'feasibility' does not exist on type 'AttackPath'.
+
+[7m1880[0m           if (path.feasibility) pathScore += 0.3;
+[7m    [0m [91m                   ~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1889[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1889[0m       if (scenario.riskRating) {
+[7m    [0m [91m                   ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1891[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1891[0m         if (scenario.riskRating.likelihood !== undefined) riskQuality += 0.33;
+[7m    [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1892[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1892[0m         if (scenario.riskRating.impact !== undefined) riskQuality += 0.33;
+[7m    [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1893[0m:[93m22[0m - [91merror[0m[90m TS2339: [0mProperty 'riskRating' does not exist on type 'StrategicScenario'.
+
+[7m1893[0m         if (scenario.riskRating.overall !== undefined) riskQuality += 0.34;
+[7m    [0m [91m                     ~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1928[0m:[93m46[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1928[0m         sum + path.steps.filter(step => step.mitreTechniques && step.mitreTechniques.length > 0).length, 0
+[7m    [0m [91m                                             ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1928[0m:[93m70[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTechniques' does not exist on type 'AttackStep'.
+
+[7m1928[0m         sum + path.steps.filter(step => step.mitreTechniques && step.mitreTechniques.length > 0).length, 0
+[7m    [0m [91m                                                                     ~~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1940[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTactics' does not exist on type 'AttackStep'.
+
+[7m1940[0m           if (step.mitreTactics) {
+[7m    [0m [91m                   ~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1941[0m:[93m18[0m - [91merror[0m[90m TS2339: [0mProperty 'mitreTactics' does not exist on type 'AttackStep'.
+
+[7m1941[0m             step.mitreTactics.forEach(tactic => tacticsUsed.add(tactic.id));
+[7m    [0m [91m                 ~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1941[0m:[93m39[0m - [91merror[0m[90m TS7006: [0mParameter 'tactic' implicitly has an 'any' type.
+
+[7m1941[0m             step.mitreTactics.forEach(tactic => tacticsUsed.add(tactic.id));
+[7m    [0m [91m                                      ~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1957[0m:[93m20[0m - [91merror[0m[90m TS2339: [0mProperty 'killChainPhase' does not exist on type 'AttackStep'.
+
+[7m1957[0m           if (step.killChainPhase) {
+[7m    [0m [91m                   ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop3Agent.ts[0m:[93m1958[0m:[93m29[0m - [91merror[0m[90m TS2339: [0mProperty 'killChainPhase' does not exist on type 'AttackStep'.
+
+[7m1958[0m             phases.add(step.killChainPhase);
+[7m    [0m [91m                            ~~~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop4Agent.ts[0m:[93m489[0m:[93m11[0m - [91merror[0m[90m TS2739: [0mType '{ id: string; name: string; description: string; attackPaths: never[]; updatedAt: string; }' is missing the following properties from type 'OperationalScenario': riskLevel, mitigationMeasures
+
+[7m489[0m     const baseScenario: OperationalScenario = {
+[7m   [0m [91m          ~~~~~~~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop4Agent.ts[0m:[93m533[0m:[93m5[0m - [91merror[0m[90m TS2739: [0mType '{ id: string; name: string; description: string; steps: OperationalStep[]; detectability: number; complexity: "medium"; updatedAt: string; }' is missing the following properties from type 'AttackPath': likelihood, impact
+
+[7m533[0m     return {
+[7m   [0m [91m    ~~~~~~[0m
+
+[96msrc/infrastructure/agents/workshop/Workshop4Agent.ts[0m:[93m563[0m:[93m13[0m - [91merror[0m[90m TS2739: [0mType '{ id: string; name: string; description: string; steps: OperationalStep[]; detectability: number; complexity: "medium"; updatedAt: string; }' is missing the following properties from type 'AttackPath': likelihood, impact
+
+[7m563[0m       const path: AttackPath = {
+[7m   [0m [91m            ~~~~[0m
+
+[96msrc/services/agents/AgentFactory.ts[0m:[93m512[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'getWorkshopSupport' does not exist in type 'AgentService'.
+
+[7m512[0m       getWorkshopSupport(): number[] {
+[7m   [0m [91m      ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/AgentFactory.ts[0m:[93m630[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'getWorkshopSupport' does not exist in type 'AgentService'.
+
+[7m630[0m       getWorkshopSupport(): number[] {
+[7m   [0m [91m      ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/AgentFactory.ts[0m:[93m715[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'getWorkshopSupport' does not exist in type 'AgentService'.
+
+[7m715[0m       getWorkshopSupport(): number[] {
+[7m   [0m [91m      ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/AgentFactory.ts[0m:[93m799[0m:[93m7[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'getWorkshopSupport' does not exist in type 'AgentService'.
+
+[7m799[0m       getWorkshopSupport(): number[] {
+[7m   [0m [91m      ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/AgentFactory.ts[0m:[93m1264[0m:[93m12[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'AgentType' can't be used to index type '{ threat_modeling: { id: string; threats: string[]; methodology: string; }; scenario_generation: { id: string; scenarios: string[]; methodology: string; }; }'.
+  Property 'validation' does not exist on type '{ threat_modeling: { id: string; threats: string[]; methodology: string; }; scenario_generation: { id: string; scenarios: string[]; methodology: string; }; }'.
+
+[7m1264[0m     return templates[type] || { id: 'generic_template', content: 'Template g├®n├®rique' };
+[7m    [0m [91m           ~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/AgentFactory.ts[0m:[93m1304[0m:[93m12[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'AgentType' can't be used to index type '{ threat_modeling: string[]; scenario_generation: string[]; cyber_kill_chain: string[]; security_optimization: string[]; validation: string[]; }'.
+  Property 'documentation' does not exist on type '{ threat_modeling: string[]; scenario_generation: string[]; cyber_kill_chain: string[]; security_optimization: string[]; validation: string[]; }'.
+
+[7m1304[0m     return instructions[type] || ['Intervention manuelle requise'];
+[7m    [0m [91m           ~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ANSSIValidationAgent.ts[0m:[93m140[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'validationLevel' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m140[0m           validationLevel: task.context?.validationLevel || 'standard'
+[7m   [0m [91m          ~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/AgentService.ts[0m:[93m42[0m:[93m3[0m
+    [7m42[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/services/agents/ANSSIValidationAgent.ts[0m:[93m140[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'validationLevel' does not exist on type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; }'.
+
+[7m140[0m           validationLevel: task.context?.validationLevel || 'standard'
+[7m   [0m [91m                                         ~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ANSSIValidationAgent.ts[0m:[93m199[0m:[93m51[0m - [91merror[0m[90m TS2554: [0mExpected 2 arguments, but got 1.
+
+[7m199[0m         validationResult = ANSSIValidationService.validateWorkshop2(
+[7m   [0m [91m                                                  ~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/validation/ANSSIValidationService.ts[0m:[93m250[0m:[93m5[0m
+    [7m250[0m     businessValues: BusinessValue[]
+    [7m   [0m [96m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    An argument for 'businessValues' was not provided.
+
+[96msrc/services/agents/ANSSIValidationAgent.ts[0m:[93m257[0m:[93m32[0m - [91merror[0m[90m TS2554: [0mExpected 2 arguments, but got 1.
+
+[7m257[0m         ANSSIValidationService.validateWorkshop2(
+[7m   [0m [91m                               ~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/validation/ANSSIValidationService.ts[0m:[93m250[0m:[93m5[0m
+    [7m250[0m     businessValues: BusinessValue[]
+    [7m   [0m [96m    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    An argument for 'businessValues' was not provided.
+
+[96msrc/services/agents/ANSSIValidationAgent.ts[0m:[93m357[0m:[93m35[0m - [91merror[0m[90m TS7006: [0mParameter 'step' implicitly has an 'any' type.
+
+[7m357[0m ${validationResults.nextSteps.map(step => `- ${step}`).join('\n')}
+[7m   [0m [91m                                  ~~~~[0m
+
+[96msrc/services/agents/CyberKillChainAgent.ts[0m:[93m390[0m:[93m14[0m - [91merror[0m[90m TS2352: [0mConversion of type 'string' to type 'KillChainPhaseAnalysis' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+
+[7m390[0m       phase: phase as KillChainPhase,
+[7m   [0m [91m             ~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/CyberKillChainAgent.ts[0m:[93m416[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '{ type: KillChainPhaseAnalysis; finalProbability: any; techniques: MitreTechniqueDetails[]; }[]' is not assignable to type '{ type: string; finalProbability: number; techniques: string[]; }[]'.
+  Type '{ type: KillChainPhaseAnalysis; finalProbability: any; techniques: MitreTechniqueDetails[]; }' is not assignable to type '{ type: string; finalProbability: number; techniques: string[]; }'.
+    Types of property 'type' are incompatible.
+      Type 'KillChainPhaseAnalysis' is not assignable to type 'string'.
+
+[7m416[0m       phases: phases.map(p => ({
+[7m   [0m [91m      ~~~~~~[0m
+
+  [96msrc/types/ebios.ts[0m:[93m321[0m:[93m3[0m
+    [7m321[0m   phases?: Array<{
+    [7m   [0m [96m  ~~~~~~[0m
+    The expected type comes from property 'phases' which is declared here on type 'AttackPath'
+
+[96msrc/services/agents/CyberKillChainAgent.ts[0m:[93m418[0m:[93m29[0m - [91merror[0m[90m TS2339: [0mProperty 'probability' does not exist on type 'KillChainPhaseAnalysis'.
+
+[7m418[0m         finalProbability: p.probability || 0.5,
+[7m   [0m [91m                            ~~~~~~~~~~~[0m
+
+[96msrc/services/agents/HybridEbiosService.ts[0m:[93m225[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'ServiceResult<{ isValid: boolean; score: number; issues: string[]; recommendations: string[]; }> | { data: { isValid: boolean; score: any; issues: any; recommendations: any; }; source: "agent"; processingTime: number; confidence: number | undefined; }' is not assignable to type 'ServiceResult<{ isValid: boolean; score: number; issues: string[]; recommendations: string[]; }>'.
+  Property 'success' is missing in type '{ data: { isValid: boolean; score: any; issues: any; recommendations: any; }; source: "agent"; processingTime: number; confidence: number | undefined; }' but required in type 'ServiceResult<{ isValid: boolean; score: number; issues: string[]; recommendations: string[]; }>'.
+
+[7m225[0m       return await this.circuitBreaker.execute(
+[7m   [0m [91m      ~~~~~~[0m
+
+  [96msrc/services/agents/HybridEbiosService.ts[0m:[93m34[0m:[93m3[0m
+    [7m34[0m   success: boolean;
+    [7m  [0m [96m  ~~~~~~~[0m
+    'success' is declared here.
+
+[96msrc/services/agents/HybridEbiosService.ts[0m:[93m336[0m:[93m15[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'analysisDepth' does not exist in type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; }'.
+
+[7m336[0m               analysisDepth: 'advanced',
+[7m   [0m [91m              ~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/AgentService.ts[0m:[93m25[0m:[93m3[0m
+    [7m25[0m   context?: {
+    [7m  [0m [96m  ~~~~~~~[0m
+    The expected type comes from property 'context' which is declared here on type 'AgentTask'
+
+[96msrc/services/agents/HybridEbiosService.ts[0m:[93m440[0m:[93m9[0m - [91merror[0m[90m TS2345: [0mArgument of type '() => Promise<{ data: { report: string; score: number; certification: boolean; recommendations: string[]; }; source: "agent"; processingTime: number; confidence: number; warnings: string[]; }>' is not assignable to parameter of type '() => Promise<{ data: any; source: "agent"; processingTime: number; confidence: number | undefined; success: boolean; }>'.
+  Type 'Promise<{ data: { report: string; score: number; certification: boolean; recommendations: string[]; }; source: "agent"; processingTime: number; confidence: number; warnings: string[]; }>' is not assignable to type 'Promise<{ data: any; source: "agent"; processingTime: number; confidence: number | undefined; success: boolean; }>'.
+    Property 'success' is missing in type '{ data: { report: string; score: number; certification: boolean; recommendations: string[]; }; source: "agent"; processingTime: number; confidence: number; warnings: string[]; }' but required in type '{ data: any; source: "agent"; processingTime: number; confidence: number | undefined; success: boolean; }'.
+
+[7m440[0m         async () => {
+[7m   [0m [91m        ~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/HybridEbiosService.ts[0m:[93m435[0m:[93m13[0m
+    [7m435[0m             success: true
+    [7m   [0m [96m            ~~~~~~~~~~~~~[0m
+    'success' is declared here.
+
+[96msrc/services/agents/PerformanceOptimizerAgent.ts[0m:[93m165[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'optimizationsGenerated' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m165[0m           optimizationsGenerated: result.optimizations?.length || 0
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/AgentService.ts[0m:[93m42[0m:[93m3[0m
+    [7m42[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/services/agents/PredictiveIntelligenceAgent.ts[0m:[93m178[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'insightsGenerated' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m178[0m           insightsGenerated: result.insights?.length || 0,
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/AgentService.ts[0m:[93m42[0m:[93m3[0m
+    [7m42[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/services/agents/RiskAnalysisAgent.ts[0m:[93m204[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'analysisDepth' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m204[0m           analysisDepth: task.context?.analysisDepth || 'standard'
+[7m   [0m [91m          ~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/AgentService.ts[0m:[93m42[0m:[93m3[0m
+    [7m42[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/services/agents/RiskAnalysisAgent.ts[0m:[93m204[0m:[93m40[0m - [91merror[0m[90m TS2339: [0mProperty 'analysisDepth' does not exist on type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; }'.
+
+[7m204[0m           analysisDepth: task.context?.analysisDepth || 'standard'
+[7m   [0m [91m                                       ~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/RiskAnalysisAgent.ts[0m:[93m478[0m:[93m41[0m - [91merror[0m[90m TS7053: [0mElement implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ T1566: { name: string; tactic: string; }; T1078: { name: string; tactic: string; }; T1055: { name: string; tactic: string; }; T1083: { name: string; tactic: string; }; T1041: { name: string; tactic: string; }; }'.
+  No index signature with a parameter of type 'string' was found on type '{ T1566: { name: string; tactic: string; }; T1078: { name: string; tactic: string; }; T1055: { name: string; tactic: string; }; T1083: { name: string; tactic: string; }; T1041: { name: string; tactic: string; }; }'.
+
+[7m478[0m     const tactics = techniques.map(t => this.mitreDatabase.techniques[t]?.tactic || 'Unknown');
+[7m   [0m [91m                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ScenarioGenerationAgent.ts[0m:[93m188[0m:[93m70[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; } | undefined' is not assignable to parameter of type 'ScenarioGenerationContext | undefined'.
+  Type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; }' is missing the following properties from type 'ScenarioGenerationContext': businessAssets, supportingAssets, identifiedThreats, organizationalContext, threatLandscape
+
+[7m188[0m           result = await this.generateStrategicScenarios(task.input, task.context);
+[7m   [0m [91m                                                                     ~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ScenarioGenerationAgent.ts[0m:[93m677[0m:[93m48[0m - [91merror[0m[90m TS2345: [0mArgument of type '"G├®n├®rer des sc├®narios pour les assets non couverts"' is not assignable to parameter of type 'never'.
+
+[7m677[0m       recommendations.additionalScenarios.push('G├®n├®rer des sc├®narios pour les assets non couverts');
+[7m   [0m [91m                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ScenarioGenerationAgent.ts[0m:[93m681[0m:[93m45[0m - [91merror[0m[90m TS2345: [0mArgument of type '"Am├®liorer la plausibilit├® des sc├®narios"' is not assignable to parameter of type 'never'.
+
+[7m681[0m       recommendations.improvementAreas.push('Am├®liorer la plausibilit├® des sc├®narios');
+[7m   [0m [91m                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ScenarioGenerationAgent.ts[0m:[93m685[0m:[93m45[0m - [91merror[0m[90m TS2345: [0mArgument of type '"Validation conformit├® ANSSI requise"' is not assignable to parameter of type 'never'.
+
+[7m685[0m       recommendations.validationNeeded.push('Validation conformit├® ANSSI requise');
+[7m   [0m [91m                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/SecurityOptimizationAgent.ts[0m:[93m267[0m:[93m66[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; } | undefined' is not assignable to parameter of type 'SecurityOptimizationContext | undefined'.
+  Type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; }' is missing the following properties from type 'SecurityOptimizationContext': organizationProfile, currentControls, riskProfile, performanceMetrics, businessContext
+
+[7m267[0m           result = await this.analyzeSecurityPosture(task.input, task.context);
+[7m   [0m [91m                                                                 ~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/SecurityOptimizationAgent.ts[0m:[93m1040[0m:[93m46[0m - [91merror[0m[90m TS2362: [0mThe left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+
+[7m1040[0m         const roi = control.effectiveness / (control.cost / 100000);
+[7m    [0m [91m                                             ~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/SecurityOptimizationAgent.ts[0m:[93m1075[0m:[93m41[0m - [91merror[0m[90m TS2362: [0mThe left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+
+[7m1075[0m         costPerIncident: control.cost ? control.cost / 10 : 5000,
+[7m    [0m [91m                                        ~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/SecurityOptimizationAgent.ts[0m:[93m1095[0m:[93m52[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'number' and 'string | number'.
+
+[7m1095[0m       totalCost: controls.reduce((sum, control) => sum + (control.cost || 0), 0),
+[7m    [0m [91m                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/SecurityOptimizationAgent.ts[0m:[93m1214[0m:[93m48[0m - [91merror[0m[90m TS2365: [0mOperator '+' cannot be applied to types 'number' and 'string | number'.
+
+[7m1214[0m       cost: portfolio.reduce((sum, control) => sum + (control.cost || 0), 0)
+[7m    [0m [91m                                               ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ThreatIntelligenceAgent.ts[0m:[93m199[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'threatsAnalyzed' does not exist in type '{ processingTime: number; agentVersion: string; fallbackUsed?: boolean | undefined; }'.
+
+[7m199[0m           threatsAnalyzed: result.threatSources?.length || 0,
+[7m   [0m [91m          ~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/agents/AgentService.ts[0m:[93m42[0m:[93m3[0m
+    [7m42[0m   metadata?: {
+    [7m  [0m [96m  ~~~~~~~~[0m
+    The expected type comes from property 'metadata' which is declared here on type 'AgentResult'
+
+[96msrc/services/agents/ThreatModelingAgent.ts[0m:[93m251[0m:[93m64[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; } | undefined' is not assignable to parameter of type 'ThreatModelingContext | undefined'.
+  Type '{ missionId?: string | undefined; workshop?: number | undefined; entityType?: string | undefined; entityId?: string | undefined; }' is missing the following properties from type 'ThreatModelingContext': organizationProfile, threatLandscape, businessContext
+
+[7m251[0m           result = await this.identifyThreatActors(task.input, task.context);
+[7m   [0m [91m                                                               ~~~~~~~~~~~~[0m
+
+[96msrc/services/agents/ThreatModelingAgent.ts[0m:[93m605[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'level' does not exist in type 'AttackCapability'.
+
+[7m605[0m           level: 'high',
+[7m   [0m [91m          ~~~~~[0m
+
+[96msrc/services/agents/ThreatModelingAgent.ts[0m:[93m662[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'level' does not exist in type 'AttackCapability'.
+
+[7m662[0m           level: 'very_high',
+[7m   [0m [91m          ~~~~~[0m
+
+[96msrc/services/agents/ThreatModelingAgent.ts[0m:[93m719[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'level' does not exist in type 'AttackCapability'.
+
+[7m719[0m           level: 'high',
+[7m   [0m [91m          ~~~~~[0m
+
+[96msrc/services/ai/DataQualityDetector.ts[0m:[93m121[0m:[93m19[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ id: string; type: "incoherent"; severity: "high"; field: string; value: string; message: string; suggestion: string; confidence: number; autoFixAvailable: true; suggestedValue: string; }' is not assignable to parameter of type 'DataQualityIssue'.
+  Type '{ id: string; type: "incoherent"; severity: "high"; field: string; value: string; message: string; suggestion: string; confidence: number; autoFixAvailable: true; suggestedValue: string; }' is missing the following properties from type 'DataQualityIssue': stableKey, originalValue
+
+[7m121[0m       issues.push({
+[7m   [0m [91m                  ~[0m
+[7m122[0m         id: this.generateUniqueId('bv-unrealistic'),
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m131[0m         suggestedValue: this.suggestBusinessValue(name)
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m132[0m       });
+[7m   [0m [91m~~~~~~~[0m
+
+[96msrc/services/ai/DataQualityDetector.ts[0m:[93m149[0m:[93m19[0m - [91merror[0m[90m TS2345: [0mArgument of type '{ id: string; type: "incoherent"; severity: "high"; field: string; value: string; message: string; suggestion: string; confidence: number; autoFixAvailable: true; suggestedValue: string; }' is not assignable to parameter of type 'DataQualityIssue'.
+  Type '{ id: string; type: "incoherent"; severity: "high"; field: string; value: string; message: string; suggestion: string; confidence: number; autoFixAvailable: true; suggestedValue: string; }' is missing the following properties from type 'DataQualityIssue': stableKey, originalValue
+
+[7m149[0m       issues.push({
+[7m   [0m [91m                  ~[0m
+[7m150[0m         id: this.generateUniqueId('de-unrealistic'),
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m...[0m 
+[7m159[0m         suggestedValue: this.suggestDreadedEvent(name)
+[7m   [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m160[0m       });
+[7m   [0m [91m~~~~~~~[0m
+
+[96msrc/services/analytics/AdvancedAnalyticsService.ts[0m:[93m413[0m:[93m24[0m - [91merror[0m[90m TS2769: [0mNo overload matches this call.
+  Overload 1 of 2, '(o: ArrayLike<unknown> | { [s: string]: unknown; }): [string, unknown][]', gave the following error.
+    Argument of type 'object | null' is not assignable to parameter of type 'ArrayLike<unknown> | { [s: string]: unknown; }'.
+      Type 'null' is not assignable to type 'ArrayLike<unknown> | { [s: string]: unknown; }'.
+  Overload 2 of 2, '(o: {}): [string, any][]', gave the following error.
+    Argument of type 'object | null' is not assignable to parameter of type '{}'.
+      Type 'null' is not assignable to type '{}'.
+
+[7m413[0m         Object.entries(metrics).forEach(([key, value]) => {
+[7m   [0m [91m                       ~~~~~~~[0m
+
+
+[96msrc/services/analytics/AdvancedAnalyticsService.ts[0m:[93m545[0m:[93m40[0m - [91merror[0m[90m TS2345: [0mArgument of type '([metricId, history]: [string, any[]]) => void' is not assignable to parameter of type '(value: [string, unknown], index: number, array: [string, unknown][]) => void'.
+  Types of parameters '__0' and 'value' are incompatible.
+    Type '[string, unknown]' is not assignable to type '[string, any[]]'.
+      Type at position 1 in source is not compatible with type at position 1 in target.
+        Type 'unknown' is not assignable to type 'any[]'.
+
+[7m545[0m     Object.entries(periodData).forEach(([metricId, history]: [string, any[]]) => {
+[7m   [0m [91m                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/export/missionExportService.ts[0m:[93m204[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'getNumberOfPages' does not exist on type 'jsPDF'.
+
+[7m204[0m     const pageCount = doc.getNumberOfPages();
+[7m   [0m [91m                          ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/export/StandardExportService.ts[0m:[93m134[0m:[93m24[0m - [91merror[0m[90m TS2551: [0mProperty 'generateComplianceReport' does not exist on type 'typeof StandardExportService'. Did you mean 'generateXMLReport'?
+
+[7m134[0m       compliance: this.generateComplianceReport(data),
+[7m   [0m [91m                       ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/export/StandardExportService.ts[0m:[93m504[0m:[93m18[0m
+    [7m504[0m   private static generateXMLReport(data: ExportData, options: ExportOptions): string {
+    [7m   [0m [96m                 ~~~~~~~~~~~~~~~~~[0m
+    'generateXMLReport' is declared here.
+
+[96msrc/services/export/StandardExportService.ts[0m:[93m198[0m:[93m16[0m - [91merror[0m[90m TS2551: [0mProperty 'generateExecutiveSummaryHTML' does not exist on type 'typeof StandardExportService'. Did you mean 'generateExecutiveSummary'?
+
+[7m198[0m         ${this.generateExecutiveSummaryHTML(data)}
+[7m   [0m [91m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  [96msrc/services/export/StandardExportService.ts[0m:[93m319[0m:[93m18[0m
+    [7m319[0m   private static generateExecutiveSummary(data: ExportData): any {
+    [7m   [0m [96m                 ~~~~~~~~~~~~~~~~~~~~~~~~[0m
+    'generateExecutiveSummary' is declared here.
+
+[96msrc/services/export/StandardExportService.ts[0m:[93m325[0m:[93m67[0m - [91merror[0m[90m TS2365: [0mOperator '>=' cannot be applied to types 'string | number' and 'number'.
+
+[7m325[0m     const criticalScenarios = data.strategicScenarios.filter(s => s.riskLevel >= 3).length;
+[7m   [0m [91m                                                                  ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/export/StandardExportService.ts[0m:[93m379[0m:[93m67[0m - [91merror[0m[90m TS2365: [0mOperator '>=' cannot be applied to types 'string | number' and 'number'.
+
+[7m379[0m     const criticalScenarios = data.strategicScenarios.filter(s => s.riskLevel >= 3);
+[7m   [0m [91m                                                                  ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/export/StandardExportService.ts[0m:[93m402[0m:[93m67[0m - [91merror[0m[90m TS2365: [0mOperator '>=' cannot be applied to types 'string | number' and 'number'.
+
+[7m402[0m     const criticalScenarios = data.strategicScenarios.filter(s => s.riskLevel >= 3);
+[7m   [0m [91m                                                                  ~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/mcp/EBIOSMCPClient.ts[0m:[93m81[0m:[93m9[0m - [91merror[0m[90m TS2345: [0mArgument of type '{}' is not assignable to parameter of type 'ZodType<object, ZodTypeDef, object>'.
+  Type '{}' is missing the following properties from type 'ZodType<object, ZodTypeDef, object>': _type, _output, _input, _def, and 34 more.
+
+[7m81[0m         {}
+[7m  [0m [91m        ~~[0m
+
+[96msrc/services/mcp/EBIOSMCPClient.ts[0m:[93m84[0m:[93m43[0m - [91merror[0m[90m TS2339: [0mProperty 'tools' does not exist on type 'object'.
+
+[7m84[0m       this.availableTools = toolsResponse.tools?.map((tool: any) => tool.name) || [];
+[7m  [0m [91m                                          ~~~~~[0m
+
+[96msrc/services/mcp/EBIOSMCPClient.ts[0m:[93m185[0m:[93m11[0m - [91merror[0m[90m TS2353: [0mObject literal may only specify known properties, and 'name' does not exist in type 'ZodType<object, ZodTypeDef, object>'.
+
+[7m185[0m           name: toolName,
+[7m   [0m [91m          ~~~~[0m
+
+[96msrc/services/mcp/EBIOSMCPClient.ts[0m:[93m194[0m:[93m24[0m - [91merror[0m[90m TS2339: [0mProperty 'content' does not exist on type 'object'.
+
+[7m194[0m         data: response.content?.[0]?.text ? JSON.parse(response.content[0].text) : response,
+[7m   [0m [91m                       ~~~~~~~[0m
+
+[96msrc/services/mcp/EBIOSMCPClient.ts[0m:[93m194[0m:[93m65[0m - [91merror[0m[90m TS2339: [0mProperty 'content' does not exist on type 'object'.
+
+[7m194[0m         data: response.content?.[0]?.text ? JSON.parse(response.content[0].text) : response,
+[7m   [0m [91m                                                                ~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m559[0m:[93m38[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m559[0m     const agentsCollection = this.db.collection('ai_agents');
+[7m   [0m [91m                                     ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m636[0m:[93m47[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m636[0m     const circuitBreakersCollection = this.db.collection('circuit_breaker_states');
+[7m   [0m [91m                                              ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m667[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m667[0m           const snapshot = await this.db.collection(collectionName).limit(1).get();
+[7m   [0m [91m                                         ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m676[0m:[93m46[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m676[0m         const agentsSnapshot = await this.db.collection('ai_agents').get();
+[7m   [0m [91m                                             ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m688[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m688[0m         const cbSnapshot = await this.db.collection('circuit_breaker_states').get();
+[7m   [0m [91m                                         ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m800[0m:[93m32[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m800[0m     const collection = this.db.collection(collectionName);
+[7m   [0m [91m                               ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m803[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'batch' does not exist on type 'Firestore'.
+
+[7m803[0m     const batch = this.db.batch();
+[7m   [0m [91m                          ~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m804[0m:[93m27[0m - [91merror[0m[90m TS7006: [0mParameter 'doc' implicitly has an 'any' type.
+
+[7m804[0m     snapshot.docs.forEach(doc => {
+[7m   [0m [91m                          ~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m816[0m:[93m38[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m816[0m     const agentsCollection = this.db.collection('ai_agents');
+[7m   [0m [91m                                     ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m819[0m:[93m27[0m - [91merror[0m[90m TS2339: [0mProperty 'batch' does not exist on type 'Firestore'.
+
+[7m819[0m     const batch = this.db.batch();
+[7m   [0m [91m                          ~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m820[0m:[93m27[0m - [91merror[0m[90m TS7006: [0mParameter 'doc' implicitly has an 'any' type.
+
+[7m820[0m     snapshot.docs.forEach(doc => {
+[7m   [0m [91m                          ~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m873[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m873[0m           const snapshot = await this.db.collection(collectionName).limit(1).get();
+[7m   [0m [91m                                         ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m883[0m:[93m46[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m883[0m         const agentsSnapshot = await this.db.collection('ai_agents').get();
+[7m   [0m [91m                                             ~~~~~~~~~~[0m
+
+[96msrc/services/migration/DatabaseMigrationService.ts[0m:[93m892[0m:[93m42[0m - [91merror[0m[90m TS2339: [0mProperty 'collection' does not exist on type 'Firestore'.
+
+[7m892[0m         const cbSnapshot = await this.db.collection('circuit_breaker_states').get();
+[7m   [0m [91m                                         ~~~~~~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m165[0m:[93m11[0m - [91merror[0m[90m TS2322: [0mType '"completed"' is not assignable to type '"running"'.
+
+[7m165[0m           stepExecution.status = 'completed';
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m166[0m:[93m25[0m - [91merror[0m[90m TS2339: [0mProperty 'completedAt' does not exist on type '{ stepId: string; startedAt: Date; status: "running"; }'.
+
+[7m166[0m           stepExecution.completedAt = new Date();
+[7m   [0m [91m                        ~~~~~~~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m172[0m:[93m11[0m - [91merror[0m[90m TS2322: [0mType '"failed"' is not assignable to type '"running"'.
+
+[7m172[0m           stepExecution.status = 'failed';
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m173[0m:[93m25[0m - [91merror[0m[90m TS2339: [0mProperty 'error' does not exist on type '{ stepId: string; startedAt: Date; status: "running"; }'.
+
+[7m173[0m           stepExecution.error = error instanceof Error ? error.message : 'Erreur inconnue';
+[7m   [0m [91m                        ~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m174[0m:[93m25[0m - [91merror[0m[90m TS2339: [0mProperty 'completedAt' does not exist on type '{ stepId: string; startedAt: Date; status: "running"; }'.
+
+[7m174[0m           stepExecution.completedAt = new Date();
+[7m   [0m [91m                        ~~~~~~~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m177[0m:[93m74[0m - [91merror[0m[90m TS2339: [0mProperty 'error' does not exist on type '{ stepId: string; startedAt: Date; status: "running"; }'.
+
+[7m177[0m           execution.logs.push(`ÔØî ├ëtape ${i + 1} ├®chou├®e: ${stepExecution.error}`);
+[7m   [0m [91m                                                                         ~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m181[0m:[93m82[0m - [91merror[0m[90m TS2339: [0mProperty 'error' does not exist on type '{ stepId: string; startedAt: Date; status: "running"; }'.
+
+[7m181[0m             throw new Error(`Rollback ├®chou├® ├á l'├®tape ${i + 1}: ${stepExecution.error}`);
+[7m   [0m [91m                                                                                 ~~~~~[0m
+
+[96msrc/services/migration/RollbackManager.ts[0m:[93m189[0m:[93m11[0m - [91merror[0m[90m TS18048: [0m'execution.finalValidation' is possibly 'undefined'.
+
+[7m189[0m       if (execution.finalValidation.success) {
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/monitoring/AlertingService.ts[0m:[93m649[0m:[93m16[0m - [91merror[0m[90m TS18046: [0m'error' is of type 'unknown'.
+
+[7m649[0m         error: error.message
+[7m   [0m [91m               ~~~~~[0m
+
+[96msrc/services/monitoring/MetricsCollectionService.ts[0m:[93m786[0m:[93m17[0m - [91merror[0m[90m TS2349: [0mThis expression is not callable.
+  Type 'MetricQuery' has no call signatures.
+
+[7m786[0m       const q = query(firestoreQuery, ...constraints);
+[7m   [0m [91m                ~~~~~[0m
+
+[96msrc/services/monitoring/MetricsCollectionService.ts[0m:[93m792[0m:[93m22[0m - [91merror[0m[90m TS18046: [0m'data' is of type 'unknown'.
+
+[7m792[0m           timestamp: data.timestamp.toDate(),
+[7m   [0m [91m                     ~~~~[0m
+
+[96msrc/services/monitoring/MetricsCollectionService.ts[0m:[93m793[0m:[93m18[0m - [91merror[0m[90m TS18046: [0m'data' is of type 'unknown'.
+
+[7m793[0m           value: data.value,
+[7m   [0m [91m                 ~~~~[0m
+
+[96msrc/services/monitoring/MetricsCollectionService.ts[0m:[93m794[0m:[93m24[0m - [91merror[0m[90m TS18046: [0m'data' is of type 'unknown'.
+
+[7m794[0m           sampleCount: data.sample_count
+[7m   [0m [91m                       ~~~~[0m
+
+[96msrc/services/monitoring/MetricsCollectionService.ts[0m:[93m1198[0m:[93m31[0m - [91merror[0m[90m TS2339: [0mProperty 'delete' does not exist on type 'DocumentReference<DocumentData, DocumentData>'.
+
+[7m1198[0m         await docSnapshot.ref.delete();
+[7m    [0m [91m                              ~~~~~~[0m
+
+[96msrc/services/sharing/missionSharingService.ts[0m:[93m74[0m:[93m54[0m - [91merror[0m[90m TS2352: [0mConversion of type '{ id: string; missionId: string; email: string; permission: "read" | "write" | "admin"; invitedBy: string; status: "pending"; createdAt: FieldValue; expiresAt: Date; token: string; message: string; allowDownload: boolean; allowCopy: boolean; }' to type 'ShareInvitation' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'createdAt' are incompatible.
+    Type 'FieldValue' is not comparable to type 'string'.
+
+[7m74[0m       await this.sendInvitationEmail(email, mission, {
+[7m  [0m [91m                                                     ~[0m
+[7m75[0m         ...invitationData,
+[7m  [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[7m76[0m         id: docRef.id
+[7m  [0m [91m~~~~~~~~~~~~~~~~~~~~~[0m
+[7m77[0m       } as ShareInvitation);
+[7m  [0m [91m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/traceability/InterWorkshopTraceability.ts[0m:[93m265[0m:[93m63[0m - [91merror[0m[90m TS2365: [0mOperator '>=' cannot be applied to types 'string | number' and 'number'.
+
+[7m265[0m     const criticalScenarios = strategicScenarios.filter(ss => ss.riskLevel >= 3);
+[7m   [0m [91m                                                              ~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/validation/ANSSIValidationService.ts[0m:[93m498[0m:[93m23[0m - [91merror[0m[90m TS2304: [0mCannot find name 'SecurityMeasure'.
+
+[7m498[0m     securityMeasures: SecurityMeasure[],
+[7m   [0m [91m                      ~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/validation/ANSSIValidationService.ts[0m:[93m572[0m:[93m57[0m - [91merror[0m[90m TS2304: [0mCannot find name 'SecurityMeasure'.
+
+[7m572[0m   private static validateResidualRiskTracking(measures: SecurityMeasure[], scenarios: StrategicScenario[]): boolean {
+[7m   [0m [91m                                                        ~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/workflows/EbiosWorkflowManager.ts[0m:[93m160[0m:[93m9[0m - [91merror[0m[90m TS2322: [0mType '"basic" | "standard" | "strict" | "anssi_compliant"' is not assignable to type '"basic" | "strict"'.
+  Type '"standard"' is not assignable to type '"basic" | "strict"'.
+
+[7m160[0m         validationLevel: config.validationLevel || 'standard'
+[7m   [0m [91m        ~~~~~~~~~~~~~~~[0m
+
+[96msrc/services/workflows/EbiosWorkflowManager.ts[0m:[93m205[0m:[93m13[0m - [91merror[0m[90m TS7006: [0mParameter 'issue' implicitly has an 'any' type.
+
+[7m205[0m             issue => `Atelier ${workshop}: ${issue}`
+[7m   [0m [91m            ~~~~~[0m
+
+[96msrc/services/workflows/EbiosWorkflowManager.ts[0m:[93m210[0m:[93m11[0m - [91merror[0m[90m TS7006: [0mParameter 'rec' implicitly has an 'any' type.
+
+[7m210[0m           rec => `Atelier ${workshop}: ${rec}`
+[7m   [0m [91m          ~~~[0m
+
+
+Found 224 errors in 32 files.
+
+Errors  Files
+     3  src/infrastructure/agents/AgentFactory.ts[90m:173[0m
+    25  src/infrastructure/agents/LegacyServiceAdapter.ts[90m:28[0m
+     7  src/infrastructure/agents/specialized/DocumentationAgent.ts[90m:57[0m
+    24  src/infrastructure/agents/specialized/MonitoringAgent.ts[90m:157[0m
+     8  src/infrastructure/agents/specialized/RecommendationAgent.ts[90m:102[0m
+     8  src/infrastructure/agents/specialized/VisualizationAgent.ts[90m:105[0m
+    60  src/infrastructure/agents/workshop/Workshop3Agent.ts[90m:760[0m
+     3  src/infrastructure/agents/workshop/Workshop4Agent.ts[90m:489[0m
+     6  src/services/agents/AgentFactory.ts[90m:512[0m
+     5  src/services/agents/ANSSIValidationAgent.ts[90m:140[0m
+     3  src/services/agents/CyberKillChainAgent.ts[90m:390[0m
+     3  src/services/agents/HybridEbiosService.ts[90m:225[0m
+     1  src/services/agents/PerformanceOptimizerAgent.ts[90m:165[0m
+     1  src/services/agents/PredictiveIntelligenceAgent.ts[90m:178[0m
+     3  src/services/agents/RiskAnalysisAgent.ts[90m:204[0m
+     4  src/services/agents/ScenarioGenerationAgent.ts[90m:188[0m
+     5  src/services/agents/SecurityOptimizationAgent.ts[90m:267[0m
+     1  src/services/agents/ThreatIntelligenceAgent.ts[90m:199[0m
+     4  src/services/agents/ThreatModelingAgent.ts[90m:251[0m
+     2  src/services/ai/DataQualityDetector.ts[90m:121[0m
+     2  src/services/analytics/AdvancedAnalyticsService.ts[90m:413[0m
+     1  src/services/export/missionExportService.ts[90m:204[0m
+     5  src/services/export/StandardExportService.ts[90m:134[0m
+     5  src/services/mcp/EBIOSMCPClient.ts[90m:81[0m
+    14  src/services/migration/DatabaseMigrationService.ts[90m:559[0m
+     8  src/services/migration/RollbackManager.ts[90m:165[0m
+     1  src/services/monitoring/AlertingService.ts[90m:649[0m
+     5  src/services/monitoring/MetricsCollectionService.ts[90m:786[0m
+     1  src/services/sharing/missionSharingService.ts[90m:74[0m
+     1  src/services/traceability/InterWorkshopTraceability.ts[90m:265[0m
+     2  src/services/validation/ANSSIValidationService.ts[90m:498[0m
+     3  src/services/workflows/EbiosWorkflowManager.ts[90m:160[0m

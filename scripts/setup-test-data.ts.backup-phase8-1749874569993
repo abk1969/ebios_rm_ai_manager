@@ -1,0 +1,113 @@
+#!/usr/bin/env tsx
+
+/**
+ * 🎯 SCRIPT DE SETUP DES DONNÉES DE TEST RÉELLES
+ * Initialise une base de données Firebase avec des données de test complètes
+ */
+
+import { RealTestDataService } from '../src/services/test-data/RealTestDataService';
+import { FirebaseTestUtils } from '../src/config/firebase.test';
+
+async function setupTestData() {
+  console.log('🚀 SETUP DES DONNÉES DE TEST RÉELLES');
+  console.log('=====================================\n');
+
+  try {
+    // 1. Vérifier la connexion Firebase
+    console.log('🔥 Vérification de la connexion Firebase...');
+    const isConnected = await FirebaseTestUtils.checkConnection();
+    
+    if (!isConnected) {
+      console.error('❌ Impossible de se connecter à Firebase');
+      console.log('💡 Vérifiez votre configuration Firebase dans .env.production');
+      process.exit(1);
+    }
+    
+    console.log('✅ Connexion Firebase établie\n');
+
+    // 2. Initialiser le service de données de test
+    const testDataService = RealTestDataService.getInstance();
+
+    // 3. Nettoyer les données existantes
+    // console.log supprimé;
+    await testDataService.cleanupAllTestData();
+    console.log('✅ Nettoyage terminé\n');
+
+    // 4. Créer des missions de test
+    // console.log supprimé;
+    
+    const missions = [
+      'Mission Test - Banque en ligne',
+      'Mission Test - E-commerce',
+      'Mission Test - Système de santé',
+      'Mission Test - Administration publique',
+      'Mission Test - Industrie critique'
+    ];
+
+    const createdMissions: string[] = [];
+
+    for (const missionName of missions) {
+      console.log(`  📝 Création: ${missionName}`);
+      const missionId = await testDataService.createTestMission(missionName);
+      createdMissions.push(missionId);
+      console.log(`  ✅ Créée avec ID: ${missionId}`);
+    }
+
+    // console.log supprimé;
+
+    // 5. Afficher le résumé
+    console.log('\n📊 RÉSUMÉ DES DONNÉES CRÉÉES');
+    console.log('============================');
+    console.log(`Missions: ${createdMissions.length}`);
+    console.log('Chaque mission contient:');
+    console.log('  • 4 biens essentiels');
+    console.log('  • 6 biens supports');
+    console.log('  • 3 événements redoutés');
+    console.log('  • 2 sources de risque');
+    console.log('  • 1 scénario stratégique');
+    console.log('  • 1 scénario opérationnel');
+    console.log('  • 2 mesures de sécurité');
+
+    console.log('\n🔧 UTILISATION');
+    console.log('===============');
+    // console.log supprimé;
+    // console.log supprimé;
+    console.log('\nPour nettoyer les données:');
+    // console.log supprimé;
+
+    console.log('\n✅ Setup terminé avec succès !');
+
+  } catch (error) {
+    console.error('❌ Erreur lors du setup:', error);
+    process.exit(1);
+  }
+}
+
+async function cleanupTestData() {
+  console.log('🧹 NETTOYAGE DES DONNÉES DE TEST');
+  console.log('=================================\n');
+
+  try {
+    const testDataService = RealTestDataService.getInstance();
+    await testDataService.cleanupAllTestData();
+    console.log('✅ Nettoyage terminé avec succès !');
+  } catch (error) {
+    console.error('❌ Erreur lors du nettoyage:', error);
+    process.exit(1);
+  }
+}
+
+// Gestion des arguments de ligne de commande
+const command = process.argv[2];
+
+switch (command) {
+  case 'setup':
+    setupTestData();
+    break;
+  case 'cleanup':
+    cleanupTestData();
+    break;
+  default:
+    setupTestData();
+    break;
+}

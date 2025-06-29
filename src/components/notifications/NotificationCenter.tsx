@@ -1,0 +1,1 @@
+import React from "react"; export default function NotificationCenter() { return (<div className="p-6"><h1 className="text-2xl font-bold">Centre de Notifications EBIOS RM</h1><p>Gestion des alertes et communications selon recommandations ANSSI</p></div>); }

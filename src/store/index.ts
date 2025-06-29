@@ -9,6 +9,7 @@ import workshopsReducer from './slices/workshopsSlice';
 import stakeholdersReducer from './slices/stakeholdersSlice';
 import attackPathsReducer from './slices/attackPathsSlice';
 import securityMeasuresReducer from './slices/securityMeasuresSlice';
+// import trainingReducer from './slices/trainingSlice'; // DÉSACTIVÉ - Module indépendant
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
     stakeholders: stakeholdersReducer,
     attackPaths: attackPathsReducer,
     securityMeasures: securityMeasuresReducer,
+    // training: trainingReducer, // DÉSACTIVÉ - Module indépendant
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

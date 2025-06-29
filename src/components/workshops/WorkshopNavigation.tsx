@@ -1,13 +1,15 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { Database, Target, Users, Route, ShieldCheck } from 'lucide-react';
+import Button from '../ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+// 🚫 SUPPRESSION DES PATHS STATIQUES - UTILISATION DYNAMIQUE AVEC MISSION
 const workshops = [
   {
     number: 1,
     title: 'Define the Scope and Security Baseline',
     icon: Database,
-    path: '/workshop-1',
     description: 'Establish study framework and evaluate security baseline',
     steps: [
       'Define business values',
@@ -20,7 +22,6 @@ const workshops = [
     number: 2,
     title: 'Risk Sources',
     icon: Target,
-    path: '/workshop-2',
     description: 'Identify and analyze potential sources of risk',
     steps: [
       'Identify risk sources',
@@ -33,7 +34,6 @@ const workshops = [
     number: 3,
     title: 'Strategic Scenarios',
     icon: Users,
-    path: '/workshop-3',
     description: 'Develop strategic attack scenarios',
     steps: [
       'Map stakeholders',
@@ -46,7 +46,6 @@ const workshops = [
     number: 4,
     title: 'Operational Scenarios',
     icon: Route,
-    path: '/workshop-4',
     description: 'Define operational attack scenarios',
     steps: [
       'Define attack actions',
@@ -59,7 +58,6 @@ const workshops = [
     number: 5,
     title: 'Treatment Strategy',
     icon: ShieldCheck,
-    path: '/workshop-5',
     description: 'Define and implement security measures',
     steps: [
       'Define security measures',
@@ -70,61 +68,102 @@ const workshops = [
   },
 ];
 
-const WorkshopNavigation = () => {
+interface WorkshopNavigationProps {
+  currentWorkshop: number;
+  totalWorkshops: number;
+  onNext?: () => Promise<boolean>;
+  onPrevious?: () => Promise<boolean>;
+  canProceed?: boolean; // 🔧 CORRECTION: Propriété manquante
+}
+
+const WorkshopNavigation: React.FC<WorkshopNavigationProps> = ({
+  currentWorkshop,
+  totalWorkshops,
+  onNext,
+  onPrevious,
+  canProceed = true // 🔧 CORRECTION: Valeur par défaut
+}) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const params = useParams();
+
+  // 🔧 CORRECTION: Support des deux méthodes de récupération du missionId
+  const missionId = params.missionId || searchParams.get('missionId');
+
+  // 🔧 FONCTION SIMPLIFIÉE: URL unifiée avec missionId obligatoire
+  const createUrlWithParams = (workshopNumber: number) => {
+    if (!missionId) {
+      console.error('MissionId requis pour la navigation entre workshops');
+      return '/missions'; // Redirection vers la liste des missions si pas de missionId
+    }
+    return `/workshops/${missionId}/${workshopNumber}`;
+  };
+
+  const handleNext = async () => {
+    if (onNext) {
+      const canProceed = await onNext();
+      if (canProceed) {
+        if (currentWorkshop < totalWorkshops) {
+          navigate(createUrlWithParams(currentWorkshop + 1));
+        } else {
+          // Redirection vers le rapport final après le dernier atelier
+          if (!missionId) {
+            navigate('/missions');
+            return;
+          }
+          navigate(`/ebios-report/${missionId}`);
+        }
+      }
+    } else if (currentWorkshop < totalWorkshops) {
+      navigate(createUrlWithParams(currentWorkshop + 1));
+    } else {
+      // Redirection vers le rapport final
+      if (!missionId) {
+        navigate('/missions');
+        return;
+      }
+      navigate(`/ebios-report/${missionId}`);
+    }
+  };
+
+  const handlePrevious = async () => {
+    if (onPrevious) {
+      const canProceed = await onPrevious();
+      if (canProceed && currentWorkshop > 1) {
+        navigate(createUrlWithParams(currentWorkshop - 1));
+      }
+    } else if (currentWorkshop > 1) {
+      navigate(createUrlWithParams(currentWorkshop - 1));
+    }
+  };
 
   return (
-    <nav className="space-y-4">
-      {workshops.map((workshop) => {
-        const Icon = workshop.icon;
-        const isActive = location.pathname === workshop.path;
+    <div className="flex justify-between items-center mt-8">
+      <Button
+        onClick={handlePrevious}
+        disabled={currentWorkshop <= 1}
+        variant="outline"
+        className="flex items-center space-x-2"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        <span>Précédent</span>
+      </Button>
+      
+      <div className="text-sm text-gray-500">
+        Atelier {currentWorkshop} sur {totalWorkshops}
+      </div>
 
-        return (
-          <Link
-            key={workshop.number}
-            to={workshop.path}
-            className={`block rounded-lg p-4 transition-colors ${
-              isActive
-                ? 'bg-blue-50 text-blue-700'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-                  isActive ? 'bg-blue-100' : 'bg-gray-100'
-                }`}
-              >
-                <Icon
-                  className={`h-6 w-6 ${isActive ? 'text-blue-600' : 'text-gray-600'}`}
-                />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">Workshop {workshop.number}</div>
-                  {isActive && (
-                    <span className="text-xs font-medium text-blue-600">Active</span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-900">{workshop.title}</p>
-              </div>
-            </div>
-            {isActive && (
-              <div className="mt-4 pl-13">
-                <ul className="space-y-2">
-                  {workshop.steps.map((step, index) => (
-                    <li key={index} className="flex items-center text-sm">
-                      <span className="mr-2 h-1.5 w-1.5 rounded-full bg-blue-600"></span>
-                      {step}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </Link>
-        );
-      })}
-    </nav>
+      <Button
+        onClick={handleNext}
+        disabled={!canProceed} // 🔧 CORRECTION: Utilisation de canProceed
+        className="flex items-center space-x-2"
+        title={!canProceed ? "Complétez tous les critères obligatoires pour continuer" : ""}
+      >
+        <span>{currentWorkshop >= totalWorkshops ? 'Terminer & Voir le Rapport' : 'Suivant'}</span>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
   );
 };
 

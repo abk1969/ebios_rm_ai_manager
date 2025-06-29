@@ -1,0 +1,685 @@
+{
+  "source_database": "c:\\Users\\globa\\addb_to_sql\\EBIOS-RM V1.5 (1).accdb",
+  "target_type": "sqlite",
+  "target_connection": null,
+  "tables": [
+    {
+      "name": "ERM_BienSupportAssocie",
+      "row_count": 5,
+      "column_count": 4,
+      "columns": [
+        {
+          "name": "Denomination Bien Support Associe",
+          "type": "TEXT"
+        },
+        {
+          "name": "Valeur Metier",
+          "type": "TEXT"
+        },
+        {
+          "name": "Description",
+          "type": "TEXT"
+        },
+        {
+          "name": "Entite Personne Responsable",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Categorie",
+      "row_count": 3,
+      "column_count": 1,
+      "columns": [
+        {
+          "name": "Categorie",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_CheminAttaque",
+      "row_count": 5,
+      "column_count": 5,
+      "columns": [
+        {
+          "name": "Source de Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Objectif Vise",
+          "type": "TEXT"
+        },
+        {
+          "name": "Chemin Attaque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Partie Prenante",
+          "type": "TEXT"
+        },
+        {
+          "name": "Gravite",
+          "type": "TINYINT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_EntitePersonneResponsable",
+      "row_count": 11,
+      "column_count": 1,
+      "columns": [
+        {
+          "name": "Entite Personne Responsable",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_EvenementRedoute",
+      "row_count": 7,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Valeur Metier",
+          "type": "TEXT"
+        },
+        {
+          "name": "Evenement Redoute",
+          "type": "TEXT"
+        },
+        {
+          "name": "Gravite",
+          "type": "TINYINT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_EvenementRedouteImpact",
+      "row_count": 17,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Valeur Metier",
+          "type": "TEXT"
+        },
+        {
+          "name": "Evenement Redoute",
+          "type": "TEXT"
+        },
+        {
+          "name": "Impacts",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_GrapheAttaqueAction",
+      "row_count": 13,
+      "column_count": 10,
+      "columns": [
+        {
+          "name": "Chemin Attaque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Sequence Type Attaque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Numero Action Elementaire",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Precedent Numero Action",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Action Elementaire",
+          "type": "TEXT"
+        },
+        {
+          "name": "Suivant Numero Action",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Mode Operatoire",
+          "type": "TEXT"
+        },
+        {
+          "name": "Canal Exfiltration",
+          "type": "TEXT"
+        },
+        {
+          "name": "Probabilite Succes",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Difficulte Technique",
+          "type": "TINYINT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_MesureSecurite",
+      "row_count": 3,
+      "column_count": 5,
+      "columns": [
+        {
+          "name": "Partie Prenante",
+          "type": "TEXT"
+        },
+        {
+          "name": "Chemin Attaque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Mesure Securite",
+          "type": "TEXT"
+        },
+        {
+          "name": "Menace Initiale",
+          "type": "TEXT"
+        },
+        {
+          "name": "Menace Residuelle",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_ObjectifVise",
+      "row_count": 4,
+      "column_count": 8,
+      "columns": [
+        {
+          "name": "Source de Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Objectif Vise",
+          "type": "TEXT"
+        },
+        {
+          "name": "Motivation",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Ressource",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Activite",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Pertinence proposee",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Pertinence retenue",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Retenu",
+          "type": "BOOLEAN"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_CanalExfiltration",
+      "row_count": 7,
+      "column_count": 2,
+      "columns": [
+        {
+          "name": "Canal Exfiltration",
+          "type": "TEXT"
+        },
+        {
+          "name": "Logo Canal Exfiltration",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_DifficulteTechnique",
+      "row_count": 5,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Niveau",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Echelle",
+          "type": "TEXT"
+        },
+        {
+          "name": "Description",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_GraviteDesImpacts",
+      "row_count": 5,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Gravite",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Echelle",
+          "type": "TEXT"
+        },
+        {
+          "name": "Consequences",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_Pertinence",
+      "row_count": 3,
+      "column_count": 2,
+      "columns": [
+        {
+          "name": "Valeur Pertinence",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Pertinence",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_ProbabiliteDifficulte",
+      "row_count": 25,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Probabilite Succes",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Difficulte Technique",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Vraisemblance",
+          "type": "TINYINT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_ProbabiliteSucces",
+      "row_count": 5,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Niveau",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Echelle",
+          "type": "TEXT"
+        },
+        {
+          "name": "Description",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_RisqueGraviteVraisemblance",
+      "row_count": 16,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Gravite",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Vraisemblance",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Niveau Risque",
+          "type": "TINYINT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_StrategieRisque",
+      "row_count": 3,
+      "column_count": 4,
+      "columns": [
+        {
+          "name": "Numero Niveau Risque",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Niveau de Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Acceptabilite Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Inititile Decisions et Actions",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_TypeDeReferentiel",
+      "row_count": 4,
+      "column_count": 1,
+      "columns": [
+        {
+          "name": "Type de Referentiel",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_Vraisemblance",
+      "row_count": 5,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Niveau",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Echelle",
+          "type": "TEXT"
+        },
+        {
+          "name": "Description",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_Param_Zone",
+      "row_count": 3,
+      "column_count": 4,
+      "columns": [
+        {
+          "name": "Valeur Zone",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Zone",
+          "type": "TEXT"
+        },
+        {
+          "name": "Valeur Inferieur",
+          "type": "TEXT"
+        },
+        {
+          "name": "Valeur Superieur",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_PartiePrenante",
+      "row_count": 9,
+      "column_count": 8,
+      "columns": [
+        {
+          "name": "Categorie",
+          "type": "TEXT"
+        },
+        {
+          "name": "Partie Prenante",
+          "type": "TEXT"
+        },
+        {
+          "name": "Dependance",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Penetration",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Exposition",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Maturite Cyber",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Confiance",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Fiabilite Cyber",
+          "type": "INTEGER"
+        }
+      ]
+    },
+    {
+      "name": "ERM_PlanSecurite",
+      "row_count": 13,
+      "column_count": 6,
+      "columns": [
+        {
+          "name": "Mesure Securite",
+          "type": "TEXT"
+        },
+        {
+          "name": "Type Mesure",
+          "type": "TEXT"
+        },
+        {
+          "name": "Frein Difficulte MEO",
+          "type": "TEXT"
+        },
+        {
+          "name": "Cout Complexite",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Echeance em mois",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Status",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_PlanSecuriteResponsable",
+      "row_count": 20,
+      "column_count": 2,
+      "columns": [
+        {
+          "name": "Mesure Securite",
+          "type": "TEXT"
+        },
+        {
+          "name": "Responsable",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_PlanSecuriteScenario",
+      "row_count": 31,
+      "column_count": 2,
+      "columns": [
+        {
+          "name": "Mesure Securite",
+          "type": "TEXT"
+        },
+        {
+          "name": "Scenario Risque",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_ScenarioRisque",
+      "row_count": 5,
+      "column_count": 12,
+      "columns": [
+        {
+          "name": "Id Scenario Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Source Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Objectif Vise",
+          "type": "TEXT"
+        },
+        {
+          "name": "Valeur Metier",
+          "type": "TEXT"
+        },
+        {
+          "name": "Canal Exfiltration",
+          "type": "TEXT"
+        },
+        {
+          "name": "Partie Prenante",
+          "type": "TEXT"
+        },
+        {
+          "name": "Description Scenario Risque",
+          "type": "TEXT"
+        },
+        {
+          "name": "Gravite",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Vraisemblance",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Gestion Risque Residuel",
+          "type": "TEXT"
+        },
+        {
+          "name": "Gravite Residuel",
+          "type": "TINYINT"
+        },
+        {
+          "name": "Vraisemblance Residuel",
+          "type": "TINYINT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_SocieteMission",
+      "row_count": 1,
+      "column_count": 4,
+      "columns": [
+        {
+          "name": "Nom Societe",
+          "type": "TEXT"
+        },
+        {
+          "name": "Adresse",
+          "type": "TEXT"
+        },
+        {
+          "name": "Contact",
+          "type": "TEXT"
+        },
+        {
+          "name": "Mission",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_SocleSecurite",
+      "row_count": 1,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Nom du Referentiel",
+          "type": "TEXT"
+        },
+        {
+          "name": "Type de Referentiel",
+          "type": "TEXT"
+        },
+        {
+          "name": "Etat Application",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_SocleSecuriteEcart",
+      "row_count": 2,
+      "column_count": 3,
+      "columns": [
+        {
+          "name": "Nom du Referentiel",
+          "type": "TEXT"
+        },
+        {
+          "name": "Ecart",
+          "type": "TEXT"
+        },
+        {
+          "name": "Justification Ecart",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_SourceRisque",
+      "row_count": 3,
+      "column_count": 1,
+      "columns": [
+        {
+          "name": "Source de Risque",
+          "type": "TEXT"
+        }
+      ]
+    },
+    {
+      "name": "ERM_ValeurMetier",
+      "row_count": 3,
+      "column_count": 5,
+      "columns": [
+        {
+          "name": "Denomination Valeur Metier",
+          "type": "TEXT"
+        },
+        {
+          "name": "Mission",
+          "type": "TEXT"
+        },
+        {
+          "name": "Nature Valeur Metier",
+          "type": "TEXT"
+        },
+        {
+          "name": "Description",
+          "type": "TEXT"
+        },
+        {
+          "name": "Entite Personne Responsable",
+          "type": "TEXT"
+        }
+      ]
+    }
+  ]
+}

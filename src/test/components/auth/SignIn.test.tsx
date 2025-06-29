@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import SignIn from '@/pages/auth/SignIn';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 
 // Mock Firebase Auth
 vi.mock('@/services/firebase/auth', () => ({

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EBIOS RM AI-Agentic Training System - Démonstration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-interface {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 20px;
+            height: 80vh;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.instructor {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.learner {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .message.system {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            margin: 0 auto;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .progress-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .workshop-progress {
+            margin-bottom: 20px;
+        }
+
+        .workshop {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        .workshop.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .workshop.completed {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .agent-status {
+            margin-bottom: 20px;
+        }
+
+        .agent {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .agent.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .agent-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .quick-actions {
+            display: grid;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            padding: 10px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-dots {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .typing-dots span {
+            animation: typing 1.4s infinite;
+            animation-fill-mode: both;
+        }
+
+        .typing-dots span:nth-child(1) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.4s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; }
+            30% { opacity: 1; }
+        }
+
+        .evaluation-panel {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .score-bar {
+            background: #e9ecef;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            transition: width 0.5s ease;
+        }
+
+        .recommendations {
+            background: #d1ecf1;
+            border-left: 4px solid #bee5eb;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 EBIOS RM AI-Agentic Training</h1>
+            <p>Formation Interactive Pilotée par IA - Méthode ANSSI Officielle</p>
+        </div>
+
+        <div class="main-interface">
+            <!-- Panneau de progression -->
+            <div class="sidebar">
+                <div class="progress-section">
+                    <h3>📊 Progression du Parcours</h3>
+                    <div class="workshop-progress">
+                        <div class="workshop completed">
+                            <strong>✅ Prérequis Cyber</strong><br>
+                            <small>Concepts fondamentaux</small>
+                        </div>
+                        <div class="workshop active">
+                            <strong>🎯 Atelier 1</strong><br>
+                            <small>Cadrage et Socle de Sécurité</small>
+                        </div>
+                        <div class="workshop">
+                            <strong>⚔️ Atelier 2</strong><br>
+                            <small>Sources de Risques</small>
+                        </div>
+                        <div class="workshop">
+                            <strong>🎲 Atelier 3</strong><br>
+                            <small>Scénarios Stratégiques</small>
+                        </div>
+                        <div class="workshop">
+                            <strong>🔧 Atelier 4</strong><br>
+                            <small>Scénarios Opérationnels</small>
+                        </div>
+                        <div class="workshop">
+                            <strong>🛡️ Atelier 5</strong><br>
+                            <small>Traitement du Risque</small>
+                        </div>
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-value">73%</div>
+                            <div class="metric-label">Completion</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">B+</div>
+                            <div class="metric-label">Score Actuel</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">2.5h</div>
+                            <div class="metric-label">Temps Passé</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">4</div>
+                            <div class="metric-label">Badges</div>
+                        </div>
+                    </div>
+
+                    <div class="evaluation-panel">
+                        <h4>📈 Évaluation Continue</h4>
+                        <div>
+                            <label>Méthodologique:</label>
+                            <div class="score-bar"><div class="score-fill" style="width: 82%"></div></div>
+                        </div>
+                        <div>
+                            <label>Complétude:</label>
+                            <div class="score-bar"><div class="score-fill" style="width: 76%"></div></div>
+                        </div>
+                        <div>
+                            <label>Justesse:</label>
+                            <div class="score-bar"><div class="score-fill" style="width: 89%"></div></div>
+                        </div>
+                        <div>
+                            <label>Applicabilité:</label>
+                            <div class="score-bar"><div class="score-fill" style="width: 71%"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="recommendations">
+                        <h4>💡 Recommandations IA</h4>
+                        <ul>
+                            <li>Approfondir la notion de valeur métier</li>
+                            <li>Intégrer plus d'exemples sectoriels</li>
+                            <li>Revoir la classification DICT</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interface de conversation principale -->
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>🤖 Agent Formateur EBIOS RM</h2>
+                    <p>Atelier 1 : Cadrage et Socle de Sécurité - Étape 2/4</p>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message system">
+                        🚀 Session de formation démarrée - Bienvenue dans l'Atelier 1 !
+                    </div>
+
+                    <div class="message instructor">
+                        Bonjour ! Je suis votre formateur virtuel spécialisé en EBIOS Risk Manager.<br><br>
+                        🎯 <strong>Atelier 1 : Cadrage et Socle de Sécurité</strong><br><br>
+                        Nous allons travailler ensemble sur cet atelier qui a pour objectifs :<br>
+                        • Identifier les valeurs métier critiques<br>
+                        • Définir le périmètre d'analyse<br>
+                        • Construire le socle de sécurité réglementaire<br>
+                        • Cartographier l'écosystème organisationnel<br><br>
+                        Je vais utiliser des exemples du secteur Finance pour illustrer les concepts.<br><br>
+                        Durée estimée : 8 heures<br>
+                        Livrables attendus : 4 documents<br><br>
+                        Êtes-vous prêt(e) à commencer ? Avez-vous des questions sur les objectifs ou la démarche ?
+                    </div>
+
+                    <div class="message learner">
+                        Bonjour ! Oui je suis prêt. Je travaille en tant que RSSI dans une banque en ligne et j'aimerais appliquer EBIOS RM à notre contexte. Par où commence-t-on exactement ?
+                    </div>
+
+                    <div class="message instructor">
+                        Parfait ! Une banque en ligne, c'est un excellent cas d'usage pour EBIOS RM. 🏦<br><br>
+                        🎯 <strong>Étape 1 : Identification des Valeurs Métier</strong><br><br>
+                        Pour commencer cette analyse EBIOS RM, nous devons identifier les valeurs métier de votre organisation.<br><br>
+                        Les valeurs métier représentent ce qui a de la valeur pour votre organisation :<br>
+                        • <strong>Processus métier</strong> : Activités critiques pour le fonctionnement<br>
+                        • <strong>Informations</strong> : Données stratégiques, personnelles, financières...<br>
+                        • <strong>Services</strong> : Services rendus aux clients, partenaires<br>
+                        • <strong>Biens de support</strong> : Systèmes, applications, infrastructures<br><br>
+                        💭 <strong>Question réflexive</strong> : Si vous deviez identifier les 5 éléments les plus critiques pour la survie de votre banque, quels seraient-ils ?<br><br>
+                        Pouvez-vous me parler des principales activités de votre banque en ligne ?
+                    </div>
+
+                    <div class="message learner">
+                        Nos principales activités sont :<br>
+                        - Les virements et paiements en ligne<br>
+                        - L'octroi de crédits (personnel, immobilier)<br>
+                        - La gestion des comptes clients<br>
+                        - Les services d'épargne et d'investissement<br>
+                        - L'application mobile pour nos clients<br><br>
+                        Pour les 5 éléments les plus critiques, je dirais :<br>
+                        1. Nos données clients (comptes, transactions)<br>
+                        2. La plateforme de paiement<br>
+                        3. L'application mobile<br>
+                        4. Les systèmes de scoring crédit<br>
+                        5. Notre infrastructure cloud
+                    </div>
+
+                    <div class="message system">
+                        🔍 Analyse en cours par l'Agent Évaluateur...
+                    </div>
+
+                    <div class="message instructor">
+                        Excellent travail ! 👏 Je vois que vous avez une bonne compréhension de votre écosystème bancaire.<br><br>
+                        ✅ <strong>Points positifs identifiés :</strong><br>
+                        • Bonne distinction entre processus métier (virements, crédits) et services clients<br>
+                        • Identification pertinente des données critiques<br>
+                        • Vision claire de l'infrastructure technique<br><br>
+                        💡 <strong>Points à approfondir :</strong><br>
+                        • Pensez à intégrer la <strong>conformité réglementaire</strong> (DORA, PCI-DSS) comme valeur métier<br>
+                        • Considérez votre <strong>réputation et image de marque</strong> - critique pour une banque<br>
+                        • N'oubliez pas les <strong>processus de gouvernance</strong> (gestion des risques, audit)<br><br>
+                        🤔 <strong>Question d'approfondissement :</strong> Comment classeriez-vous ces valeurs selon les critères DICT (Disponibilité, Intégrité, Confidentialité, Traçabilité) ? Quelle serait votre priorisation ?
+                    </div>
+
+                    <div class="typing-indicator" id="typingIndicator">
+                        🤖 L'agent formateur analyse votre réponse
+                        <span class="typing-dots">
+                            <span>.</span><span>.</span><span>.</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-group">
+                        <input type="text" id="messageInput" placeholder="Tapez votre réponse ici..." maxlength="1000">
+                        <button class="send-btn" onclick="sendMessage()">Envoyer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panneau des agents et actions -->
+            <div class="sidebar">
+                <div class="agent-status">
+                    <h3>🤖 Agents Actifs</h3>
+                    <div class="agent active">
+                        <div class="agent-indicator"></div>
+                        <div>
+                            <strong>Formateur EBIOS</strong><br>
+                            <small>Guide pédagogique actif</small>
+                        </div>
+                    </div>
+                    <div class="agent">
+                        <div class="agent-indicator"></div>
+                        <div>
+                            <strong>Évaluateur</strong><br>
+                            <small>Contrôle qualité continu</small>
+                        </div>
+                    </div>
+                    <div class="agent">
+                        <div class="agent-indicator"></div>
+                        <div>
+                            <strong>Contextualisateur</strong><br>
+                            <small>Adaptation sectorielle</small>
+                        </div>
+                    </div>
+                    <div class="agent">
+                        <div class="agent-indicator"></div>
+                        <div>
+                            <strong>Correctif</strong><br>
+                            <small>Détection d'erreurs</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>⚡ Actions Rapides</h3>
+                    <button class="action-btn" onclick="showHint()">💡 Indice</button>
+                    <button class="action-btn" onclick="showExample()">📋 Exemple</button>
+                    <button class="action-btn" onclick="showMethodology()">📚 Méthode</button>
+                    <button class="action-btn" onclick="requestEvaluation()">📊 Évaluation</button>
+                    <button class="action-btn" onclick="showRegulations()">⚖️ Réglementation</button>
+                    <button class="action-btn" onclick="generateTemplate()">📄 Template</button>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h3>🏆 Badges Obtenus</h3>
+                    <div style="margin-top: 10px;">
+                        <span class="badge">🎯 Cadrage Expert</span>
+                        <span class="badge">💼 Secteur Finance</span>
+                        <span class="badge">📊 Analyse Approfondie</span>
+                        <span class="badge">🔍 Pensée Critique</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <h4>📈 Prochaines Étapes</h4>
+                    <ol style="margin-left: 20px; margin-top: 10px;">
+                        <li>Finaliser la classification DICT</li>
+                        <li>Définir le périmètre d'étude</li>
+                        <li>Construire le socle de sécurité</li>
+                        <li>Valider avec les parties prenantes</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        Nouveau message de l'Agent Évaluateur !
+    </div>
+
+    <script>
+        // Simulation du système de formation interactif
+        
+        let messageCount = 0;
+        const responses = [
+            {
+                trigger: /classification|dict|disponibilité|intégrité|confidentialité|traçabilité/i,
+                response: `Excellente question sur la classification DICT ! 🎯<br><br>
+                <strong>Voici comment appliquer DICT à vos valeurs métier :</strong><br><br>
+                🔒 <strong>Confidentialité (C)</strong> :<br>
+                • Données clients → CRITIQUE (divulgation = catastrophe)<br>
+                • Algorithmes de scoring → IMPORTANT (avantage concurrentiel)<br><br>
+                🔧 <strong>Intégrité (I)</strong> :<br>
+                • Transactions financières → CRITIQUE (erreur = pertes)<br>
+                • Données comptables → CRITIQUE (conformité réglementaire)<br><br>
+                ⏰ <strong>Disponibilité (D)</strong> :<br>
+                • Application mobile → IMPORTANT (24/7 attendu par clients)<br>
+                • Plateforme de paiement → CRITIQUE (indisponibilité = perte clients)<br><br>
+                📝 <strong>Traçabilité (T)</strong> :<br>
+                • Toutes les transactions → CRITIQUE (exigence DORA/PCI-DSS)<br>
+                • Accès aux données → IMPORTANT (audit et conformité)<br><br>
+                🤔 Êtes-vous d'accord avec cette classification ? Y a-t-il des nuances selon votre contexte spécifique ?`
+            },
+            {
+                trigger: /socle|sécurité|réglementation|conformité/i,
+                response: `Parfait ! Passons à la construction du socle de sécurité. 🛡️<br><br>
+                <strong>Pour une banque en ligne, votre socle de sécurité doit intégrer :</strong><br><br>
+                ⚖️ <strong>Exigences réglementaires :</strong><br>
+                • DORA (Digital Operational Resilience Act)<br>
+                • PCI-DSS pour les paiements<br>
+                • GDPR pour les données personnelles<br>
+                • Directive Services de Paiement (DSP2)<br><br>
+                🎯 <strong>Standards techniques :</strong><br>
+                • ISO 27001 (SMSI)<br>
+                • ISO 27005 (gestion des risques)<br>
+                • NIST Cybersecurity Framework<br><br>
+                🔧 <strong>Mesures techniques existantes :</strong><br>
+                • Chiffrement des données<br>
+                • Authentification forte (2FA/MFA)<br>
+                • Monitoring et détection d'incidents<br>
+                • Sauvegardes et plan de continuité<br><br>
+                Avez-vous déjà des mesures en place ? Lesquelles sont les plus matures dans votre organisation ?`
+            },
+            {
+                trigger: /périmètre|frontière|limite|scope/i,
+                response: `Excellente réflexion sur le périmètre ! 🎯<br><br>
+                <strong>Définition du périmètre d'analyse EBIOS RM :</strong><br><br>
+                📍 <strong>Périmètre organisationnel :</strong><br>
+                • Entités internes : Direction, IT, Métiers, Conformité<br>
+                • Filiales et succursales incluses ?<br>
+                • Prestataires critiques (cloud, TPE, maintenance)<br><br>
+                🌐 <strong>Périmètre technique :</strong><br>
+                • Applications bancaires core<br>
+                • Infrastructure cloud et on-premise<br>
+                • Canaux clients (web, mobile, APIs)<br>
+                • Réseaux et interconnexions<br><br>
+                📋 <strong>Périmètre fonctionnel :</strong><br>
+                • Processus métier critiques identifiés<br>
+                • Services aux clients<br>
+                • Fonctions support (RH, finance)<br><br>
+                🚪 <strong>Frontières importantes :</strong><br>
+                • Interface avec autres banques (virements)<br>
+                • Connexions réglementaires (Banque de France)<br>
+                • Partenaires technologiques<br><br>
+                Comment voyez-vous les frontières de votre analyse ?`
+            }
+        ];
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                addMessage('learner', message);
+                input.value = '';
+                
+                // Afficher l'indicateur de frappe
+                showTypingIndicator();
+                
+                // Simuler la réponse de l'IA après un délai
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    generateAIResponse(message);
+                    updateProgress();
+                }, 2000 + Math.random() * 2000);
+            }
+        }
+
+        function addMessage(type, content) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.innerHTML = content;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function generateAIResponse(userMessage) {
+            // Trouver une réponse appropriée
+            let response = "Très intéressant ! Continuons notre analyse EBIOS RM. Pouvez-vous développer ce point ?";
+            
+            for (const responseObj of responses) {
+                if (responseObj.trigger.test(userMessage)) {
+                    response = responseObj.response;
+                    break;
+                }
+            }
+            
+            addMessage('instructor', response);
+            
+            // Parfois ajouter un message du système
+            if (Math.random() < 0.3) {
+                setTimeout(() => {
+                    addMessage('system', '🔍 Évaluation automatique : Score actuel 85% - Très bon travail !');
+                    showNotification('Évaluation mise à jour !');
+                }, 1000);
+            }
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function updateProgress() {
+            // Simuler la mise à jour des métriques
+            const metrics = document.querySelectorAll('.metric-value');
+            if (metrics.length >= 4) {
+                // Augmenter légèrement le pourcentage de completion
+                const currentCompletion = parseInt(metrics[0].textContent);
+                if (currentCompletion < 95) {
+                    metrics[0].textContent = (currentCompletion + Math.floor(Math.random() * 5 + 1)) + '%';
+                }
+                
+                // Mettre à jour le temps
+                const currentTime = parseFloat(metrics[2].textContent);
+                metrics[2].textContent = (currentTime + 0.1).toFixed(1) + 'h';
+            }
+            
+            // Mettre à jour les barres de score aléatoirement
+            const scoreFills = document.querySelectorAll('.score-fill');
+            scoreFills.forEach(fill => {
+                const currentWidth = parseInt(fill.style.width);
+                const newWidth = Math.min(95, currentWidth + Math.floor(Math.random() * 3));
+                fill.style.width = newWidth + '%';
+            });
+        }
+
+        function showHint() {
+            addMessage('system', '💡 Indice : N\'oubliez pas de considérer les aspects réglementaires spécifiques au secteur bancaire (DORA, PCI-DSS). Pensez aussi à l\'impact réputationnel.');
+        }
+
+        function showExample() {
+            addMessage('instructor', `📋 <strong>Exemple concret - Banque Digitale :</strong><br><br>
+            <strong>Valeurs métier identifiées :</strong><br>
+            • VM1 : Service de paiement en ligne (Criticité : CRITIQUE)<br>
+            • VM2 : Données clients et transactions (Criticité : CRITIQUE)<br>
+            • VM3 : Application mobile bancaire (Criticité : IMPORTANT)<br>
+            • VM4 : Processus d'octroi de crédit (Criticité : IMPORTANT)<br>
+            • VM5 : Conformité réglementaire (Criticité : CRITIQUE)<br><br>
+            <strong>Classification DICT appliquée :</strong><br>
+            VM1 → D:CRITIQUE, I:CRITIQUE, C:IMPORTANT, T:CRITIQUE<br>
+            VM2 → D:IMPORTANT, I:CRITIQUE, C:CRITIQUE, T:CRITIQUE<br><br>
+            Cela vous aide-t-il pour votre propre analyse ?`);
+        }
+
+        function showMethodology() {
+            addMessage('instructor', `📚 <strong>Rappel Méthodologique EBIOS RM :</strong><br><br>
+            🎯 <strong>Atelier 1 - Les 4 étapes :</strong><br>
+            1. <strong>Identification des valeurs métier</strong><br>
+               → Processus, informations, services, biens support<br><br>
+            2. <strong>Classification selon DICT</strong><br>
+               → Disponibilité, Intégrité, Confidentialité, Traçabilité<br><br>
+            3. <strong>Définition du périmètre</strong><br>
+               → Organisationnel, technique, fonctionnel<br><br>
+            4. <strong>Construction du socle de sécurité</strong><br>
+               → Réglementation + Standards + Mesures existantes<br><br>
+            📖 Source : Guide ANSSI EBIOS RM v1.5 - Mars 2024`);
+        }
+
+        function requestEvaluation() {
+            addMessage('system', '📊 Évaluation demandée... Analyse en cours par l\'Agent Évaluateur');
+            setTimeout(() => {
+                addMessage('instructor', `📈 <strong>Évaluation Intermédiaire :</strong><br><br>
+                ✅ <strong>Points forts :</strong><br>
+                • Excellente compréhension du contexte bancaire<br>
+                • Identification pertinente des valeurs métier<br>
+                • Bon niveau de détail dans les réponses<br><br>
+                🔍 <strong>Points d'amélioration :</strong><br>
+                • Approfondir la dimension réglementaire<br>
+                • Mieux structurer selon la méthodologie EBIOS<br>
+                • Intégrer davantage l'écosystème partenaires<br><br>
+                📊 <strong>Score actuel : 82/100</strong><br>
+                🏆 <strong>Niveau : Praticien confirmé</strong>`);
+            }, 1500);
+        }
+
+        function showRegulations() {
+            addMessage('instructor', `⚖️ <strong>Réglementations Applicables - Secteur Bancaire :</strong><br><br>
+            🇪🇺 <strong>DORA (Digital Operational Resilience Act)</strong><br>
+            → Résilience opérationnelle numérique<br>
+            → Tests de résistance cyber obligatoires<br><br>
+            💳 <strong>PCI-DSS (Payment Card Industry)</strong><br>
+            → Sécurité des données de cartes de paiement<br>
+            → 12 exigences de sécurité<br><br>
+            🔐 <strong>DSP2 (Directive Services de Paiement)</strong><br>
+            → Authentification forte du client<br>
+            → APIs ouvertes sécurisées<br><br>
+            📋 <strong>GDPR</strong><br>
+            → Protection des données personnelles<br>
+            → Notification des violations sous 72h<br><br>
+            Ces réglementations impactent-elles votre analyse ?`);
+        }
+
+        function generateTemplate() {
+            addMessage('system', '📄 Génération du template "Cartographie des Valeurs Métier" en cours...');
+            setTimeout(() => {
+                addMessage('instructor', `📄 <strong>Template généré - Cartographie des Valeurs Métier :</strong><br><br>
+                <table style="width:100%; border:1px solid #ddd; border-collapse:collapse;">
+                <tr style="background:#f5f5f5;">
+                <th style="border:1px solid #ddd; padding:8px;">ID</th>
+                <th style="border:1px solid #ddd; padding:8px;">Valeur Métier</th>
+                <th style="border:1px solid #ddd; padding:8px;">Type</th>
+                <th style="border:1px solid #ddd; padding:8px;">D</th>
+                <th style="border:1px solid #ddd; padding:8px;">I</th>
+                <th style="border:1px solid #ddd; padding:8px;">C</th>
+                <th style="border:1px solid #ddd; padding:8px;">T</th>
+                </tr>
+                <tr>
+                <td style="border:1px solid #ddd; padding:8px;">VM01</td>
+                <td style="border:1px solid #ddd; padding:8px;">Service de paiement</td>
+                <td style="border:1px solid #ddd; padding:8px;">Processus</td>
+                <td style="border:1px solid #ddd; padding:8px;">4</td>
+                <td style="border:1px solid #ddd; padding:8px;">4</td>
+                <td style="border:1px solid #ddd; padding:8px;">3</td>
+                <td style="border:1px solid #ddd; padding:8px;">4</td>
+                </tr>
+                </table><br>
+                📥 Template complet disponible pour téléchargement !`);
+            }, 1000);
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Permettre l'envoi avec Entrée
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Animation de démarrage
+        setTimeout(() => {
+            showNotification('Système de formation EBIOS RM initialisé avec succès !');
+        }, 1000);
+
+        // Simulation de l'activité des agents
+        setInterval(() => {
+            const agents = document.querySelectorAll('.agent');
+            agents.forEach(agent => {
+                if (Math.random() < 0.1) {
+                    agent.classList.toggle('active');
+                }
+            });
+        }, 3000);
+
+        // Mise à jour périodique des métriques
+        setInterval(() => {
+            if (Math.random() < 0.2) {
+                updateProgress();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

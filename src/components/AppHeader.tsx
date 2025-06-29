@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Shield, 
+import { Link, useLocation } from 'react-router-dom';
+import {
+  Shield,
   Search,
-  Bell,
   User,
   Settings,
   LogOut,
   Menu,
-  X 
+  X
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
+import { NotificationBell } from './notifications/NotificationBell';
 
 const AppHeader = () => {
   const { user, signOut } = useAuth();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -23,27 +24,29 @@ const AppHeader = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/dashboard" className="flex items-center space-x-2">
+              <Link to="/missions" className="flex items-center space-x-2">
                 <Shield className="h-8 w-8 text-blue-600" />
                 <span className="text-xl font-bold text-gray-900">EBIOS Cloud Pro</span>
               </Link>
             </div>
             <nav className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link 
-                to="/dashboard"
-                className="border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Tableau de bord
-              </Link>
               <Link
                 to="/missions"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  location.pathname === '/missions' || location.pathname === '/app'
+                    ? 'border-blue-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
               >
                 Missions
               </Link>
               <Link
                 to="/reports"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  location.pathname.startsWith('/reports') || location.pathname.startsWith('/ebios-report')
+                    ? 'border-blue-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
               >
                 Rapports
               </Link>
@@ -63,10 +66,14 @@ const AppHeader = () => {
             </div>
 
             <div className="ml-4 flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-500 relative">
-                <Bell className="h-6 w-6" />
-                <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-400"></span>
-              </button>
+              {/* 🔔 CLOCHE DE NOTIFICATIONS INTERACTIVE */}
+              <NotificationBell
+                size="md"
+                onViewAllClick={() => window.location.href = '/notifications'}
+                onNotificationClick={(notification) => {
+                  console.log('Notification cliquée:', notification.title);
+                }}
+              />
 
               <div className="relative">
                 <button
@@ -77,7 +84,7 @@ const AppHeader = () => {
                     <User className="h-5 w-5 text-blue-600" />
                   </div>
                   <span className="hidden md:block text-sm font-medium text-gray-700">
-                    {user?.firstName} {user?.lastName}
+                    {user?.displayName || user?.email || 'Utilisateur'}
                   </span>
                 </button>
 
