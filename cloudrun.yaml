@@ -1,0 +1,54 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ebios-ai-service
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "10"
+        autoscaling.knative.dev/minScale: "0"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/memory: "2Gi"
+        run.googleapis.com/cpu: "1000m"
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      containers:
+      - image: gcr.io/PROJECT_ID/ebios-ai-service:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: ENVIRONMENT
+          value: "production"
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "PROJECT_ID"
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+          periodSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 0
+          timeoutSeconds: 1
+          periodSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
