@@ -1,10 +1,6 @@
 MIT License
 
-<<<<<<< HEAD
 Copyright (c) 2024 GLOBACOM3000 / Abbas BENTERKI
-=======
-Copyright (c) 2024 abk1969
->>>>>>> 1469d1ad1a2db2e45a00cdbf1f8370de06426f02
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,12 +19,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-<<<<<<< HEAD
 
 Additional Terms:
 
 1. Commercial Use:
-   - The Community Edition of EBIOS Cloud Pro is free for non-commercial use
+   - The Community Edition of EBIOS AI Manager is free for non-commercial use
    - Commercial use requires a valid license from GLOBACOM3000
    - Contact contact@ebioscloud.pro for commercial licensing options
 
@@ -41,7 +36,7 @@ Additional Terms:
    - You retain copyright of your contributions while granting GLOBACOM3000 a perpetual license to use them
 
 4. Trademark:
-   - "EBIOS Cloud Pro" and related logos are trademarks of GLOBACOM3000
+   - "EBIOS AI Manager" and related logos are trademarks of GLOBACOM3000
    - Use of these trademarks requires explicit permission
 
 5. Data Protection:
@@ -63,5 +58,3 @@ Additional Terms:
 
 For questions about licensing or commercial use, contact:
 licensing@ebioscloud.pro
-=======
->>>>>>> 1469d1ad1a2db2e45a00cdbf1f8370de06426f02

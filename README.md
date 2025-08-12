@@ -1,7 +1,6 @@
-<<<<<<< HEAD
-# EBIOS AI Manager - Professional Edition
+# EBIOS AI Manager
 
-Une solution open source pour la gestion des analyses de risques selon la méthode EBIOS RM.
+Une solution open source pour la gestion des analyses de risques selon la méthode EBIOS RM, assistée par l'intelligence artificielle.
 
 ## Prérequis
 
@@ -146,7 +145,3 @@ Distribué sous la licence MIT. Voir `LICENSE` pour plus d'informations.
 ## Crédits
 
 Développé et maintenu par GLOBACOM3000 / Abbas BENTERKI
-=======
-# Ebios_AI_manager
-Ebios RM assisted with AI 
->>>>>>> 1469d1ad1a2db2e45a00cdbf1f8370de06426f02
