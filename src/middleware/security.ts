@@ -97,7 +97,15 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     }
 
     // Vérifier le token JWT
-    const jwtSecret = import.meta.env.VITE_JWT_SECRET || 'dev-jwt-secret-key-not-for-production';
+    const jwtSecret = import.meta.env.VITE_JWT_SECRET;
+    
+    if (!jwtSecret) {
+      logger.error('JWT secret manquant', { path: req.path });
+      return res.status(500).json({
+        error: 'Configuration de sécurité incomplète',
+        code: 'MISSING_JWT_SECRET'
+      });
+    }
     const decoded = jwt.verify(token, jwtSecret) as any;
     
     // Valider la session

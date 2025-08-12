@@ -3,16 +3,22 @@ import { getFirestore, type Firestore, enableNetwork, disableNetwork, connectFir
 import { getAuth, type Auth } from 'firebase/auth';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-// Configuration Firebase officielle (directement depuis la console Firebase)
+// Configuration Firebase sécurisée via variables d'environnement
 const firebaseConfig = {
-  apiKey: "AIzaSyCN4GaNMnshiDw0Z0dgGnhmgbokVyd7LmA",
-  authDomain: "ebiosdatabase.firebaseapp.com",
-  projectId: "ebiosdatabase",
-  storageBucket: "ebiosdatabase.firebasestorage.app",
-  messagingSenderId: "1065555617003",
-  appId: "1:1065555617003:web:876f78760b435289a74aae",
-  measurementId: "G-WSY1EEH01H"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+// Validation de la configuration
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error('❌ Configuration Firebase incomplète. Vérifiez vos variables d\'environnement VITE_FIREBASE_*');
+  throw new Error('Configuration Firebase manquante');
+}
 
 // 🔧 CORRECTION: Logs seulement en développement
 if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
