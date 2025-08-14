@@ -66,7 +66,7 @@ class PythonAIIntegrationService {
   private healthCheckInterval: number = 30000; // 30 secondes
 
   constructor() {
-    this.baseUrl = import.meta.env.VITE_PYTHON_AI_SERVICE_URL || 'http://localhost:8000';
+    this.baseUrl = import.meta.env.VITE_PYTHON_AI_SERVICE_URL || '/api/ai';
     this.checkServiceHealth();
     
     // Vérification périodique de la santé du service

@@ -265,7 +265,7 @@ const IntelligentWorkshopAlert: React.FC<IntelligentWorkshopAlertProps> = ({
       <div className="p-6 bg-gray-50 border-t">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            💡 <strong>Conseil :</strong> Complétez les critères obligatoires pour débloquer la suite
+            🎯 <strong>EBIOS RM :</strong> Complétez les éléments obligatoires pour valider le socle de sécurité
           </div>
           {requiredIncomplete.length === 0 && onContinue && (
             <Button onClick={onContinue}>

@@ -190,7 +190,7 @@ export interface EssentialAsset {
   type: 'process' | 'information' | 'know_how'; // Types EBIOS RM
   category: 'mission_critical' | 'business_critical' | 'operational';
   criticalityLevel: 'essential' | 'important' | 'useful';
-  businessValueIds: string[]; // Référence vers les valeurs métier supportées
+  supportedBusinessValues: string[]; // IDs des valeurs métier que ce bien essentiel supporte
   supportingAssets: SupportingAsset[];
   dreadedEvents: DreadedEvent[];
   stakeholders: string[];
@@ -237,7 +237,7 @@ export interface BusinessValue {
   description: string;
   category: 'reputation' | 'trust' | 'competitive_advantage' | 'financial' | 'regulatory' | 'operational';
   priority: GravityScale;
-  essentialAssetIds: string[]; // Référence vers les biens essentiels qui supportent cette valeur
+  supportingEssentialAssets: string[]; // IDs des biens essentiels qui supportent cette valeur métier
   missionId: string;
   createdAt: string;
   updatedAt: string;

@@ -1195,10 +1195,10 @@ export class AgentFactory {
   private getSimplifiedScenarioGeneration(input: any, context: any): any {
     return {
       scenarios: [
-        { id: 'S001', description: 'Scénario simplifié 1', likelihood: 0.5 },
-        { id: 'S002', description: 'Scénario simplifié 2', likelihood: 0.3 }
+        { id: 'S001', description: 'Scénario simplifié 1', likelihood: 2 }, // Échelle EBIOS RM 1-4
+        { id: 'S002', description: 'Scénario simplifié 2', likelihood: 1 }  // Échelle EBIOS RM 1-4
       ],
-      confidence: 0.5,
+      confidence: 2, // Échelle EBIOS RM 1-4 (2 = Faible confiance)
       source: 'simplified_logic'
     };
   }

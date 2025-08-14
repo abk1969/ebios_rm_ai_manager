@@ -88,3 +88,58 @@ backups/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Temporary & Debug Files
+*.tmp
+*.temp
+*.log
+*.stackdump
+nul
+*.pid
+*.seed
+*.pid.lock
+
+# Development Scripts (temporary)
+start-*.js
+start-*.sh
+start-*.bat
+restart-*.js
+restart-*.sh
+restart-*.bat
+stop-*.sh
+debug-*.js
+quick-*.js
+test-*.js
+fix-*.js
+analyze-*.js
+audit-*.js
+diagnose-*.js
+harmonize-*.js
+optimize-*.js
+generate-*.js
+validation-*.js
+
+# Reports & Analysis (temporary)
+*-report.json
+*-analysis.json
+*-audit*.json
+diagnostic*.json
+harmonization*.json
+coherence*.json
+interface-*.json
+ebios-*.json
+mcp-*.json
+ai-*.json
+
+# Documentation (temporary)
+*DEBUG*.md
+*PLAN*.md
+*GUIDE*.md
+*TEST*.md
+*FINAL*.md
+*AUDIT*.md
+
+# Tools & Utilities
+tools/
+temp/
+tmp/

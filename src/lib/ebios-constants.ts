@@ -9,9 +9,9 @@ export const EBIOS_SCALES: EbiosScale = {
     4: 'Critique'
   },
   likelihood: {
-    1: 'Minimal',
-    2: 'Significatif',
-    3: 'Maximal', 
+    1: 'Négligeable',
+    2: 'Limitée',
+    3: 'Importante', 
     4: 'Critique'
   },
   risk: {

@@ -711,8 +711,8 @@ export class AccessImporter {
       ],
       relatedEvents: [],
       probabilityAssessment: {
-        likelihood: 0.6,
-        confidence: 0.8,
+        likelihood: 2, // Échelle EBIOS RM 1-4 (2 = Faible)
+        confidence: 3, // Échelle EBIOS RM 1-4 (3 = Élevée)
         factors: ["Exposition externe élevée", "Attractivité de la cible"]
       }
     };

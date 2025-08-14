@@ -1,0 +1,29 @@
+[project]
+name = "ebios-ai-service"
+version = "1.0.0"
+description = "Service IA pour EBIOS Risk Manager"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0.0",
+    "flask-cors>=4.0.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "sqlalchemy>=2.0.0",
+    "psycopg2-binary>=2.9.0",
+    "requests>=2.31.0",
+    "openai>=1.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "structlog>=23.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]

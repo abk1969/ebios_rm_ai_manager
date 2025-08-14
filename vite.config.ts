@@ -55,11 +55,12 @@ export default defineConfig({
     host: true,
     cors: true,
     proxy: {
-      // Proxy pour le service AI local
-      '/api/ai': {
-        target: 'http://localhost:8080',
+      // Proxy pour l'API Node.js principale
+      '/api': {
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
+        // Ne pas proxy /api/ai car géré par le service Node.js qui proxy vers Python
       },
     },
     // Configuration pour les émulateurs Firebase

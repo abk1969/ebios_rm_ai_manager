@@ -3,8 +3,9 @@
  * Test complet de l'orchestration des agents IA et de l'expérience utilisateur
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const fs = require('fs');
-const path = require('path');
+// const path = require('path'); // Unused
 
 console.log('🧪 TEST DE BOUT EN BOUT - INTÉGRATION IA EBIOS');
 console.log('=' .repeat(60));
@@ -106,7 +107,7 @@ function testTypeScriptIntegration() {
         
         return integrationScore === requiredElements.length && aiScore === aiElements.length;
         
-    } catch (error) {
+    } catch (__error) {
         console.log(`❌ Erreur lecture fichiers: ${error.message}`);
         return false;
     }
@@ -170,7 +171,7 @@ function testPythonArchitecture() {
         
         return pythonScore === pythonElements.length && modelScore === modelElements.length;
         
-    } catch (error) {
+    } catch (__error) {
         console.log(`❌ Erreur lecture Python: ${error.message}`);
         return false;
     }
@@ -216,7 +217,7 @@ function testWorkshop1Integration() {
         
         return workshopScore === workshopElements.length && isAIAssistantActive;
         
-    } catch (error) {
+    } catch (__error) {
         console.log(`❌ Erreur lecture Workshop 1: ${error.message}`);
         return false;
     }
@@ -255,7 +256,7 @@ function testIntelligentAlerts() {
         
         return alertScore === alertElements.length;
         
-    } catch (error) {
+    } catch (__error) {
         console.log(`❌ Erreur lecture Alertes: ${error.message}`);
         return false;
     }
@@ -283,7 +284,7 @@ function runEndToEndTests() {
             if (result) {
                 passedTests++;
             }
-        } catch (error) {
+        } catch (__error) {
             console.log(`❌ Erreur test ${name}: ${error.message}`);
             results.push({ name, passed: false });
         }

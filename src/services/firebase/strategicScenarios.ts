@@ -349,7 +349,7 @@ export const StrategicScenarioUtils = {
 
     // Facteurs ISO 27005 - Attractivité de la cible
     if (businessValue.category === 'primary' && businessValue.priority >= 3) {
-      likelihood = Math.min(4, likelihood + 0.5);
+      likelihood = Math.min(4, likelihood + 1); // Utiliser incréments entiers pour échelle EBIOS RM
     }
 
     // Facteurs ISO 27005 - Vulnérabilité

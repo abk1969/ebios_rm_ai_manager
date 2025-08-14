@@ -240,7 +240,7 @@ describe('🔄 TESTS COMPATIBILITÉ BACKWARD', () => {
     console.log('🔍 Test préservation workflows EBIOS...');
 
     // Test workflow complet Atelier 1
-    const workshop1Legacy = await legacyAPI.getWorkshopData(testStudyId, 1);
+    const _workshop1Legacy = await legacyAPI.getWorkshopData(testStudyId, 1);
     const workshop1New = await newAgentAPI.getWorkshopData(testStudyId, 1);
 
     // Vérification structure workflow
@@ -255,7 +255,7 @@ describe('🔄 TESTS COMPATIBILITÉ BACKWARD', () => {
       description: 'Test description'
     };
 
-    const legacyEntity = await legacyAPI.createEntity(testStudyId, entityData);
+    const _legacyEntity = await legacyAPI.createEntity(testStudyId, entityData);
     const newEntity = await newAgentAPI.createEntity(testStudyId, entityData);
 
     // Vérification compatibilité création
@@ -331,7 +331,7 @@ describe('🔄 TESTS COMPATIBILITÉ BACKWARD', () => {
   test('✅ Agent integration is transparent to legacy clients', async () => {
     console.log('🔍 Test transparence intégration agents...');
 
-    const response = await newAgentAPI.getRisks(testStudyId);
+    const _response = await newAgentAPI.getRisks(testStudyId);
 
     // Les métadonnées d'agents ne doivent pas casser les clients legacy
     expect(response.success).toBe(true);

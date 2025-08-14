@@ -160,27 +160,61 @@ const AddDreadedEventModal: React.FC<AddDreadedEventModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // 🔧 CORRECTION: Enrichir les données avec les champs requis
-      const enrichedData = {
-        ...formData,
-        missionId, // Ajouter missionId requis
-        essentialAssetId: formData.impactedBusinessValues[0] || '', // 🔧 CORRECTION: Mapper vers essentialAssetId
-        businessValueId: formData.impactedBusinessValues[0] || '', // Maintenir pour compatibilité
-        impactType: 'availability' as const, // Valeur par défaut
-        consequences: formData.consequencesDescription || formData.description,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      // 🔧 CORRECTION: Déterminer l'impact type dynamiquement
+      const determineImpactType = (name: string, description: string): 'availability' | 'integrity' | 'confidentiality' | 'authenticity' | 'non_repudiation' => {
+        const text = `${name} ${description}`.toLowerCase();
+
+        if (text.includes('indisponib') || text.includes('panne') || text.includes('arrêt')) {
+          return 'availability';
+        }
+        if (text.includes('modif') || text.includes('altér') || text.includes('corrupt')) {
+          return 'integrity';
+        }
+        if (text.includes('divulg') || text.includes('fuite') || text.includes('vol')) {
+          return 'confidentiality';
+        }
+        if (text.includes('usurp') || text.includes('falsif') || text.includes('imitat')) {
+          return 'authenticity';
+        }
+        if (text.includes('répudi') || text.includes('déni') || text.includes('contestat')) {
+          return 'non_repudiation';
+        }
+
+        return 'availability'; // Valeur par défaut
       };
 
-      console.log('🚨 Données événement redouté à créer:', enrichedData);
-      await onSubmit(enrichedData);
+      // 🔧 CORRECTION: Créer un événement redouté pour chaque valeur métier impactée
+      for (const businessValueId of formData.impactedBusinessValues) {
+        const dynamicImpactType = determineImpactType(formData.name, formData.description);
+
+        const enrichedData = {
+          name: formData.name,
+          description: formData.description,
+          missionId,
+          essentialAssetId: businessValueId, // 🔧 CORRECTION: Utiliser essentialAssetId
+          businessValueId, // Maintenir pour compatibilité
+          gravity: formData.gravity,
+          impactType: dynamicImpactType,
+          consequences: formData.consequencesDescription || formData.description,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          // Champs additionnels pour compatibilité
+          impactedBusinessValues: formData.impactedBusinessValues,
+          impactsList: formData.impactsList || [],
+          valeurMetierNom: formData.valeurMetierNom || ''
+        };
+
+        console.log('🚨 Données événement redouté à créer:', enrichedData);
+        await onSubmit(enrichedData);
+      }
+
       onClose();
     } catch (error) {
       console.error('Erreur lors de la création:', error);

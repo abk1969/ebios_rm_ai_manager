@@ -21,30 +21,10 @@ const BusinessValueCard: React.FC<BusinessValueCardProps> = ({ businessValue, on
         <p className="mt-2 text-sm text-gray-600">{businessValue.description}</p>
 
         <div className="mt-4">
-          <h4 className="text-sm font-medium text-gray-900">Dreaded Events</h4>
-          <ul className="mt-2 space-y-1">
-            {businessValue.dreadedEvents.map((event: DreadedEvent) => (
-              <li key={event.id} className="text-sm text-gray-600">
-                <div className="flex justify-between">
-                  <span>{event.name}</span>
-                  <span className="text-xs">
-                    Impact: {event.impact} | Likelihood: {event.likelihood}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mt-4">
-          <h4 className="text-sm font-medium text-gray-900">Dreaded Events</h4>
-          <ul className="mt-2 space-y-1">
-            {businessValue.dreadedEvents.map((event) => (
-              <li key={event.id} className="text-sm text-gray-600">
-                {event.name}
-              </li>
-            ))}
-          </ul>
+          <h4 className="text-sm font-medium text-gray-900">Biens Essentiels Supportés</h4>
+          <div className="mt-2 text-sm text-gray-600">
+            {businessValue.supportingEssentialAssets.length} bien(s) essentiel(s)
+          </div>
         </div>
       </div>
       <div className="bg-gray-50 px-6 py-3">

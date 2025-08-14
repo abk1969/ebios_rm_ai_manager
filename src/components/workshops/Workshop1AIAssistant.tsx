@@ -3,7 +3,7 @@
  * Composant d'aide contextuelle et de suggestions pour l'atelier 1
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Lightbulb,
   HelpCircle,
@@ -28,6 +28,7 @@ import { logger } from '../../services/logging/SecureLogger';
 import { missionContextualAI } from '../../services/ai/MissionContextualAIOrchestrator';
 
 interface AIAssistantProps {
+  missionId: string;
   currentStep: string;
   businessValues: any[];
   essentialAssets: any[];
@@ -55,6 +56,7 @@ interface LocalAISuggestion {
 }
 
 const Workshop1AIAssistant: React.FC<AIAssistantProps> = ({
+  missionId,
   currentStep,
   businessValues,
   essentialAssets,
@@ -191,7 +193,7 @@ const Workshop1AIAssistant: React.FC<AIAssistantProps> = ({
   /**
    * 🎯 Charge les suggestions contextuelles basées sur la mission
    */
-  const loadMissionContextualSuggestions = async () => {
+  const loadMissionContextualSuggestions = useCallback(async () => {
     if (!missionId || isLoadingContextual) return;
 
     setIsLoadingContextual(true);
@@ -242,7 +244,7 @@ const Workshop1AIAssistant: React.FC<AIAssistantProps> = ({
     } finally {
       setIsLoadingContextual(false);
     }
-  };
+  }, [missionId, isLoadingContextual]);
 
   const generateContextualSuggestions = () => {
     const newSuggestions: LocalAISuggestion[] = [];

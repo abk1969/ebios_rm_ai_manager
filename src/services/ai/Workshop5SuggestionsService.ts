@@ -34,7 +34,7 @@ export class Workshop5SuggestionsService {
     const existingNames = existingMeasures.map(m => m.name.toLowerCase());
     
     // Analyser les scénarios pour identifier les besoins
-    const criticalScenarios = scenarios.filter(s => (s.likelihood || 2) * (s.gravity || 2) >= 9);
+    const criticalScenarios = scenarios.filter(s => (s.likelihood || 2) * (s.gravity || 2) >= 12); // Échelle EBIOS RM: risque élevé = 12/16
     const hasDataAssets = assets.some(a => a.name.toLowerCase().includes('données') || a.name.toLowerCase().includes('information'));
     const hasSystemAssets = assets.some(a => a.name.toLowerCase().includes('système') || a.name.toLowerCase().includes('serveur'));
     const hasNetworkAssets = assets.some(a => a.name.toLowerCase().includes('réseau') || a.name.toLowerCase().includes('infrastructure'));

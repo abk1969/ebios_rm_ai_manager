@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sparkles, RefreshCw, Check, Copy } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, RefreshCw, Check, Copy, ThumbsUp, ThumbsDown, Info } from 'lucide-react';
 import Button from '../ui/button';
 import { cn } from '../../lib/utils';
 
@@ -7,6 +7,15 @@ interface Suggestion {
   text: string;
   confidence: number; // 0-1
   source?: string; // Ex: "Basé sur des cas similaires"
+  id?: string;
+  category?: string;
+  explanation?: string;
+}
+
+interface SuggestionFeedback {
+  suggestionId: string;
+  rating: 'positive' | 'negative';
+  timestamp: string;
 }
 
 interface AIFieldSuggestionProps {
@@ -15,9 +24,13 @@ interface AIFieldSuggestionProps {
   suggestions: Suggestion[];
   onApply: (value: string) => void;
   onRefresh?: () => void;
+  onFeedback?: (feedback: SuggestionFeedback) => void;
   isLoading?: boolean;
   className?: string;
   placeholder?: string;
+  showFeedback?: boolean;
+  showExplanations?: boolean;
+  maxSuggestions?: number;
 }
 
 const AIFieldSuggestion: React.FC<AIFieldSuggestionProps> = ({
@@ -26,12 +39,18 @@ const AIFieldSuggestion: React.FC<AIFieldSuggestionProps> = ({
   suggestions,
   onApply,
   onRefresh,
+  onFeedback,
   isLoading = false,
   className,
-  placeholder = "L'IA peut vous aider..."
+  placeholder = "L'IA peut vous aider...",
+  showFeedback = true,
+  showExplanations = true,
+  maxSuggestions = 5
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState<Set<string>>(new Set());
+  const [expandedExplanations, setExpandedExplanations] = useState<Set<string>>(new Set());
 
   const handleCopy = (text: string, index: number) => {
     navigator.clipboard.writeText(text);
@@ -42,6 +61,31 @@ const AIFieldSuggestion: React.FC<AIFieldSuggestionProps> = ({
   const handleApply = (suggestion: Suggestion, index: number) => {
     onApply(suggestion.text);
     setSelectedIndex(index);
+  };
+
+  const handleFeedback = (suggestion: Suggestion, rating: 'positive' | 'negative') => {
+    if (!suggestion.id || !onFeedback) return;
+
+    const feedback: SuggestionFeedback = {
+      suggestionId: suggestion.id,
+      rating,
+      timestamp: new Date().toISOString()
+    };
+
+    onFeedback(feedback);
+    setFeedbackGiven(prev => new Set([...prev, suggestion.id!]));
+  };
+
+  const toggleExplanation = (suggestionId: string) => {
+    setExpandedExplanations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(suggestionId)) {
+        newSet.delete(suggestionId);
+      } else {
+        newSet.add(suggestionId);
+      }
+      return newSet;
+    });
   };
 
   const getConfidenceColor = (confidence: number) => {

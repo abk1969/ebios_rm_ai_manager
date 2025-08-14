@@ -40,13 +40,13 @@ export class AIEnrichmentService {
     return {
       ...dreadedEvent,
       aiAnalysis: {
-        impactSeverity: (dreadedEvent.gravity || 2) * 0.25,
+        impactSeverity: dreadedEvent.gravity || 2, // Échelle EBIOS RM 1-4 directe
         cascadingEffects: this.analyzeCascadingEffects(dreadedEvent),
         mitigationSuggestions: this.generateMitigationSuggestions(dreadedEvent),
         relatedEvents: [],
         probabilityAssessment: {
           likelihood: this.assessLikelihood(dreadedEvent),
-          confidence: 0.75,
+          confidence: 3, // Échelle EBIOS RM 1-4 (3 = Élevée)
           factors: this.identifyRiskFactors(dreadedEvent)
         }
       }
@@ -153,14 +153,14 @@ export class AIEnrichmentService {
 
   private static calculateCriticalityScore(value: Partial<BusinessValue>): number {
     const priorityScore = (value.priority || 2) * 0.25;
-    const criticalityMap = { essential: 1, important: 0.75, useful: 0.5 };
+    const criticalityMap = { essential: 4, important: 3, useful: 2 }; // Échelle EBIOS RM 1-4
     const criticalityScore = criticalityMap[value.criticalityLevel || 'useful'];
     return (priorityScore + criticalityScore) / 2;
   }
 
   private static calculateRiskExposure(value: Partial<BusinessValue>): number {
     // Simulation basée sur la catégorie et la priorité
-    const categoryRisk = { primary: 0.9, support: 0.6, management: 0.5, essential: 0.95 };
+    const categoryRisk = { primary: 4, support: 3, management: 2, essential: 4 }; // Échelle EBIOS RM 1-4
     const baseRisk = categoryRisk[value.category || 'support'] || 0.6;
     return baseRisk * ((value.priority || 2) * 0.25);
   }
@@ -204,10 +204,10 @@ export class AIEnrichmentService {
 
   private static calculateThreatLevel(source: Partial<RiskSource>): number {
     const pertinence = (source.pertinence || 2) * 0.25;
-    const expertiseMap = { limited: 0.25, moderate: 0.5, high: 0.75, expert: 1 };
-    const expertise = typeof source.expertise === 'string' ? expertiseMap[source.expertise] || 0.5 : (source.expertise || 2) * 0.25;
-    const resourceMap = { limited: 0.25, moderate: 0.5, high: 0.75, unlimited: 1 };
-    const resources = typeof source.resources === 'string' ? resourceMap[source.resources as keyof typeof resourceMap] || 0.5 : 0.5;
+    const expertiseMap = { limited: 1, moderate: 2, high: 3, expert: 4 }; // Échelle EBIOS RM 1-4
+    const expertise = typeof source.expertise === 'string' ? expertiseMap[source.expertise] || 2 : (source.expertise || 2);
+    const resourceMap = { limited: 1, moderate: 2, high: 3, unlimited: 4 }; // Échelle EBIOS RM 1-4
+    const resources = typeof source.resources === 'string' ? resourceMap[source.resources as keyof typeof resourceMap] || 2 : 2;
     const motivation = (source.motivation || 2) * 0.25;
     
     return (pertinence + expertise + resources + motivation) / 4;
