@@ -16,7 +16,7 @@ const users = [
 ];
 
 // JWT Secret (should be in environment variables)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_jwt_secret_in_production';
 
 // Login endpoint
 router.post('/login', [

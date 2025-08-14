@@ -21,9 +21,9 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=ebios
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
-      - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-change_this_password}
+      - JWT_SECRET=${JWT_SECRET:-change_this_jwt_secret_in_production}
       - FRONTEND_URL=http://localhost:80
       - PYTHON_AI_SERVICE_URL=http://python-ai:8081
     depends_on:
@@ -45,8 +45,8 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - DB_NAME=ebios
-      - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-change_this_password}
     depends_on:
       - db
     networks:
@@ -59,8 +59,8 @@ services:
     image: postgres:15
     environment:
       POSTGRES_DB: ebios
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_this_password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./api/init.sql:/docker-entrypoint-initdb.d/init.sql

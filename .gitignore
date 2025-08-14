@@ -23,11 +23,36 @@ dist-ssr
 *.sln
 *.sw?
 
-# Secrets
+# Secrets & Environment Files
 .env
 .env.local
+.env.production
+.env.workshop1
+.env.staging
+.env.testing
 .env.*.local
+.env.*.production
+.env.*.workshop*
+
+# Firebase & Google Cloud credentials
 firebase-credentials.json
+google-credentials.json
+service-account-key.json
+gcp-service-account.json
+
+# API Keys & Certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.jks
+api-keys.json
+secrets.json
+
+# Database dumps & backups with potential secrets
+*.sql.gz
+backup-*.sql
+dump-*.sql
 
 # Python
 __pycache__/

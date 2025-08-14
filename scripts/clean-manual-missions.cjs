@@ -7,14 +7,14 @@
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, getDocs, deleteDoc, doc, query, where } = require('firebase/firestore');
 
-// Configuration Firebase (production réelle)
+// Configuration Firebase (À REMPLACER PAR VOS VRAIES VALEURS)
 const firebaseConfig = {
-  apiKey: "AIzaSyCN4GaNMnshiDw0Z0dgGnhmgbokVyd7LmA",
-  authDomain: "ebiosdatabase.firebaseapp.com",
-  projectId: "ebiosdatabase",
-  storageBucket: "ebiosdatabase.firebasestorage.app",
-  messagingSenderId: "1065555617003",
-  appId: "1:1065555617003:web:876f78760b435289a74aae"
+  apiKey: process.env.VITE_FIREBASE_API_KEY || "your_firebase_api_key_here",
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
+  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "your_project_id",
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "your-project.firebasestorage.app",
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "your_sender_id",
+  appId: process.env.VITE_FIREBASE_APP_ID || "your_app_id"
 };
 
 // Initialisation Firebase
