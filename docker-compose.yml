@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   webapp:
@@ -26,13 +25,35 @@ services:
       - DB_PASSWORD=postgres
       - JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
       - FRONTEND_URL=http://localhost:80
+      - PYTHON_AI_SERVICE_URL=http://python-ai:8081
     depends_on:
       - db
+      - python-ai
     networks:
       - ebios-network
     volumes:
       - ./api:/app
       - /app/node_modules
+
+  python-ai:
+    build: ./python-ai-service
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - FLASK_ENV=development
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=ebios
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - db
+    networks:
+      - ebios-network
+    volumes:
+      - ./python-ai-service:/app
+      - /app/venv
 
   db:
     image: postgres:15

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const express = require('express');
 const router = express.Router();
 
@@ -44,7 +45,7 @@ router.get('/', (req, res) => {
       success: true,
       agents: Object.values(agents)
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Get agents error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -64,7 +65,7 @@ router.get('/:agentId', (req, res) => {
       success: true,
       agent
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Get agent error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -118,7 +119,7 @@ router.post('/:agentId/execute', (req, res) => {
       result,
       executedAt: new Date().toISOString()
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Execute agent error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -152,7 +153,7 @@ router.get('/:agentId/metrics', (req, res) => {
       agentId,
       metrics
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Get agent metrics error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

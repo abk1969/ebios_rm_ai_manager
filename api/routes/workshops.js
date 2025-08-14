@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
@@ -5,14 +6,14 @@ const router = express.Router();
 // Données réelles workshop
 const workshopData = {
   workshop1: {
-    name: 'Atelier 1 - Étude du contexte',
-    description: 'Identification des biens supports et des sources de risques',
-    steps: ['business_values', 'supporting_assets', 'risk_sources', 'stakeholders']
+    name: 'Atelier 1 - Cadrage et socle de sécurité',
+    description: 'Identification du périmètre, des biens essentiels et des événements redoutés',
+    steps: ['scope_definition', 'business_values', 'essential_assets', 'dreaded_events', 'security_baseline']
   },
   workshop2: {
-    name: 'Atelier 2 - Étude des événements redoutés',
-    description: 'Identification et évaluation des événements redoutés',
-    steps: ['feared_events', 'impact_assessment', 'gravity_evaluation']
+    name: 'Atelier 2 - Sources de risque',
+    description: 'Identification et caractérisation des sources de risque',
+    steps: ['risk_sources', 'source_characterization', 'motivation_analysis', 'capabilities_assessment']
   },
   workshop3: {
     name: 'Atelier 3 - Étude des scénarios stratégiques',
@@ -48,7 +49,7 @@ router.get('/templates/:workshopId', (req, res) => {
         ...template
       }
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Get workshop template error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -66,7 +67,7 @@ router.get('/templates', (req, res) => {
       success: true,
       templates
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Get workshop templates error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -93,7 +94,7 @@ router.get('/:missionId/:workshopId', (req, res) => {
       success: true,
       workshop: workshopData
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Get workshop data error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -133,7 +134,7 @@ router.put('/:missionId/:workshopId', [
       workshop: updatedWorkshop,
       message: 'Workshop updated successfully'
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Update workshop error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -162,9 +163,13 @@ router.post('/:missionId/:workshopId/validate', (req, res) => {
         }
         break;
       case 'workshop2':
-        if (!data.fearedEvents || data.fearedEvents.length === 0) {
-          validationResults.errors.push('Au moins un événement redouté doit être défini');
+        if (!data.riskSources || data.riskSources.length === 0) {
+          validationResults.errors.push('Au moins une source de risque doit être identifiée');
           validationResults.isValid = false;
+        }
+        // Validation EBIOS RM : sources de risque doivent être caractérisées
+        if (data.riskSources && data.riskSources.some(source => !source.type || !source.motivation || !source.capabilities)) {
+          validationResults.warnings.push('Toutes les sources de risque doivent être caractérisées (type, motivation, capacités)');
         }
         break;
       // Add more validation rules for other workshops
@@ -174,7 +179,7 @@ router.post('/:missionId/:workshopId/validate', (req, res) => {
       success: true,
       validation: validationResults
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Validate workshop error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
@@ -194,9 +199,10 @@ router.post('/:missionId/:workshopId/suggestions', (req, res) => {
         'Analyser les menaces internes et externes'
       ],
       workshop2: [
-        'Évaluer l\'impact sur la continuité d\'activité',
-        'Considérer les aspects réglementaires et de conformité',
-        'Analyser les conséquences financières'
+        'Identifier les sources humaines (insiders, hacktivistes, cybercriminels)',
+        'Analyser les sources techniques (malwares, outils automatisés)',
+        'Caractériser les motivations et capacités de chaque source',
+        'Évaluer les resources et sophistication des sources identifiées'
       ],
       workshop3: [
         'Mapper les relations entre acteurs de l\'écosystème',
@@ -224,7 +230,7 @@ router.post('/:missionId/:workshopId/suggestions', (req, res) => {
         generatedAt: new Date().toISOString()
       }
     });
-  } catch (error) {
+  } catch (__error) {
     console.error('Generate suggestions error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

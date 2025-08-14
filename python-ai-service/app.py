@@ -10,13 +10,17 @@ import logging
 import json
 from datetime import datetime
 
+# Configuration base de données unifiée
+from config.database import init_database, get_db_session, database_health, close_database
+from models.ai_models import AISession, AgentMemory, AISuggestion, SemanticAnalysis, AIQueryCache, AIMetric
+
 # Configuration de l'application Flask
 app = Flask(__name__)
 
 # Configuration CORS pour le développement local
 if os.environ.get('FLASK_ENV') == 'development':
     CORS(app, origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:5174"])
-    print("🏠 Mode développement local activé")
+    print("Mode developpement local active")
 else:
     CORS(app, origins=["*"])  # Permettre toutes les origines pour Cloud Run
 
@@ -26,6 +30,21 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Initialisation de la base de données
+database_initialized = False
+
+def initialize_app():
+    """Initialise l'application et la base de données"""
+    global database_initialized
+    if not database_initialized:
+        logger.info("🔗 Initialisation de la base de données PostgreSQL...")
+        if init_database():
+            database_initialized = True
+            logger.info("✅ Base de données PostgreSQL connectée")
+        else:
+            logger.error("❌ Erreur connexion PostgreSQL - Mode dégradé")
+    return database_initialized
 
 @app.route('/', methods=['GET'])
 def root():
@@ -46,14 +65,26 @@ def root():
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Point de contrôle de santé pour Cloud Run"""
+    """Point de contrôle de santé avec vérification base de données"""
+    # Vérifier la base de données
+    db_status = database_health()
+
+    overall_status = 'healthy' if db_status.get('status') == 'healthy' else 'degraded'
+
     return jsonify({
-        'status': 'healthy',
+        'status': overall_status,
         'service': 'EBIOS AI Service',
         'version': '1.0.0',
         'timestamp': datetime.now().isoformat(),
         'environment': os.environ.get('ENVIRONMENT', 'production'),
-        'port': os.environ.get('PORT', '8080')
+        'port': os.environ.get('PORT', '8081'),
+        'database': db_status,
+        'features': {
+            'postgresql': database_initialized,
+            'ai_suggestions': True,
+            'semantic_analysis': True,
+            'agent_memory': True
+        }
     }), 200
 
 @app.route('/api/ai/analyze', methods=['POST'])
@@ -242,15 +273,23 @@ def internal_error(error):
     return jsonify({'error': 'Erreur interne du serveur'}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 8081))
     debug_mode = os.environ.get('FLASK_ENV') == 'development'
+
+    # Initialiser l'application
+    initialize_app()
 
     if debug_mode:
         logger.info(f"🏠 Démarrage du service EBIOS AI en mode développement sur le port {port}")
         print(f"🌐 Service accessible sur: http://localhost:{port}")
         print(f"🔍 Health check: http://localhost:{port}/health")
         print(f"🤖 API d'analyse: http://localhost:{port}/api/ai/analyze")
+        print(f"🗄️ Base de données: {'PostgreSQL' if database_initialized else 'Mode dégradé'}")
     else:
         logger.info(f"🚀 Démarrage du service EBIOS AI sur le port {port}")
 
-    app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    try:
+        app.run(host='0.0.0.0', port=port, debug=debug_mode)
+    finally:
+        # Nettoyage à la fermeture
+        close_database()

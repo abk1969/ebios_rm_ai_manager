@@ -1,4 +1,5 @@
 const express = require('express');
+const { healthMonitor } = require('../services/health-monitor');
 const router = express.Router();
 
 // Données de monitoring
@@ -319,5 +320,136 @@ function generateHistoricalData(period, metric) {
   
   return dataPoints;
 }
+
+// === ROUTES AVANCÉES AVEC HEALTH MONITOR ===
+
+/**
+ * GET /api/monitoring/services
+ * Statut détaillé de tous les services surveillés
+ */
+router.get('/services', async (req, res) => {
+  try {
+    const serviceResults = await healthMonitor.checkAllServices();
+
+    res.json({
+      success: true,
+      data: {
+        timestamp: new Date().toISOString(),
+        services: serviceResults
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la vérification des services',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/monitoring/services/:serviceName
+ * Statut d'un service spécifique
+ */
+router.get('/services/:serviceName', async (req, res) => {
+  try {
+    const { serviceName } = req.params;
+
+    if (!healthMonitor.services.has(serviceName)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Service non trouvé'
+      });
+    }
+
+    const healthData = await healthMonitor.checkServiceHealth(serviceName);
+    const metrics = healthMonitor.getDetailedMetrics()[serviceName];
+
+    res.json({
+      success: true,
+      data: {
+        service: serviceName,
+        health: healthData,
+        metrics
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la vérification du service',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/monitoring/advanced-alerts
+ * Alertes avancées du health monitor
+ */
+router.get('/advanced-alerts', (req, res) => {
+  try {
+    const { acknowledged } = req.query;
+    let alerts = healthMonitor.alerts;
+
+    if (acknowledged !== undefined) {
+      const isAcknowledged = acknowledged === 'true';
+      alerts = alerts.filter(alert => alert.acknowledged === isAcknowledged);
+    }
+
+    // Trier par timestamp décroissant
+    alerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    res.json({
+      success: true,
+      data: {
+        alerts,
+        total: alerts.length,
+        unacknowledged: healthMonitor.alerts.filter(a => !a.acknowledged).length
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de la récupération des alertes avancées',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/monitoring/services/register
+ * Enregistrer un nouveau service à surveiller
+ */
+router.post('/services/register', (req, res) => {
+  try {
+    const { name, url, healthEndpoint, timeout, retries, critical } = req.body;
+
+    if (!name || !url) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nom et URL du service requis'
+      });
+    }
+
+    healthMonitor.registerService(name, {
+      url,
+      healthEndpoint,
+      timeout,
+      retries,
+      critical
+    });
+
+    res.json({
+      success: true,
+      message: `Service ${name} enregistré pour monitoring`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Erreur lors de l\'enregistrement du service',
+      details: error.message
+    });
+  }
+});
 
 module.exports = router;
